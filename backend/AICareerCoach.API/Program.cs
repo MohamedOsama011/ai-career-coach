@@ -1,3 +1,5 @@
+using AICareerCoach.DAL.Data;
+using Microsoft.EntityFrameworkCore;
 
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.repository;
@@ -28,14 +30,15 @@ namespace AICareerCoach.API
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-            app.UseAuthorization();
+app.UseRouting();
 
+app.UseAuthorization();
 
-            app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            app.Run();
-        }
-    }
-}
+app.Run();
