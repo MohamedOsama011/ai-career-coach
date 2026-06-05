@@ -1,4 +1,7 @@
 
+using AICareerCoach.BLL.Services;
+using AICareerCoach.DAL.repository;
+
 namespace AICareerCoach.API
 {
     public class Program
@@ -13,7 +16,9 @@ namespace AICareerCoach.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            //inject repository and service 
+            builder.Services.AddScoped(typeof(IBaserepo<>),typeof(GenericRepo<>));
+            builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
