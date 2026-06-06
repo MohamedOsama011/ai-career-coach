@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AICareerCoach.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.DAL.repository
 {
     public class GenericRepo<T>:IBaserepo<T> where T : class
     {
-        //will be updated to right dbcontext name
-        private readonly dbcontext  context;
+        private readonly AICareerCoachDbContext context;
         private readonly DbSet<T> dbset;
-        public GenericRepo(dbcontext _context)
+        public GenericRepo(AICareerCoachDbContext _context)
         {
             context = _context;
-            dbset = context.Set<T>;
+            dbset = context.Set<T>();
         }
 
         public List<T> Getall()

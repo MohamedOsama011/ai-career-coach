@@ -18,8 +18,10 @@ namespace AICareerCoach.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //inject repository and service 
-            builder.Services.AddScoped(typeof(IBaserepo<>),typeof(GenericRepo<>));
+            builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
             var app = builder.Build();
 
@@ -30,15 +32,18 @@ namespace AICareerCoach.API
                 app.UseSwaggerUI();
             }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
-app.UseRouting();
+            app.UseRouting();
 
-app.UseAuthorization();
+            app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
+            app.Run();
+        }
+    }
+}
