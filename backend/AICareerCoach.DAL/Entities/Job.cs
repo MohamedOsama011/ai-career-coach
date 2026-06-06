@@ -21,5 +21,5 @@ public class Job
 
     // Navigation
 
-    public ICollection<Interview> Interviews { get; set; } = new List<Interview>();
+    public ICollection<mockInterview> Interviews { get; set; } = new List<mockInterview>();
 }

@@ -22,5 +22,5 @@ public class CV
 
     public ICollection<Roadmap> Roadmaps { get; set; } = new List<Roadmap>();
 
-    public ICollection<Interview> Interviews { get; set; } = new List<Interview>();
+    public ICollection<mockInterview> Interviews { get; set; } = new List<mockInterview>();
 }
