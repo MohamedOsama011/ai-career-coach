@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AICareerCoach.DTO": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
