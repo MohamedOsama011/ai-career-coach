@@ -1,10 +1,13 @@
-﻿using System;
+﻿using AICareerCoach.DAL.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AICareerCoach.DAL.Data;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace AICareerCoach.DAL.repository
 {
