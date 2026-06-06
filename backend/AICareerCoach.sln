@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36310.24 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AICareerCoach.API", "AICareerCoach.API\AICareerCoach.API.csproj", "{6B3A0D0D-CEFB-4314-89A4-B0765C0A3673}"
 EndProject
@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AICareerCoach.DTO", "AICareerCoach.DTO1\AICareerCoach.DTO.csproj", "{D259D0DF-39F4-4AE1-BE9A-24293809058F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,10 @@ Global
 		{1E150872-2A64-40C1-9039-1D979BCCEB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E150872-2A64-40C1-9039-1D979BCCEB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E150872-2A64-40C1-9039-1D979BCCEB8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D259D0DF-39F4-4AE1-BE9A-24293809058F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D259D0DF-39F4-4AE1-BE9A-24293809058F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D259D0DF-39F4-4AE1-BE9A-24293809058F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D259D0DF-39F4-4AE1-BE9A-24293809058F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
