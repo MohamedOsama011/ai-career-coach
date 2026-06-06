@@ -52,7 +52,7 @@ namespace AICareerCoach.BLL.services.cv
                 .ToList();
         }
 
-        public  Task DeleteCV(int cvId)
+        public  void DeleteCV(int cvId)
         {
             var cv = _cvRepo.GetbyId(cvId);
 
@@ -62,8 +62,6 @@ namespace AICareerCoach.BLL.services.cv
             _fileStorage.DeleteFile(cv.FilePath);
 
             _cvRepo.Delete(cv);
-
-            return Task.CompletedTask;
         }
     }
 }

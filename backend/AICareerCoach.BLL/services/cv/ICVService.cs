@@ -16,6 +16,6 @@ namespace AICareerCoach.BLL.services.cv
 
         List<CV> GetUserCVs(int userId);
 
-        Task DeleteCV(int cvId);
+        void DeleteCV(int cvId);
     }
 }

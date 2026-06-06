@@ -44,9 +44,9 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpDelete("{cvId}")]
-        public async Task<IActionResult> DeleteCV(int cvId)
+        public IActionResult DeleteCV(int cvId)
         {
-            await _cvService.DeleteCVAsync(cvId);
+             _cvService.DeleteCV(cvId);
 
             return Ok("CV Deleted Successfully");
         }
