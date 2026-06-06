@@ -25,7 +25,7 @@ namespace AICareerCoach.API
             //database configuration 
             builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
             options.UseSqlServer(
-                builder.Configuration.GetConnectionString("cs")));
+                builder.Configuration.GetConnectionString("ConnectionStrings")));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

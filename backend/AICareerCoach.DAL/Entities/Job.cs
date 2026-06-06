@@ -1,4 +1,4 @@
-﻿using AICareerCoach.DAL.Models;
+﻿using AICareerCoach.DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

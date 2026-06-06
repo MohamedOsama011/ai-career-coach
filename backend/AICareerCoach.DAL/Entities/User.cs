@@ -1,6 +1,6 @@
 ﻿using AICareerCoach.DAL.Entities;
 
-namespace AICareerCoach.DAL.Models
+namespace AICareerCoach.DAL.Entities
 {
     public class User
     {
