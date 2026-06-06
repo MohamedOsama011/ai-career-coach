@@ -1,8 +1,9 @@
-using AICareerCoach.DAL.Data;
-using Microsoft.EntityFrameworkCore;
-
+using AICareerCoach.BLL.services.cv;
+using AICareerCoach.BLL.services.FileStorage;
 using AICareerCoach.BLL.Services;
+using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.API
 {
@@ -18,11 +19,15 @@ namespace AICareerCoach.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection")));
+
             //inject repository and service 
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
+            builder.Services.AddScoped<ICVService,CVService>();
+            builder.Services.AddScoped<IFileStorageService,LocalFileStorageService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
