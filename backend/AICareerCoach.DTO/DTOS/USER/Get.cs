@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using AICareerCoach.DAL.Entities;
 
-namespace AICareerCoach.DTO.DTOS.USER
+namespace AICareerCoach.DTO1.DTOS.USER
 {
-    internal class Get
+    public class Get
     {
-		public string Name { get; set; }
+		public string name { get; set; }
 		public string email { get; set; }
-		public string CareerGoal { get; set; }
+		public string title{ get; set; }
 
-
-		//relations  
-		//use lazy loading  by using hash set
-		public ICollection<Roadmap>? Roadmaps { get; set; } = new HashSet<Roadmap>();  //want to be updated
-		public ICollection<mockInterview>? MockInterviews { get; set; } = new HashSet<mockInterview>();
-		public ICollection<CV>? CVs { get; set; } = new HashSet<CV>();
+		public List<Roadmap>? Roadmaps;//want to be updated
+		public List<mockInterview>? MockInterviews;
+		public List<CV>? CVs;
 	}
 }

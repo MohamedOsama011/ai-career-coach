@@ -1,4 +1,4 @@
-﻿namespace AICareerCoach.DTO
+﻿namespace AICareerCoach.DTO1
 {
     internal class Program
     {

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace AICareerCoach.DTO.DTOS.USER
+namespace AICareerCoach.DTO1.DTOS.USER
 {
-    public class Add
+    public   class Add
     {
-		public string FullName { get; set; }
-		public string Email { get; set; }
+		public string Name { get; set; }
+		public string email { get; set; }
 	}
 }
