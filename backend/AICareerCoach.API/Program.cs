@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.repository;
+using Microsoft.Extensions.Options;
 
 namespace AICareerCoach.API
 {
@@ -19,8 +20,12 @@ namespace AICareerCoach.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             //inject repository and service 
-            builder.Services.AddScoped(typeof(IBaserepo<>),typeof(GenericRepo<>));
+            builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
+            //database configuration 
+            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("cs")));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -30,15 +35,18 @@ namespace AICareerCoach.API
                 app.UseSwaggerUI();
             }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
-app.UseRouting();
+            app.UseRouting();
 
-app.UseAuthorization();
+            app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
+            app.Run();
+        }
+    }
+}

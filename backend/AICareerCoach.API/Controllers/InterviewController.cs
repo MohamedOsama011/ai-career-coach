@@ -18,13 +18,13 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Interview>>> GetAll()
+        public async Task<ActionResult<IEnumerable<mockInterview>>> GetAll()
         {
             return await _context.Interviews.ToListAsync();
         }
 
         [HttpPost]
-        public async Task<ActionResult<Interview>> Add(Interview interview)
+        public async Task<ActionResult<mockInterview>> Add(mockInterview interview)
         {
             _context.Interviews.Add(interview);
             await _context.SaveChangesAsync();
