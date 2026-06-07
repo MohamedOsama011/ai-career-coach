@@ -1,4 +1,4 @@
-﻿using AICareerCoach.BLL.services.cv;
+﻿using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +20,7 @@ namespace AICareerCoach.API.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> UploadCV(
             IFormFile file,
-            int userId)
+            string userId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
@@ -35,7 +35,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public IActionResult GetUserCVs(int userId)
+        public IActionResult GetUserCVs(string userId)
         {
             var cvs =
                 _cvService.GetUserCVs(userId);
@@ -44,9 +44,9 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpDelete("{cvId}")]
-        public async Task<IActionResult> DeleteCV(int cvId)
+        public IActionResult DeleteCV(int cvId)
         {
-            await _cvService.DeleteCVAsync(cvId);
+             _cvService.DeleteCV(cvId);
 
             return Ok("CV Deleted Successfully");
         }

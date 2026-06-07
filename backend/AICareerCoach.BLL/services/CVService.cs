@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AICareerCoach.BLL.services.FileStorage;
+using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.repository;
 
-namespace AICareerCoach.BLL.services.cv
+namespace AICareerCoach.BLL.Services
 {
     public class CVService : ICVService
     {
@@ -25,7 +25,7 @@ namespace AICareerCoach.BLL.services.cv
         public async Task<CV> UploadCVAsync(
             Stream fileStream,
             string fileName,
-            int userId)
+            string userId)
         {
             var savedPath =
                 await _fileStorage.SaveFileAsync(
@@ -44,7 +44,7 @@ namespace AICareerCoach.BLL.services.cv
             return cv;
         }
 
-        public List<CV> GetUserCVs(int userId)
+        public List<CV> GetUserCVs(string userId)
         {
             return _cvRepo
                 .Getall()!
@@ -52,7 +52,7 @@ namespace AICareerCoach.BLL.services.cv
                 .ToList();
         }
 
-        public  Task DeleteCV(int cvId)
+        public  void DeleteCV(int cvId)
         {
             var cv = _cvRepo.GetbyId(cvId);
 
@@ -62,8 +62,6 @@ namespace AICareerCoach.BLL.services.cv
             _fileStorage.DeleteFile(cv.FilePath);
 
             _cvRepo.Delete(cv);
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -5,17 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using AICareerCoach.DAL.Entities;
 
-namespace AICareerCoach.BLL.services.cv
+namespace AICareerCoach.BLL.Interfaces
 {
     public interface ICVService
     {
         Task<CV> UploadCVAsync(
             Stream fileStream,
             string fileName,
-            int userId);
+            string userId);
 
-        List<CV> GetUserCVs(int userId);
+        List<CV> GetUserCVs(string userId);
 
-        Task DeleteCV(int cvId);
+        void DeleteCV(int cvId);
     }
 }
