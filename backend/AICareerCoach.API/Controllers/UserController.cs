@@ -1,9 +1,8 @@
 ﻿using AICareerCoach.API.Response;
+using AICareerCoach.BLL.DTO.User;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Entities;
-using AICareerCoach.DTO.DTOS.USER;
-using AICareerCoach.DTO1.DTOS.USER;
-using Azure;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

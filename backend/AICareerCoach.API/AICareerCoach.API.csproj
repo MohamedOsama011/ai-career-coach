@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AICareerCoach.BLL\AICareerCoach.BLL.csproj" />
     <ProjectReference Include="..\AICareerCoach.DAL\AICareerCoach.DAL.csproj" />
-    <ProjectReference Include="..\AICareerCoach.DTO\AICareerCoach.DTO.csproj" />
   </ItemGroup>
 
 </Project>
