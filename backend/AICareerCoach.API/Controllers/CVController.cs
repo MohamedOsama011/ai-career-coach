@@ -20,7 +20,7 @@ namespace AICareerCoach.API.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> UploadCV(
             IFormFile file,
-            int userId)
+            string userId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
@@ -35,7 +35,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public IActionResult GetUserCVs(int userId)
+        public IActionResult GetUserCVs(string userId)
         {
             var cvs =
                 _cvService.GetUserCVs(userId);

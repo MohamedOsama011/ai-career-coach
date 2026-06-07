@@ -3,6 +3,8 @@ using AICareerCoach.BLL.services.FileStorage;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.repository;
+using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.API
@@ -23,6 +25,10 @@ namespace AICareerCoach.API
             builder.Services.AddDbContext<AICareerCoachDbContext>(options =>options.UseSqlServer(
             builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<AICareerCoachDbContext>()
+                .AddDefaultTokenProviders();
+
             //inject repository and service 
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
@@ -42,6 +48,7 @@ namespace AICareerCoach.API
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

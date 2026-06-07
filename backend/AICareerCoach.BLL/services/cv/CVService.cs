@@ -25,7 +25,7 @@ namespace AICareerCoach.BLL.services.cv
         public async Task<CV> UploadCVAsync(
             Stream fileStream,
             string fileName,
-            int userId)
+            string userId)
         {
             var savedPath =
                 await _fileStorage.SaveFileAsync(
@@ -44,7 +44,7 @@ namespace AICareerCoach.BLL.services.cv
             return cv;
         }
 
-        public List<CV> GetUserCVs(int userId)
+        public List<CV> GetUserCVs(string userId)
         {
             return _cvRepo
                 .Getall()!

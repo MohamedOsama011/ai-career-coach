@@ -12,9 +12,9 @@ namespace AICareerCoach.BLL.services.cv
         Task<CV> UploadCVAsync(
             Stream fileStream,
             string fileName,
-            int userId);
+            string userId);
 
-        List<CV> GetUserCVs(int userId);
+        List<CV> GetUserCVs(string userId);
 
         void DeleteCV(int cvId);
     }
