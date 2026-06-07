@@ -1,9 +1,9 @@
 ﻿using AICareerCoach.DAL.Entities;
-using AICareerCoach.DAL.Models;
+
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace AICareerCoach.DAL.Data
+namespace AICareerCoach.DAL.Context
 {
     public class AICareerCoachDbContext : IdentityDbContext<User>
     {
@@ -14,7 +14,7 @@ namespace AICareerCoach.DAL.Data
         }
         public DbSet<Roadmap> Roadmaps { get; set; }
 
-        public DbSet<Interview> Interviews { get; set; }
+        public DbSet<mockInterview> Interviews { get; set; }
 
         public DbSet<Job> Jobs { get; set; }
 

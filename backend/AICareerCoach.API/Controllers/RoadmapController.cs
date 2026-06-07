@@ -1,6 +1,5 @@
 ﻿using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
-using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

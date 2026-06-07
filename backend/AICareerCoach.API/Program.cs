@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+using AICareerCoach.BLL.Services;
+using AICareerCoach.DAL.repository;
+
 namespace AICareerCoach.API
 {
     public class Program
@@ -73,7 +76,9 @@ namespace AICareerCoach.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            //inject repository and service 
+            builder.Services.AddScoped(typeof(IBaserepo<>),typeof(GenericRepo<>));
+            builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -88,41 +93,10 @@ namespace AICareerCoach.API
 
             app.UseRouting();
 
-            app.UseCors("AllowAngular");
-
-            app.UseAuthentication();
-            app.UseAuthorization();
+app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                try
-                {
-                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-                    string[] roleNames = { "User", "Admin" };
-
-                    foreach (var roleName in roleNames)
-                    {
-                        var roleExist = await roleManager.RoleExistsAsync(roleName);
-                        if (!roleExist)
-                        {
-                            await roleManager.CreateAsync(new IdentityRole(roleName));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "Error happened!");
-                }
-            }
-
-            app.Run();
-        }
-    }
-}
+app.Run();

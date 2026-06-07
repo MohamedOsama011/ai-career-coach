@@ -13,7 +13,8 @@ namespace AICareerCoach.DAL.repository
 {
     public class GenericRepo<T>:IBaserepo<T> where T : class
     {
-        private readonly AICareerCoachDbContext context;
+        //will be updated to right dbcontext name
+        private readonly dbcontext  context;
         private readonly DbSet<T> dbset;
         public GenericRepo(AICareerCoachDbContext _context)
         {
