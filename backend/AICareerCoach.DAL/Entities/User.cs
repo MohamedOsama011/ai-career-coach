@@ -12,10 +12,12 @@ namespace AICareerCoach.DAL.Models
 
         public string CareerGoal { get; set; } = string.Empty;
 
-        public ICollection<CV> CVs { get; set; } = new List<CV>();
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<Roadmap> Roadmaps { get; set; } = new List<Roadmap>();
+        public ICollection<CV> CVs { get; set; } = new HashSet<CV>();
 
-        public ICollection<mockInterview> Interviews { get; set; } = new List<mockInterview>();
+        public ICollection<Roadmap> Roadmaps { get; set; } = new HashSet<Roadmap>();
+
+        public ICollection<mockInterview> Interviews { get; set; } = new HashSet<mockInterview>();
     }
 }
