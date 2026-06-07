@@ -2,12 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
-namespace AICareerCoach.DAL.Entities
+namespace AICareerCoach.DAL.Models
 {
     public class User : IdentityUser
     {
-        public int Id { get; set; }
-
+        [Required]
+        [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
 
         public string Email { get; set; } = string.Empty;
