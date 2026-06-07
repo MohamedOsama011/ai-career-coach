@@ -11,7 +11,7 @@ using System.Text;
 
 namespace AICareerCoach.BLL.Services
 {
-    internal class AuthService : IAuthService
+    public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
@@ -35,15 +35,18 @@ namespace AICareerCoach.BLL.Services
 
             var user = new User
             {
-                UserName = dto.FullName, 
+                UserName = dto.Email, 
                 Email = dto.Email,
                 FullName = dto.FullName
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
-                throw new Exception("Error occurred while registering the user.");
+            {
+                var passwordErrors = string.Join(" | ", result.Errors.Select(e => e.Description));
+                throw new Exception($"Error occurred while registering the user: {passwordErrors}");
 
+            }
             await _userManager.AddToRoleAsync(user, "User");
             var roles = new List<string> { "User" };
 
