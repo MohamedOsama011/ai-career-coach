@@ -1,10 +1,11 @@
-﻿using System;
+﻿using AICareerCoach.BLL.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL.services.FileStorage
+namespace AICareerCoach.BLL.Services
 {
     public class LocalFileStorageService : IFileStorageService
     {

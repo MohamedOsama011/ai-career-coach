@@ -1,11 +1,10 @@
-using AICareerCoach.BLL.services.cv;
-using AICareerCoach.BLL.services.FileStorage;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using AICareerCoach.BLL.Interfaces;
 
 namespace AICareerCoach.API
 {

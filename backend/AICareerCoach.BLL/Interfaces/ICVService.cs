@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AICareerCoach.DAL.Entities;
 
-namespace AICareerCoach.BLL.services.cv
+namespace AICareerCoach.BLL.Interfaces
 {
     public interface ICVService
     {

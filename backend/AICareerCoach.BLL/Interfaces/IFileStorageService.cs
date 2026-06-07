@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL.services.FileStorage
+namespace AICareerCoach.BLL.Interfaces
 {
     public interface IFileStorageService
     {

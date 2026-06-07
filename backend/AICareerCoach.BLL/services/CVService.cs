@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AICareerCoach.BLL.services.FileStorage;
+using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.repository;
 
-namespace AICareerCoach.BLL.services.cv
+namespace AICareerCoach.BLL.Services
 {
     public class CVService : ICVService
     {

@@ -1,4 +1,4 @@
-﻿using AICareerCoach.BLL.services.cv;
+﻿using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
