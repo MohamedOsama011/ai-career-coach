@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AICareerCoach.DAL.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,12 +8,13 @@ using System.Threading.Tasks;
 using AICareerCoach.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace AICareerCoach.DAL.repository
 {
     public class GenericRepo<T>:IBaserepo<T> where T : class
     {
         //will be updated to right dbcontext name
-        private readonly AICareerCoachDbContext context;
+        private readonly dbcontext  context;
         private readonly DbSet<T> dbset;
         public GenericRepo(AICareerCoachDbContext _context)
         {

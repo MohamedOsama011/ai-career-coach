@@ -24,46 +24,13 @@ namespace AICareerCoach.API.Controllers
         [HttpGet]
         public GeneralResponse Getall()
         {
-            List<User> users = _userService.Getall();
-            GeneralResponse response = new GeneralResponse();
-            if(users!=null)
-            {
-                Add user = new Add();
-                foreach (var item in users)
-                {
-                    user.Name=item.FullName;
-                    user.email = item.Email;
-                }
-                response.Sucess=true;
-                response.Data=user;
-            }
-            else
-            {
-                response.Sucess = false;
-                response.Data = "there is no users untill now";
-            }
-            return response;
+            return await _context.Users.ToListAsync();
         }
-        //get one 
-        [HttpGet("{id:int}")]
-        public GeneralResponse GetUser(int id)
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<User>> GetUser(int id)
         {
-            GeneralResponse response=new GeneralResponse();
-           var user =_userService.GetbyId(id);
-            if(user!=null)
-            {
-                Get user1= new Get();
-                user1.name=user.FullName;
-                user1.email=user.Email;
-                user1.title = user.CareerGoal;
-                response.Sucess=true;
-                response.Data=user1;
-               
-            }
-            else
-            {
-                response.Sucess=false;
-                response.Data = "not found";
+            var user = await _context.Users.FindAsync(id);
 
             }
             return response;

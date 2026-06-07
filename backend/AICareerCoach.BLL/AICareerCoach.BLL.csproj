@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AICareerCoach.DAL\AICareerCoach.DAL.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
+    <ProjectReference Include="..\AICareerCoach.DAL\AICareerCoach.DAL.csproj" />
   </ItemGroup>
 
 </Project>
