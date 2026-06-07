@@ -1,5 +1,5 @@
 using AICareerCoach.API.Response;
-using AICareerCoach.BLL.DTO.User;
+using AICareerCoach.BLL.DTOs.User;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
