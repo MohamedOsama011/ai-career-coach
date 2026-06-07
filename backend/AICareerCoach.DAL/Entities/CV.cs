@@ -1,9 +1,7 @@
-﻿using AICareerCoach.DAL.Entities;
+using AICareerCoach.DAL.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 namespace AICareerCoach.DAL.Entities;
 
 public class CV
@@ -15,8 +13,6 @@ public class CV
     public string FilePath { get; set; } = string.Empty;
 
     public DateTime UploadedAt { get; set; }
-
-    // Navigation
 
     public User User { get; set; } = null!;
 

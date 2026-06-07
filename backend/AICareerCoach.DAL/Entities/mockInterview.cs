@@ -1,4 +1,6 @@
-﻿namespace AICareerCoach.DAL.Entities
+using AICareerCoach.DAL.Models;
+
+namespace AICareerCoach.DAL.Entities
 {
     public class mockInterview
     {

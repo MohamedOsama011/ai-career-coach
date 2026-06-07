@@ -1,10 +1,8 @@
-﻿using AICareerCoach.API.Response;
+using AICareerCoach.API.Response;
 using AICareerCoach.BLL.DTO.User;
-using AICareerCoach.BLL.Services;
-using AICareerCoach.DAL.Entities;
-
+using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -12,80 +10,125 @@ namespace AICareerCoach.API.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IBaseservice<User> _userService;
+        private readonly UserManager<User> _userManager;
 
-
-        public UserController(IBaseservice<User> baseservice)
+        public UserController(UserManager<User> userManager)
         {
-            _userService = baseservice;
+            _userManager = userManager;
         }
 
-        //get all
         [HttpGet]
-        public GeneralResponse Getall()
+        public async Task<ActionResult<GeneralResponse>> GetAll()
         {
-            return await _context.Users.ToListAsync();
+            var users = _userManager.Users.ToList();
+
+            var data = users.Select(u => new Get
+            {
+                name = u.FullName,
+                email = u.Email ?? string.Empty,
+                title = u.CareerGoal
+            }).ToList();
+
+            return Ok(new GeneralResponse
+            {
+                Sucess = true,
+                Data = data
+            });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<GeneralResponse>> GetUser(string id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
 
-            }
-            return response;
+            if (user == null)
+                return NotFound(new GeneralResponse
+                {
+                    Sucess = false,
+                    Data = "user not found"
+                });
+
+            return Ok(new GeneralResponse
+            {
+                Sucess = true,
+                Data = new Get
+                {
+                    name = user.FullName,
+                    email = user.Email ?? string.Empty,
+                    title = user.CareerGoal
+                }
+            });
         }
-       //add user
+
         [HttpPost]
-        public IActionResult AddUser([FromBody]Add user)
+        public async Task<IActionResult> AddUser([FromBody] Add user)
         {
-            var user1 = new User();
-            user1.FullName = user.Name;
-            user1.Email = user.email;
-            _userService.Add(user1);
-            return CreatedAtAction("GetUser ", new{ id = user1.Id }, user1);
-            //return Created("created successfully", user1);
-        }
-        //delete 
-        [HttpDelete("{id}")]
-        public GeneralResponse    DeleteUser(int id)
-        {
-            GeneralResponse generalResponse=new GeneralResponse();
-            var user = _userService.GetbyId(id);
-            if (user != null)
+            var user1 = new User
             {
-                _userService.Delete(user);
-                generalResponse.Sucess = true;
-                generalResponse.Data = "deleted sucessfully";
-            }
-            else
-            { 
-                generalResponse.Sucess = false;
-                generalResponse.Data = "not found";//should be handeled more
-            }
-            return generalResponse;
-        }
-        //update
-        [HttpPut("{id:int}")]
-        public GeneralResponse Edit ([FromBody] Update user1,int id)
-        {
-            var generalResponse=new GeneralResponse();
-            var user= _userService.GetbyId(id);
-            if(user!=null)
-            {
-                user.Email= user1.Email;
-                user.FullName=user1.FullName;
-                _userService.Update(user);
-                generalResponse.Sucess = true;
-                generalResponse.Data = "user updated successfly";
-            }
-            else
-            {
-                generalResponse.Sucess = false;
-                generalResponse.Data = "user not fouond";
-			}
-            return generalResponse;
-		}
+                FullName = user.Name,
+                Email = user.email,
+                UserName = user.email
+            };
 
+            var result = await _userManager.CreateAsync(user1);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return CreatedAtAction(nameof(GetUser), new { id = user1.Id }, user1);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<GeneralResponse>> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return NotFound(new GeneralResponse
+                {
+                    Sucess = false,
+                    Data = "not found"
+                });
+            }
+
+            await _userManager.DeleteAsync(user);
+
+            return Ok(new GeneralResponse
+            {
+                Sucess = true,
+                Data = "deleted successfully"
+            });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<GeneralResponse>> Edit([FromBody] Update user1, string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return NotFound(new GeneralResponse
+                {
+                    Sucess = false,
+                    Data = "user not found"
+                });
+            }
+
+            user.Email = user1.Email;
+            user.UserName = user1.Email;
+            user.FullName = user1.FullName;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new GeneralResponse
+            {
+                Sucess = true,
+                Data = "user updated successfully"
+            });
+        }
     }
 }

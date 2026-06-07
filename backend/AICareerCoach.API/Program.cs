@@ -9,21 +9,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-using AICareerCoach.BLL.Services;
-using AICareerCoach.DAL.repository;
-
 namespace AICareerCoach.API
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>options.UseSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
@@ -33,14 +29,13 @@ namespace AICareerCoach.API
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
             })
-             .AddEntityFrameworkStores<AICareerCoachDbContext>()
-             .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<AICareerCoachDbContext>()
+            .AddDefaultTokenProviders();
 
-            //inject repository and service 
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
-            builder.Services.AddScoped<ICVService,CVService>();
-            builder.Services.AddScoped<IFileStorageService,LocalFileStorageService>();
+            builder.Services.AddScoped<ICVService, CVService>();
+            builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddAuthentication(options =>
@@ -66,22 +61,17 @@ namespace AICareerCoach.API
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
-                    policy.WithOrigins("http://localhost:4200") 
+                    policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
                           .AllowAnyMethod());
             });
 
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            //inject repository and service 
-            builder.Services.AddScoped(typeof(IBaserepo<>),typeof(GenericRepo<>));
-            builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -90,13 +80,14 @@ namespace AICareerCoach.API
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
+            app.UseCors("AllowAngular");
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-app.UseAuthorization();
+            app.MapControllers();
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Run();
+            app.Run();
+        }
+    }
+}
