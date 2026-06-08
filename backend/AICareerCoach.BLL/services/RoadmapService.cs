@@ -1,41 +1,27 @@
 using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
-using Microsoft.EntityFrameworkCore;
+using AICareerCoach.DAL.repository;
 using System.Text.Json;
 
 namespace AICareerCoach.BLL.Services
 {
     public class RoadmapService : IRoadmapService
     {
-        private readonly AICareerCoachDbContext _context;
+        private readonly IRoadmapRepository _roadmapRepo;
 
-        public RoadmapService(AICareerCoachDbContext context) => _context = context;
+        public RoadmapService(IRoadmapRepository roadmapRepo) => _roadmapRepo = roadmapRepo;
 
         public async Task<List<RoadmapDto>> GetAllAsync(string? track)
         {
-            var query = _context.Roadmaps
-                .Include(r => r.Steps.OrderBy(s => s.OrderIndex))
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(track))
-                query = query.Where(r => r.Track == track);
-
-            var roadmaps = await query.OrderBy(r => r.OrderIndex).ToListAsync();
-
+            var roadmaps = await _roadmapRepo.GetAllWithStepsAsync(track);
             return roadmaps.Select(MapToDto).ToList();
         }
 
         public async Task<RoadmapDto> GetByIdAsync(int id)
         {
-            var roadmap = await _context.Roadmaps
-                .Include(r => r.Steps.OrderBy(s => s.OrderIndex))
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (roadmap is null)
-                throw new KeyNotFoundException($"Roadmap with id {id} not found.");
-
+            var roadmap = await _roadmapRepo.GetByIdWithStepsAsync(id);
+            if (roadmap is null) throw new KeyNotFoundException($"Roadmap with id {id} not found.");
             return MapToDto(roadmap);
         }
 
@@ -57,9 +43,7 @@ namespace AICareerCoach.BLL.Services
                 }).ToList()
             };
 
-            _context.Roadmaps.Add(roadmap);
-            await _context.SaveChangesAsync();
-
+            await _roadmapRepo.AddAsync(roadmap);
             return MapToDto(roadmap);
         }
 

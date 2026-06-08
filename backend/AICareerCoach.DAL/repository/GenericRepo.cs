@@ -7,8 +7,8 @@ namespace AICareerCoach.DAL.repository
 {
     public class GenericRepo<T> : IBaserepo<T> where T : class
     {
-        private readonly AICareerCoachDbContext context;
-        private readonly DbSet<T> dbset;
+        protected readonly AICareerCoachDbContext context;
+        protected readonly DbSet<T> dbset;
 
         public GenericRepo(AICareerCoachDbContext _context)
         {

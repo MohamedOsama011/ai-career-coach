@@ -1,45 +1,21 @@
 ﻿using AICareerCoach.BLL.DTOs.Common;
 using AICareerCoach.BLL.DTOs.Job;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using AICareerCoach.DAL.repository;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AICareerCoach.BLL.Services
 {
     public class JobService : IJobService
     {
-        private readonly AICareerCoachDbContext _context;
-        public JobService(AICareerCoachDbContext context) => _context = context;
+        private readonly IJobRepository _jobRepo;
+
+        public JobService(IJobRepository jobRepo) => _jobRepo = jobRepo;
+
         public async Task<PagedResult<JobDto>> GetJobsAsync(JobFilterDto filter)
         {
-            var query = _context.Jobs.AsQueryable();
-
-            if (!string.IsNullOrEmpty(filter.Search))
-                query = query.Where(j =>
-                    j.Title.Contains(filter.Search) ||
-                    j.Company.Contains(filter.Search) ||
-                    j.Description.Contains(filter.Search));
-
-            if (!string.IsNullOrEmpty(filter.Location))
-                query = query.Where(j => j.Location.Contains(filter.Location));
-
-            if (filter.MinSalary.HasValue)
-                query = query.Where(j => j.Salary >= filter.MinSalary.Value);
-
-            var total = await query.CountAsync();
-
-            var items = await query
-                .OrderByDescending(j => j.PostedAt)
-                .Skip((filter.Page - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToListAsync();
+            var (items, total) = await _jobRepo.GetPagedAsync(filter.Search, filter.Location, filter.MinSalary, filter.Page, filter.PageSize);
 
             return new PagedResult<JobDto>
             {
@@ -52,10 +28,9 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<JobDto> GetByIdAsync(int id)
         {
-            var job = await _context.Jobs.FindAsync(id);
-            if (job is null) throw new Exception("Job not found.");
-
-            return MapToDto(job); 
+            var job = await _jobRepo.GetByIdAsync(id);
+            if (job is null) throw new KeyNotFoundException($"Job with id {id} not found.");
+            return MapToDto(job);
         }
 
         public async Task<JobDto> CreateAsync(CreateJobDto dto)
@@ -71,9 +46,7 @@ namespace AICareerCoach.BLL.Services
                 PostedAt = DateTime.UtcNow
             };
 
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-
+            await _jobRepo.AddAsync(job);
             return MapToDto(job);
         }
 
@@ -88,8 +61,5 @@ namespace AICareerCoach.BLL.Services
             Salary = job.Salary,
             PostedAt = job.PostedAt
         };
-
-
-
     }
 }
