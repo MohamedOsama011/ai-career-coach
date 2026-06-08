@@ -1,4 +1,5 @@
-﻿using AICareerCoach.DAL.Data;
+﻿using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,26 +12,8 @@ namespace AICareerCoach.API.Controllers
     [Authorize]
     public class JobController : ControllerBase
     {
-        private readonly AICareerCoachDbContext _context;
+        private readonly IJobService _jobService;
 
-        public JobController(AICareerCoachDbContext context)
-        {
-            _context = context;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Job>>> GetAll()
-        {
-            return await _context.Jobs.ToListAsync();
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<Job>> Add(Job job)
-        {
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-
-            return Ok(job);
-        }
+        
     }
 }
