@@ -24,11 +24,6 @@ namespace AICareerCoach.DAL.Configurations
                     .HasForeignKey(i => i.UserId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
-
-                builder.HasMany(u => u.Roadmaps).WithOne(r => r.User)
-                    .HasForeignKey(r => r.UserId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
             }
         }
     }

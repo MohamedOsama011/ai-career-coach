@@ -39,6 +39,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
+            builder.Services.AddScoped<IRoadmapService, RoadmapService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -91,6 +92,7 @@ namespace AICareerCoach.API
             {
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 await JobSeeder.SeedAsync(context);
+                await RoadmapSeeder.SeedAsync(context);
             }
 
             app.MapControllers();

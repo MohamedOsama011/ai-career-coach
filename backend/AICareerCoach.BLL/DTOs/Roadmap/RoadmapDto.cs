@@ -1,17 +1,12 @@
-namespace AICareerCoach.DAL.Entities
+namespace AICareerCoach.BLL.DTOs.Roadmap
 {
-    public class Roadmap
+    public class RoadmapDto
     {
         public int Id { get; set; }
-
-        public string Track { get; set; } = string.Empty; 
-
+        public string Track { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
-
         public string Description { get; set; } = string.Empty;
-
         public int OrderIndex { get; set; }
-
-        public List<RoadmapStep> Steps { get; set; } = new();
+        public List<RoadmapStepDto> Steps { get; set; } = new();
     }
 }

@@ -15,6 +15,8 @@ namespace AICareerCoach.DAL.Data
 
         public DbSet<Roadmap> Roadmaps { get; set; }
 
+        public DbSet<RoadmapStep> RoadmapSteps { get; set; }
+
         public DbSet<mockInterview> Interviews { get; set; }
 
         public DbSet<Job> Jobs { get; set; }
