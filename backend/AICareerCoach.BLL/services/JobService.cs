@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL.services
+namespace AICareerCoach.BLL.Services
 {
     public class JobService : IJobService
     {
@@ -65,7 +65,7 @@ namespace AICareerCoach.BLL.services
                 Title = dto.Title,
                 Company = dto.Company,
                 Description = dto.Description,
-                RequiredSkills = string.Join(',', dto.RequiredSkills),
+                RequiredSkills = JsonSerializer.Serialize(dto.RequiredSkills),
                 Location = dto.Location,
                 Salary = dto.Salary,
                 PostedAt = DateTime.UtcNow

@@ -1,6 +1,7 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
+using AICareerCoach.DAL.Seed;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,7 +14,7 @@ namespace AICareerCoach.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<ICVService, CVService>();
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IJobService, JobService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -84,6 +86,12 @@ namespace AICareerCoach.API
             app.UseCors("AllowAngular");
             app.UseAuthentication();
             app.UseAuthorization();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
+                await JobSeeder.SeedAsync(context);
+            }
 
             app.MapControllers();
 
