@@ -36,8 +36,8 @@ export class Login {
       password: this.password
     }).subscribe({
       next: (response) => {
-        console.log('Login successful:', response);
         this.authService.saveToken(response.token);
+        this.authService.saveUserInfo(response.fullName, response.email);
         this.router.navigate(['/dashboard']);
         this.isLoading = false;
       },

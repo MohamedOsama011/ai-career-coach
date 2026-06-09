@@ -55,12 +55,9 @@ export class Register {
       password: this.password
     }).subscribe({
       next: (response) => {
-        console.log('Registration successful!', response);
-        
         this.authService.saveToken(response.token);
-        
+        this.authService.saveUserInfo(response.fullName, response.email);
         this.router.navigate(['/dashboard']);
-        
         this.isLoading = false;
       },
       error: (error) => {

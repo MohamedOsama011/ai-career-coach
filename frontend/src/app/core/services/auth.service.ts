@@ -20,14 +20,34 @@ export class AuthService{
     saveToken(token: string): void {
         localStorage.setItem('authToken', token);
     }
+    saveUserInfo(fullName: string, email: string): void {
+        localStorage.setItem('userFullName', fullName);
+        localStorage.setItem('userEmail', email);
+    }
     getToken(): string | null {
         return localStorage.getItem('authToken');
+    }
+    getUserFullName(): string {
+        return localStorage.getItem('userFullName') || 'User';
+    }
+    getUserEmail(): string {
+        return localStorage.getItem('userEmail') || '';
+    }
+    getUserInitials(): string {
+        const name = this.getUserFullName();
+        const parts = name.split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return name[0]?.toUpperCase() || 'U';
     }
     isLoggedIn(): boolean {
         return !!this.getToken();
     }
     logout(): void {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userFullName');
+        localStorage.removeItem('userEmail');
     }
 }
 
