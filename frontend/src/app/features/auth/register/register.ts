@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router, RouterLink } from '@angular/router';
 
-
 @Component({
   selector: 'app-register',
   imports: [CommonModule, FormsModule, RouterLink],
