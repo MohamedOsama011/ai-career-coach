@@ -1,6 +1,7 @@
 using AICareerCoach.API.Response;
 using AICareerCoach.BLL.DTOs.User;
 using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace AICareerCoach.API.Controllers
             _userManager = userManager;
         }
 
+        [Authorize(Roles ="Admin")]
         [HttpGet]
         public async Task<ActionResult<GeneralResponse>> GetAll()
         {
@@ -35,8 +37,9 @@ namespace AICareerCoach.API.Controllers
                 Data = data
             });
         }
+		[Authorize(Roles = "Admin")]
 
-        [HttpGet("{id}")]
+		[HttpGet("{id}")]
         public async Task<ActionResult<GeneralResponse>> GetUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -56,6 +59,7 @@ namespace AICareerCoach.API.Controllers
                     name = user.FullName,
                     email = user.Email ?? string.Empty,
                     title = user.CareerGoal
+
                 }
             });
         }
@@ -67,7 +71,6 @@ namespace AICareerCoach.API.Controllers
             {
                 FullName = user.Name,
                 Email = user.email,
-                UserName = user.email
             };
 
             var result = await _userManager.CreateAsync(user1);
@@ -77,8 +80,8 @@ namespace AICareerCoach.API.Controllers
 
             return CreatedAtAction(nameof(GetUser), new { id = user1.Id }, user1);
         }
-
-        [HttpDelete("{id}")]
+		[Authorize]
+		[HttpDelete("{id}")]
         public async Task<ActionResult<GeneralResponse>> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -100,8 +103,9 @@ namespace AICareerCoach.API.Controllers
                 Data = "deleted successfully"
             });
         }
+		[Authorize]
 
-        [HttpPut("{id}")]
+		[HttpPut("{id}")]
         public async Task<ActionResult<GeneralResponse>> Edit([FromBody] Update user1, string id)
         {
             var user = await _userManager.FindByIdAsync(id);

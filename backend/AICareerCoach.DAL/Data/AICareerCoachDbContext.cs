@@ -22,5 +22,6 @@ namespace AICareerCoach.DAL.Data
         public DbSet<Job> Jobs { get; set; }
 
         public DbSet<CV> CVs { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

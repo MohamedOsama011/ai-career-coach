@@ -44,5 +44,56 @@ namespace AICareerCoach.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-    }
+		[HttpPost("Addnewrole")]
+		public async Task<object> Addrole([FromBody]string role)
+		{
+			
+				var result = await _authService.addrole(role);
+			return result;
+		}
+		[HttpPost("AssignRole")]
+		public async Task<Object> assignrole([FromBody] Role role)
+		{
+			
+				var result = await _authService.Sign_IN_role(role);
+				return result;
+			
+		}
+		[HttpPost("refreshtoken")]
+		public async Task<object> Refreshtoken([FromBody] Refreshtokendto refreshtokendto)
+		{
+			
+				var result = await _authService.RefreshTocken(refreshtokendto);
+			
+			return result;
+				
+		}
+		[HttpPost("logout")]
+		public async Task Logout([FromBody] Refreshtokendto token)
+		{
+			
+				 await _authService.Logout(token);
+				
+			
+		}
+		[HttpPost("logoutall/{id:int}")]
+		public async Task Logoutall(int id )
+		{
+			await _authService.Logoutall(id);
+		}
+		[HttpPost("ForgotPassword")]
+		public async Task ForgotPasswrd(ForgotPassword forgotPassword)
+		{
+			await _authService.ForgotPassword(forgotPassword);
+		}
+
+		[HttpPost("ResetPassword")]
+		public async Task ResetPassword(ResetPassword resetPassword)
+		{
+			await _authService.ResetPassword(resetPassword);
+		}
+
+
+
+	}
 }
