@@ -1,6 +1,9 @@
-﻿using AICareerCoach.BLL.DTOs.Auth;
+﻿using AICareerCoach.BLL.DTOs;
+using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AICareerCoach.API.Controllers
@@ -10,10 +13,15 @@ namespace AICareerCoach.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+		private readonly UserManager<User> _userManager;
 
-        public AuthController(IAuthService authService)
+
+
+
+		public AuthController(IAuthService authService, UserManager<User> userManager)
         {
             _authService = authService;
+			_userManager = userManager;
         }
 
         [HttpPost("register")] // api/auth/register
@@ -93,6 +101,14 @@ namespace AICareerCoach.API.Controllers
 			await _authService.ResetPassword(resetPassword);
 		}
 
+		[HttpPost("changepassword")]
+		public async Task<Object> changepassword(CangePassword cangePassword)
+		{
+			var user = await _userManager.GetUserAsync(User);
+		var result=	await _authService.changepassword(user, cangePassword);
+			return result;
+
+		}
 
 
 	}
