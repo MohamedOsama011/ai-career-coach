@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
+using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,7 @@ namespace AICareerCoach.BLL.Interfaces
         Task ForgotPassword(ForgotPassword forgotPassword);
 
         Task<Generalresponse> ResetPassword(ResetPassword resetPassword);
+        Task<Generalresponse> changepassword(User user,CangePassword cangePassword);
        
 
 

@@ -235,6 +235,29 @@ namespace AICareerCoach.BLL.Services
             return response;
         }
 
+		public async Task<Generalresponse> changepassword(User user,CangePassword cangePassword)
+		{
+            
+            var response=new Generalresponse();
+            
+                var oldpassword = await _userManager.CheckPasswordAsync(user, cangePassword.OldPassword);
+                if(oldpassword)
+                {
+                 var result =  await _userManager.ChangePasswordAsync(user,cangePassword.OldPassword,cangePassword.NewPassword);
+                 if(result.Succeeded)
+                    {
+                        response.sucess = true;
+                        response.Data = " password updated successfuly";
+
+                    }
+                    response.sucess = false;
+                    response.Data = "somthing went wrong";
+
+                }
+                response.Data = "pasword is wrong";
+                response.sucess=false;
+            return response;
+		}
 		public async Task Sendemail(string receiver, string subject, string body)
 
 
@@ -291,8 +314,7 @@ namespace AICareerCoach.BLL.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-       
 
-        
+       
     }
 }
