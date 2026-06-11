@@ -9,7 +9,7 @@ import { Job } from '../models/job.model';
   providedIn: 'root'
 })
 export class JobsService {
-  private apiUrl = 'http://localhost:5068/api/job';
+  private apiUrl = 'https://localhost:7222/api/job';
 
   private savedJobIdsSubject = new BehaviorSubject<number[]>(this.loadSavedJobIds());
   savedJobIds$ = this.savedJobIdsSubject.asObservable();
