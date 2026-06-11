@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
 
 namespace AICareerCoach.API
@@ -82,6 +83,18 @@ namespace AICareerCoach.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            
+            app.UseStaticFiles();
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "Uploads",
+                        "CVs")),
+                RequestPath = "/cvs"
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

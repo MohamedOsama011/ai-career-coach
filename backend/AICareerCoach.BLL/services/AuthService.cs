@@ -5,6 +5,7 @@ using System.Text;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;

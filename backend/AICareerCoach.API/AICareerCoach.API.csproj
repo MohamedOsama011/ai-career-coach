@@ -26,4 +26,8 @@
     <ProjectReference Include="..\AICareerCoach.DAL\AICareerCoach.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Uploads\CVs\" />
+  </ItemGroup>
+
 </Project>
