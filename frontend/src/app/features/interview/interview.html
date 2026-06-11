@@ -1,0 +1,103 @@
+<div class="interview-page-container">
+  <header class="interview-header">
+    <div class="header-left">
+      <span class="lab-label">AI INTERVIEW LAB</span>
+      <h1 class="page-title">Mock Interview</h1>
+      <p class="page-subtitle">Voice or text. Tailored to your target role and seniority.</p>
+    </div>
+    <div class="header-right">
+      <button class="start-session-btn" (click)="startSession()">
+        <span class="material-icons play-icon">play_arrow</span>
+        Start Session
+      </button>
+    </div>
+  </header>
+
+  <div class="interview-grid">
+    <!-- Left column: Live Transcript -->
+    <main class="transcript-section">
+      <div class="transcript-card">
+        <div class="card-header">
+          <span class="transcript-title">LIVE TRANSCRIPT</span>
+          @if (isListening) {
+            <div class="listening-indicator">
+              <span class="pulse-dot"></span>
+              <span class="listening-text">LISTENING</span>
+            </div>
+          } @else if (isBotTyping) {
+            <div class="typing-indicator">
+              <span class="typing-text">AI IS THINKING...</span>
+            </div>
+          }
+        </div>
+
+        <div class="transcript-dialogue">
+          @for (msg of messages; track msg.id) {
+            <div class="message-wrapper" [class]="msg.sender">
+              <div class="avatar" [class]="msg.sender">
+                @if (msg.sender === 'bot') {
+                  <span class="material-icons robot-icon">smart_toy</span>
+                } @else {
+                  <span class="material-icons user-icon">person</span>
+                }
+              </div>
+              <div class="bubble" [class]="msg.sender">
+                {{ msg.text }}
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="input-area">
+          <button 
+            class="mic-btn" 
+            [class.active]="isListening" 
+            (click)="toggleListening()"
+            [title]="isListening ? 'Mute Microphone' : 'Enable Voice'"
+          >
+            <span class="material-icons">{{ isListening ? 'mic' : 'mic_off' }}</span>
+          </button>
+          <input 
+            type="text" 
+            placeholder="Or type your response..." 
+            [(ngModel)]="inputText"
+            (keydown.enter)="sendMessage()"
+            [disabled]="isBotTyping"
+          />
+          <button class="end-btn" (click)="endSession()">END</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right column: Sidebar (Score + Tracks) -->
+    <aside class="sidebar-section">
+      <!-- Last Score Card -->
+      <div class="score-card">
+        <span class="widget-title">LAST SCORE</span>
+        <div class="score-details">
+          <div class="score-grade">{{ lastScore.grade }}</div>
+          <div class="score-track">{{ lastScore.track }}</div>
+        </div>
+        <p class="score-feedback">{{ lastScore.feedback }}</p>
+      </div>
+
+      <!-- Tracks Card -->
+      <div class="tracks-card">
+        <span class="widget-title">TRACKS</span>
+        <div class="tracks-list">
+          @for (track of tracks; track track.id) {
+            <div 
+              class="track-item" 
+              [class.active]="activeTrackId === track.id"
+              (click)="selectTrack(track.id)"
+            >
+              <h4 class="track-title">{{ track.title }}</h4>
+              <p class="track-subtitle">{{ track.subtitle }}</p>
+              <span class="track-sessions">{{ track.sessionsCount }} sessions</span>
+            </div>
+          }
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

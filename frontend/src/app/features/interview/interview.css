@@ -1,0 +1,383 @@
+.interview-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.interview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.lab-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  font-size: 15px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.start-session-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.start-session-btn:hover {
+  background: #1D4ED8;
+}
+
+.play-icon {
+  font-size: 18px;
+}
+
+.interview-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.transcript-section {
+  min-width: 0;
+}
+
+.transcript-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #F3F4F6;
+  padding: 20px 24px;
+}
+
+.transcript-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.listening-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #3B82F6;
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #3B82F6;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+.listening-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3B82F6;
+  letter-spacing: 0.5px;
+}
+
+.typing-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  letter-spacing: 0.5px;
+}
+
+.transcript-dialogue {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #FAFBFD;
+}
+
+.message-wrapper {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  max-width: 85%;
+}
+
+.message-wrapper.bot {
+  margin-right: auto;
+}
+
+.message-wrapper.user {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar.bot {
+  background: #111827;
+  color: #FFFFFF;
+}
+
+.avatar.user {
+  background: #E5E7EB;
+  color: #4B5563;
+}
+
+.robot-icon, .user-icon {
+  font-size: 20px;
+}
+
+.bubble {
+  padding: 16px 20px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.bubble.bot {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #111827;
+  border-radius: 0 16px 16px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.bubble.user {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-radius: 16px 0 16px 16px;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
+}
+
+.input-area {
+  border-top: 1px solid #F3F4F6;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #FFFFFF;
+  border-radius: 0 0 16px 16px;
+}
+
+.mic-btn {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mic-btn.active {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+}
+
+.mic-btn:hover {
+  background: #E5E7EB;
+}
+
+.mic-btn.active:hover {
+  background: #1D4ED8;
+}
+
+.input-area input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 15px;
+  outline: none;
+}
+
+.input-area input::placeholder {
+  color: #9CA3AF;
+}
+
+.end-btn {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.end-btn:hover {
+  color: #EF4444;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.score-card, .tracks-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.widget-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.score-details {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 16px 0 12px 0;
+}
+
+.score-grade {
+  font-size: 48px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.score-track {
+  font-size: 14px;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+.score-feedback {
+  font-size: 14px;
+  color: #4B5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tracks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.track-item {
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.track-item:hover {
+  border-color: #D1D5DB;
+  background: #F9FAFB;
+}
+
+.track-item.active {
+  border-color: #BFDBFE;
+  background: #EFF6FF;
+}
+
+.track-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.track-subtitle {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 10px 0;
+}
+
+.track-sessions {
+  font-size: 12px;
+  color: #2563EB;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .interview-grid {
+    grid-template-columns: 1fr;
+  }
+}
