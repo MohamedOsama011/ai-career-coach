@@ -18,8 +18,8 @@ namespace AICareerCoach.BLL.Interfaces
 		Task<Generalresponse> addrole(string role);
         Task<Generalresponse> Sign_IN_role(Role role);
         Task<Object> RefreshTocken(Refreshtokendto refreshtokendto);
-        Task Logout(Refreshtokendto logout);
-        Task Logoutall(int id);
+        Task<Generalresponse> Logout(Refreshtokendto logout);
+        Task<Generalresponse> Logoutall(int id);
         Task ForgotPassword(ForgotPassword forgotPassword);
 
         Task<Generalresponse> ResetPassword(ResetPassword resetPassword);

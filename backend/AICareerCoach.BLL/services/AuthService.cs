@@ -81,14 +81,22 @@ namespace AICareerCoach.BLL.Services
             var roles = (await _userManager.GetRolesAsync(user)).ToList();
             var refreshtoken = GenerateRefreshToken();
 
+            var newrefreshtoken = new RefreshToken();
+            newrefreshtoken.Userid = user.Id;
+            newrefreshtoken.Token = refreshtoken;
+            newrefreshtoken.IsRevoked = false;
+            newrefreshtoken.Expirydate = DateTime.UtcNow.AddDays(7);
+            _context.RefreshTokens.Add(newrefreshtoken);
+           await _context.SaveChangesAsync();
+
             return new AuthResponseDto
             {
                 Token = await GenerateJwtTokenAsync(user),
                 FullName = user.FullName,
                 Email = user.Email,
                 Roles = roles,
-                refreshToken = refreshtoken
-            };
+                refreshToken =refreshtoken
+			};
         }
 
         public async Task<Generalresponse> addrole(string role)
@@ -120,13 +128,20 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<object> RefreshTocken(Refreshtokendto refreshtokendto)
         {
+            
             var token = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshtokendto.token);
-            if (token == null || token.IsRevoked || token.Expirydate < DateTime.UtcNow)
-                return "error";
+			if (token == null)
+				return "Token not found";
 
-            var user = await _userManager.FindByIdAsync(token.Userid);
+			if (token.IsRevoked)
+				return "Token revoked";
+
+			if (token.Expirydate < DateTime.UtcNow)
+				return "Token expired";
+
+			var user = await _userManager.FindByIdAsync(token.Userid);
             if (user == null)
-                return "error";
+                return "notfound";
 
             token.IsRevoked = true;
 
@@ -143,37 +158,63 @@ namespace AICareerCoach.BLL.Services
             return new
             {
                 acesstoken = await GenerateJwtTokenAsync(user),
-                refreshtoken = newRefreshToken
+                refreshtoken = newRefreshToken.Token
             };
         }
 
-        public async Task Logout(Refreshtokendto logout)
+        public async Task<Generalresponse> Logout(Refreshtokendto logout)
         {
+            var res = new Generalresponse();
+
             var token = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == logout.token);
             if (token != null)
             {
                 token.IsRevoked = true;
                 await _context.SaveChangesAsync();
+                res.Success = true;
+                res.Data = "logout successfuly";
             }
+            else
+            {
+                res.Success = false;
+                res.Data = "token is not valid";
+            }
+            return res;
         }
 
-        public async Task Logoutall(int id)
+        public async Task<Generalresponse> Logoutall(int id)
         {
-            var tokens = await _context.RefreshTokens
+			var res = new Generalresponse();
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                res.Success = false;
+                res.Data = "user is not exist";
+                    }
+			var tokens = await _context.RefreshTokens
                 .Where(r => r.Userid == id.ToString() && !r.IsRevoked)
                 .ToListAsync();
+            if(tokens.Count==0)
+            {
+                res.Success = false;
+                res.Data = "user already not login";
+            }
 
             foreach (var token in tokens)
             {
                 token.IsRevoked = true;
                 token.Expirydate = DateTime.UtcNow;
+                res.Success = true;
+                res.Data = "logout to all machines successfuly";
             }
 
             await _context.SaveChangesAsync();
+            return res;
         }
 
         public async Task ForgotPassword(ForgotPassword forgotPassword)
         {
+           
             var user = await _userManager.FindByEmailAsync(forgotPassword.Email);
             if (user != null)
             {
