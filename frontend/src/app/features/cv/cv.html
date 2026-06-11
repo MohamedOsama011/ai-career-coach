@@ -1,29 +1,48 @@
 <div class="cv-container">
+<div class="page-header">
 
-  <div class="page-header">
-
-    <div>
-      <h1>CV Analysis</h1>
-      <p>
-        Benchmarked against 50,000+ successful hires and industry standards
-      </p>
-    </div>
-
-    <input
-      #fileInput
-      hidden
-      type="file"
-      accept=".pdf,.doc,.docx"
-      (change)="onFileSelected($event)"
-    >
-
-    <button
-      class="upload-btn"
-      (click)="fileInput.click()">
-      Re-upload CV
-    </button>
-
+  <div>
+    <h1>CV Analysis</h1>
+    <p>
+      Benchmarked against 50,000+ successful hires and industry standards
+    </p>
   </div>
+
+  <input
+    #fileInput
+    hidden
+    type="file"
+    accept=".pdf,.doc,.docx"
+    (change)="onFileSelected($event)"
+  >
+
+
+
+<div *ngIf="uploadSuccess" class="success-message">
+  ✅ CV uploaded successfully
+</div>
+
+<div *ngIf="uploadError" class="error-message">
+  ❌ {{ uploadError }}
+</div>
+
+<button
+  class="upload-btn"
+  (click)="fileInput.click()"
+  [disabled]="isUploading">
+  Re-upload CV
+</button>
+
+</div>
+
+
+<div
+  *ngIf="uploadError"
+  class="error-message">
+
+  {{ uploadError }}
+
+</div>
 
   <div class="analysis-grid">
 
@@ -132,29 +151,94 @@
 
       <div class="card cv-file">
 
-        <div class="file-icon">
-          📄
-        </div>
+  <div class="file-icon">
+    📄
+  </div>
 
-        <div>
+  <div class="file-info">
 
-          <h4>{{fileName}}</h4>
+    <h4>{{fileName}}</h4>
 
-          <p>
-            Last scanned {{lastScanned}}
-          </p>
+    <p>
+      Last scanned {{lastScanned}}
+    </p>
 
-        </div>
+  </div>
 
-        <button
-          class="report-btn"
-          (click)="downloadReport()">
+<button
+  class="report-btn"
+  (click)="downloadReport()"
+  [disabled]="!cvs || cvs.length === 0">
 
-          Download Report
+  Download Latest
 
-        </button>
+</button>
 
-      </div>
+</div>
+
+<div class="card">
+
+  <div class="cv-actions">
+
+    <button
+      class="my-cvs-btn"
+      (click)="loadCVs()">
+
+      My CVs
+
+    </button>
+
+  </div>
+
+</div>
+
+<div
+  class="card"
+  *ngIf="showCVs">
+
+  <h3>
+    Uploaded CVs
+  </h3>
+
+  <div
+    class="cv-item"
+    *ngFor="let cv of cvs">
+
+    <div class="cv-data">
+
+<h4>
+{{ cv.fileName }}</h4>
+
+      <p>
+
+{{ formatDate(cv.uploadedAt) }} 
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+<button
+  class="download-btn"
+  (click)="downloadCV(cv)">
+
+  Download
+
+</button>
+
+      <button
+        class="delete-btn"
+        (click)="deleteCV(cv.cvId)">
+
+        Delete
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
     </div>
 
