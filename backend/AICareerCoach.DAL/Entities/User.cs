@@ -1,7 +1,6 @@
 using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices.Marshalling;
 
 namespace AICareerCoach.DAL.Models
 {
@@ -10,7 +9,6 @@ namespace AICareerCoach.DAL.Models
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
-        public  string Email { get; set; }
 
         public string CareerGoal { get; set; } = string.Empty;
 
@@ -18,9 +16,8 @@ namespace AICareerCoach.DAL.Models
 
         public ICollection<CV> CVs { get; set; } = new HashSet<CV>();
 
-
         public ICollection<mockInterview>? Interviews { get; set; } = new HashSet<mockInterview>();
 
-        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }= new HashSet<RefreshToken>();
+        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; } = new HashSet<RefreshToken>();
     }
 }
