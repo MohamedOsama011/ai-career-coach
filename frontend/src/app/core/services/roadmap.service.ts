@@ -8,7 +8,7 @@ import { RoadmapStep } from '../models/roadmap.model';
   providedIn: 'root'
 })
 export class RoadmapService {
-  private apiUrl = 'http://localhost:5068/api/roadmap';
+  private apiUrl = 'https://localhost:7222/api/roadmap';
 
   constructor(private http: HttpClient) {}
 
