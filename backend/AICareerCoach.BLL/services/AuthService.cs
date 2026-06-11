@@ -5,7 +5,7 @@ using System.Text;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.BLL.Services;
+using AICareerCoach.BLL.services;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
@@ -100,16 +100,8 @@ namespace AICareerCoach.BLL.Services
 
             var token = await GenerateJwtTokenAsync(user);
             var refreshtoken= Generaterefreshtoken();
-            var refreshtokenintableline = new RefreshToken();
-            refreshtokenintableline.IsRevoked = false;
-            refreshtokenintableline.Userid = user.Id;
-            refreshtokenintableline.Token = refreshtoken;
-            refreshtokenintableline.Expirydate = DateTime.UtcNow.AddDays(7);
-            context.RefreshTokens.Add(refreshtokenintableline);
-            await  context.SaveChangesAsync();
 
-
-			return new AuthResponseDto
+            return new AuthResponseDto
             {
                 Token = token,
                 FullName = user.FullName,
@@ -124,25 +116,19 @@ namespace AICareerCoach.BLL.Services
 		public async Task<Generalresponse> addrole(string role)
         {
             var res=new Generalresponse();
-            if (!await _rolemanger.RoleExistsAsync(role))
+            if(!await _rolemanger.RoleExistsAsync(role))
             {
                 var result = await _rolemanger.CreateAsync(new IdentityRole(role));
-                if (result.Succeeded)
+                if(result.Succeeded)
                 {
-                    res.sucess = true;
+                   res.sucess=true;
                     res.Data = "role created";
                 }
-                else
-                {
-                    res.sucess = false;
-                    res.Data = result.Errors;
-                }
+               res.sucess= false;
+                res.Data = result.Errors;
             }
-            else
-            {
-                res.sucess = false;
-                res.Data = "role already exist";
-            }
+            res.sucess = false;
+            res.Data = "role already exist";
             return res;
 
 
@@ -152,68 +138,47 @@ namespace AICareerCoach.BLL.Services
         {
            var response =new Generalresponse();
             var user= await _userManager.FindByEmailAsync(role.Email);
-            if (user != null)
+            if(user!=null)
             {
-                var result = await _userManager.AddToRoleAsync(user, role.role);
-                if (result.Succeeded)
+                 var result= await _userManager.AddToRoleAsync(user, role.role);
+                if(result.Succeeded)
                 {
-                    response.sucess = true;
+					response.sucess = true;
                     response.Data = "added successfuly";
-                }
-                else
-                {
-                    response.sucess = false;
-                    response.Data = result.Errors;
-                }
-            }
-            else
-            {
-                response.sucess = false;
-                response.Data = "user not exist";
-            }
+				}
+				response.sucess=false;
+                response.Data = result.Errors;
+			}
+            response.sucess = false;
+            response.Data = "user not exist";
 			return response;
 
 		}
 
        public async Task<Object> RefreshTocken(Refreshtokendto refreshtokendto)
         {
-            var response = new Generalresponse();
             var token = await context.RefreshTokens.FirstOrDefaultAsync(r=>r.Token==refreshtokendto.token);
             if (token == null || token.IsRevoked || token.Expirydate < DateTime.UtcNow)
-            {
-                response.sucess = false;
-                response.Data = "unauthorized";
-                return response;
-            }
+                return "error";
             else
             {
-                var user =await _userManager.FindByIdAsync(token.Userid);
-                if (user == null)
+                var user =await _userManager.FindByIdAsync(token.Id.ToString());
+                if(user==null)
+                return "error";
+                //var roles=await _userManager.GetRolesAsync(user);
+                token.IsRevoked = true;
+                var newrefreshtoken =Generaterefreshtoken();
+                var reftoken = new RefreshToken();
+                reftoken.Userid=token.Id;
+                reftoken.Token = newrefreshtoken;
+                reftoken.Expirydate = DateTime.UtcNow.AddDays(7);
+                context.RefreshTokens.Add(reftoken);
+                context.SaveChanges();
+                return new
                 {
-                    response.sucess = false;
-                    response.Data = "user is not exist";
-                    return response;
-                }
-                
-                
-                    //var roles=await _userManager.GetRolesAsync(user);
-
-                    token.IsRevoked = true;
-                    var newrefreshtoken = Generaterefreshtoken();
-                    var reftoken = new RefreshToken();
-                    reftoken.Userid = token.Userid;
-                    reftoken.Token = newrefreshtoken;
-                    reftoken.Expirydate = DateTime.UtcNow.AddDays(7);
-                    context.RefreshTokens.Add(reftoken);
-                   await context.SaveChangesAsync();
-                    return new
-                    {
-                        acesstoken = await GenerateJwtTokenAsync(user),
-                        refreshtoken = reftoken,
-                        res=response
-                    
-                    };
-                
+                    acesstoken = GenerateJwtTokenAsync(user),
+                    refreshtoken = reftoken
+                };
             }
 
         }
@@ -247,7 +212,7 @@ namespace AICareerCoach.BLL.Services
             if (user != null)
             {
                 var token=await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordresetlink = $"http://localhost:4200/ResetPassword?Email={user.Email}&token={token}";
+                var passwordresetlink = $"?Email={user.Email}&token={token}";
                 await Sendemail(user.Email, "reset password", "< p > hi{ user.FullName}</ p > to reset paswoord please<a href = '{passwordresetlink}' > clicke here </ a >");
 
             }
@@ -270,30 +235,29 @@ namespace AICareerCoach.BLL.Services
             return response;
         }
 
-		public async Task<Generalresponse> changepassword(User user,ChangePassword cangePassword)
+		public async Task<Generalresponse> changepassword(User user,CangePassword cangePassword)
 		{
             
             var response=new Generalresponse();
             
-            
-                var result = await _userManager.ChangePasswordAsync(user, cangePassword.OldPassword, cangePassword.NewPassword);
-                if (result.Succeeded)
+                var oldpassword = await _userManager.CheckPasswordAsync(user, cangePassword.OldPassword);
+                if(oldpassword)
                 {
-                    response.sucess = true;
-                    response.Data = " password updated successfuly";
+                 var result =  await _userManager.ChangePasswordAsync(user,cangePassword.OldPassword,cangePassword.NewPassword);
+                 if(result.Succeeded)
+                    {
+                        response.sucess = true;
+                        response.Data = " password updated successfuly";
 
-                }
-                else
-                {
-
+                    }
                     response.sucess = false;
-                response.Data = result.Errors;
-                }
+                    response.Data = "somthing went wrong";
 
+                }
+                response.Data = "pasword is wrong";
+                response.sucess=false;
             return response;
-            }
-            
-		
+		}
 		public async Task Sendemail(string receiver, string subject, string body)
 
 
@@ -316,7 +280,7 @@ namespace AICareerCoach.BLL.Services
 
 
 		}
-        private  string Generaterefreshtoken()
+        private string Generaterefreshtoken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }

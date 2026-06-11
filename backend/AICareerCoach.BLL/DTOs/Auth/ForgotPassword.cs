@@ -11,8 +11,8 @@ namespace AICareerCoach.BLL.DTOs.Auth
 {
     public class ForgotPassword
     {
-        [Required(ErrorMessage = "email is required")]
-        [EmailAddress (ErrorMessage ="invalid email format")]
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         //NavigationManager navigationManager { get; set; }

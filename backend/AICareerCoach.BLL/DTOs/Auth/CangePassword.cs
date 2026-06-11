@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace AICareerCoach.BLL.DTOs.Auth
 {
-    public class ChangePassword
+    public class CangePassword
     {
-        [Required (ErrorMessage ="password is required")]
+        [Required]
         public string OldPassword { get; set; }
-        [Required (ErrorMessage ="password is required")]
+		[Required]
 
 		public string NewPassword { get; set; }
-        [Required (ErrorMessage ="password is required")]
+		[Required]
 
 		public string ConfirmNewPassword { get; set; }
 

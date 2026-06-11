@@ -23,7 +23,7 @@ namespace AICareerCoach.BLL.Interfaces
         Task ForgotPassword(ForgotPassword forgotPassword);
 
         Task<Generalresponse> ResetPassword(ResetPassword resetPassword);
-        Task<Generalresponse> changepassword(User user,ChangePassword cangePassword);
+        Task<Generalresponse> changepassword(User user,CangePassword cangePassword);
        
 
 
