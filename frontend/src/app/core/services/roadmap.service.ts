@@ -12,8 +12,8 @@ export class RoadmapService {
 
   constructor(private http: HttpClient) {}
 
-  getRoadmapSteps(track: string = 'Frontend'): Observable<RoadmapStep[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?track=${track}`).pipe(
+  getRoadmapSteps(): Observable<RoadmapStep[]> {
+    return this.http.get<any[]>(this.apiUrl).pipe(
       timeout(7000),
       map(response => {
         if (response && response.length > 0 && response[0].steps) {
