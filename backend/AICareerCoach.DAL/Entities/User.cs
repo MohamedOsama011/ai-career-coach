@@ -10,16 +10,16 @@ namespace AICareerCoach.DAL.Models
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
-        public  string Email { get; set; }
+        //public  string Email { get; set; }
 
         public string CareerGoal { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<CV> CVs { get; set; } = new HashSet<CV>();
+        public  virtual ICollection<CV> CVs { get; set; } = new HashSet<CV>();
 
 
-        public ICollection<mockInterview>? Interviews { get; set; } = new HashSet<mockInterview>();
+        public virtual ICollection<mockInterview>? Interviews { get; set; } = new HashSet<mockInterview>();
 
         public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }= new HashSet<RefreshToken>();
     }

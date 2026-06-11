@@ -15,7 +15,7 @@ namespace AICareerCoach.DAL.Entities
 
         public string Token { get; set; }
 
-        public int Userid { get; set; }
+        public string Userid { get; set; }
 
         public virtual User? User { get; set; }
 

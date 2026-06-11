@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AICareerCoach.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialIdentitySchema : Migration
+    public partial class v01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,16 +57,19 @@ namespace AICareerCoach.DAL.Migrations
                 name: "Jobs",
                 columns: table => new
                 {
-                    JobId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Company = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RequiredSkills = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    RequiredSkills = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Salary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PostedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Jobs", x => x.JobId);
+                    table.PrimaryKey("PK_Jobs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -197,6 +200,28 @@ namespace AICareerCoach.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsRevoked = table.Column<bool>(type: "bit", nullable: false),
+                    Expirydate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Userid = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_AspNetUsers_Userid",
+                        column: x => x.Userid,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Interviews",
                 columns: table => new
                 {
@@ -227,7 +252,7 @@ namespace AICareerCoach.DAL.Migrations
                         name: "FK_Interviews_Jobs_JobId",
                         column: x => x.JobId,
                         principalTable: "Jobs",
-                        principalColumn: "JobId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -236,25 +261,44 @@ namespace AICareerCoach.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Track = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false),
                     CVId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roadmaps", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Roadmaps_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Roadmaps_CVs_CVId",
                         column: x => x.CVId,
                         principalTable: "CVs",
                         principalColumn: "CVId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RoadmapSteps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoadmapId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Level = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Resources = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoadmapSteps", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RoadmapSteps_Roadmaps_RoadmapId",
+                        column: x => x.RoadmapId,
+                        principalTable: "Roadmaps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -317,14 +361,19 @@ namespace AICareerCoach.DAL.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Userid",
+                table: "RefreshTokens",
+                column: "Userid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Roadmaps_CVId",
                 table: "Roadmaps",
                 column: "CVId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Roadmaps_UserId",
-                table: "Roadmaps",
-                column: "UserId");
+                name: "IX_RoadmapSteps_RoadmapId",
+                table: "RoadmapSteps",
+                column: "RoadmapId");
         }
 
         /// <inheritdoc />
@@ -349,13 +398,19 @@ namespace AICareerCoach.DAL.Migrations
                 name: "Interviews");
 
             migrationBuilder.DropTable(
-                name: "Roadmaps");
+                name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "RoadmapSteps");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Jobs");
+
+            migrationBuilder.DropTable(
+                name: "Roadmaps");
 
             migrationBuilder.DropTable(
                 name: "CVs");
