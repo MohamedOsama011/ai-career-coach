@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CvService } from '../../core/services/cv.service';
 
 @Component({
   selector: 'app-cv',
@@ -9,6 +10,18 @@ import { CommonModule } from '@angular/common';
   styleUrl: './cv.css'
 })
 export class Cv {
+
+  constructor(
+    private cvService: CvService
+  ) {}
+
+showCVs = false;
+isUploading = false;
+uploadSuccess = false;
+uploadError = '';
+cvs: any[] = [];
+
+  userId = '354dbafd-a999-436b-b48c-86991baf8dab';
 
   overallScore = 74;
 
@@ -36,38 +49,115 @@ export class Cv {
 
   selectedFile?: File;
   fileUrl?: string;
+  cvId?: number;
 
-  onFileSelected(event: Event) {
 
-    const input = event.target as HTMLInputElement;
 
-    if (!input.files?.length) return;
+async onFileSelected(event: Event) {
 
-    const file = input.files[0];
+  this.uploadSuccess = false;
+  this.uploadError = '';
 
-    this.selectedFile = file;
-    this.fileName = file.name;
-    this.lastScanned = 'Just now';
+  const input = event.target as HTMLInputElement;
 
-    if (this.fileUrl) {
-      URL.revokeObjectURL(this.fileUrl);
-    }
-
-    this.fileUrl = URL.createObjectURL(file);
+  if (!input.files || input.files.length === 0) {
+    this.uploadSuccess = true;
+    return;
   }
 
-  downloadReport() {
+  const file = input.files[0];
 
-    if (!this.fileUrl) {
-      alert('Please upload a CV first');
-      return;
-    }
+  this.cvService.uploadCV(file, this.userId)
+    .subscribe({
+      next: (res: any) => {
 
-    const link = document.createElement('a');
+        this.uploadSuccess = true;
 
-    link.href = this.fileUrl;
-    link.download = this.fileName;
+        this.fileName = res.fileName; 
 
-    link.click();
+        this.lastScanned = new Date().toLocaleString();
+
+        this.loadCVs();
+
+        input.value = '';
+
+        setTimeout(() => {
+          this.uploadSuccess = false;
+        }, 3000);
+      },
+
+      error: (err) => {
+        this.uploadError = 'Upload failed';
+      }
+    });
+}
+
+downloadReport() {
+  if (!this.cvs || this.cvs.length === 0) return;
+
+  const latestCV = this.cvs.reduce((latest, current) => {
+    return new Date(current.uploadedAt) > new Date(latest.uploadedAt)
+      ? current
+      : latest;
+  });
+
+  const url = `http://localhost:5068/cvs/${latestCV.fileName}`;
+  window.open(url, '_blank');
+}
+
+loadCVs() {
+
+  this.cvService
+    .getUserCVs(this.userId)
+    .subscribe({
+
+      next: (response) => {
+
+        this.cvs = response;
+        this.showCVs = true;
+
+        console.log(this.cvs);
+      }
+    });
+}
+
+ deleteCV(cvId: number) {
+
+  this.cvService
+    .deleteCV(cvId)
+    .subscribe({
+
+      next: () => {
+
+        this.cvs =
+          this.cvs.filter(
+            x => x.cvId !== cvId
+          );
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
+
+  downloadCV(cv: any) {
+    if (!cv?.fileName) return;
+
+    const url = `http://localhost:5068/cvs/${cv.fileName}`;
+    window.open(url, '_blank');
   }
+
+formatDate(dateString: string): string {
+
+  const date = new Date(dateString);
+
+  const offsetInMs = 3 * 60 * 60 * 1000;
+
+  const cairoTime = new Date(date.getTime() + offsetInMs);
+
+  return cairoTime.toLocaleString();
+}
+
 }
