@@ -1,0 +1,133 @@
+.jobs-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.jobs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.recommendations-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  font-size: 15px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.filter-pills {
+  display: flex;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.filter-pill {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+  color: #374151;
+  background: #F9FAFB;
+}
+
+.filter-pill.active {
+  background: #111827;
+  color: #FFFFFF;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  background: #FFFFFF;
+  border: 1px dashed #D1D5DB;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #9CA3AF;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .jobs-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .header-right {
+    width: 100%;
+  }
+  .filter-pills {
+    width: 100%;
+  }
+  .filter-pill {
+    flex: 1;
+    text-align: center;
+  }
+}

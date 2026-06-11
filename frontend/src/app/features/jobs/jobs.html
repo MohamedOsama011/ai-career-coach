@@ -1,0 +1,57 @@
+<div class="jobs-page-container">
+  <header class="jobs-header">
+    <div class="header-left">
+      <span class="recommendations-label">RECOMMENDATIONS</span>
+      <h1 class="page-title">Job Matches</h1>
+      <p class="page-subtitle">Curated against your CV, roadmap goals, and target seniority.</p>
+    </div>
+    <div class="header-right">
+      <div class="filter-pills">
+        <button 
+          class="filter-pill" 
+          [class.active]="activeFilter === 'all'" 
+          (click)="setFilter('all')"
+        >
+          All
+        </button>
+        <button 
+          class="filter-pill" 
+          [class.active]="activeFilter === 'remote'" 
+          (click)="setFilter('remote')"
+        >
+          Remote
+        </button>
+        <button 
+          class="filter-pill" 
+          [class.active]="activeFilter === 'saved'" 
+          (click)="setFilter('saved')"
+        >
+          Saved
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="jobs-list">
+    @for (job of filteredJobs; track job.id) {
+      <app-job-card
+        [matchPercentage]="job.matchPercentage"
+        [title]="job.title"
+        [company]="job.company"
+        [location]="job.location"
+        [salary]="job.salary"
+        [skills]="job.requiredSkills"
+        [logoInitials]="job.logoInitials"
+        [saved]="isSaved(job.id)"
+        (saveToggled)="toggleSave(job.id)"
+        (applied)="onApply(job)"
+      />
+    } @empty {
+      <div class="empty-state">
+        <span class="material-icons empty-icon">work_outline</span>
+        <h3>No Job Matches</h3>
+        <p>No jobs are available for the selected filter: <strong>{{ activeFilter }}</strong></p>
+      </div>
+    }
+  </main>
+</div>
