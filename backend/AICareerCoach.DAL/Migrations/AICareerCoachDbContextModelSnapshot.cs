@@ -87,6 +87,35 @@ namespace AICareerCoach.DAL.Migrations
                     b.ToTable("Jobs");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Expirydate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Userid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Userid");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Roadmap", b =>
                 {
                     b.Property<int>("Id")
@@ -418,6 +447,17 @@ namespace AICareerCoach.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("Userid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Roadmap", b =>
                 {
                     b.HasOne("AICareerCoach.DAL.Entities.CV", null)
@@ -528,6 +568,8 @@ namespace AICareerCoach.DAL.Migrations
                     b.Navigation("CVs");
 
                     b.Navigation("Interviews");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

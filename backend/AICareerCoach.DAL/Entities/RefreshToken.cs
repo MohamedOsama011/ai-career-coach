@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AICareerCoach.DAL.Models;
+﻿using AICareerCoach.DAL.Models;
 
 namespace AICareerCoach.DAL.Entities
 {
@@ -13,11 +8,10 @@ namespace AICareerCoach.DAL.Entities
         public bool IsRevoked { get; set; }
         public DateTime Expirydate { get; set; }
 
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
-        public int Userid { get; set; }
+        public string Userid { get; set; } = string.Empty;
 
         public virtual User? User { get; set; }
-
     }
 }

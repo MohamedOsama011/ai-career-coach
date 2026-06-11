@@ -9,56 +9,43 @@ using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
-using AICareerCoach.DAL.repository;
 using MailKit.Security;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 
-
 namespace AICareerCoach.BLL.Services
 {
-    public class AuthService : IAuthService ,IEmailservice
+    public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<IdentityRole> _rolemanger;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _config;
-		protected readonly AICareerCoachDbContext context;
-		protected readonly DbSet<User> dbset;
+        private readonly AICareerCoachDbContext _context;
 
-
-
-		public AuthService(
+        public AuthService(
             UserManager<User> userManager,
-            SignInManager<User> signInManager,
             IConfiguration config,
-            RoleManager<IdentityRole> identityRole,
-            AICareerCoachDbContext _context
-            )
+            RoleManager<IdentityRole> roleManager,
+            AICareerCoachDbContext context)
         {
             _userManager = userManager;
             _config = config;
-			_rolemanger = identityRole;
-            context=_context;
-            dbset=context.Set<User>();
+            _roleManager = roleManager;
+            _context = context;
         }
-       
+
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
             var userExists = await _userManager.FindByEmailAsync(dto.Email);
-            if (userExists !=null)
+            if (userExists != null)
                 throw new Exception("User with this email already exists.");
 
             var user = new User
             {
-                UserName = dto.Email, 
+                UserName = dto.Email,
                 Email = dto.Email,
                 FullName = dto.FullName
             };
@@ -68,22 +55,19 @@ namespace AICareerCoach.BLL.Services
             {
                 var passwordErrors = string.Join(" | ", result.Errors.Select(e => e.Description));
                 throw new Exception($"Error occurred while registering the user: {passwordErrors}");
-
             }
+
             await _userManager.AddToRoleAsync(user, "User");
             var roles = new List<string> { "User" };
 
-            var token = await GenerateJwtTokenAsync(user);
-
             return new AuthResponseDto
             {
-                Token = token,
+                Token = await GenerateJwtTokenAsync(user),
                 Email = user.Email,
                 FullName = user.FullName,
                 Roles = roles
             };
         }
-
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
@@ -95,192 +79,200 @@ namespace AICareerCoach.BLL.Services
             if (!result)
                 throw new Exception("Email or password is incorrect.");
 
-            var rolesList = await _userManager.GetRolesAsync(user);
-            var roles = rolesList.ToList();
+            var roles = (await _userManager.GetRolesAsync(user)).ToList();
+            var refreshtoken = GenerateRefreshToken();
 
-            var token = await GenerateJwtTokenAsync(user);
-            var refreshtoken= Generaterefreshtoken();
+            var newrefreshtoken = new RefreshToken();
+            newrefreshtoken.Userid = user.Id;
+            newrefreshtoken.Token = refreshtoken;
+            newrefreshtoken.IsRevoked = false;
+            newrefreshtoken.Expirydate = DateTime.UtcNow.AddDays(7);
+            _context.RefreshTokens.Add(newrefreshtoken);
+           await _context.SaveChangesAsync();
 
             return new AuthResponseDto
             {
-                Token = token,
+                Token = await GenerateJwtTokenAsync(user),
                 FullName = user.FullName,
                 Email = user.Email,
                 Roles = roles,
-                refreshToken = refreshtoken
+                refreshToken =refreshtoken
+			};
+        }
 
+        public async Task<Generalresponse> addrole(string role)
+        {
+            if (await _roleManager.RoleExistsAsync(role))
+                return new Generalresponse { Success = false, Data = "role already exist" };
+
+            var result = await _roleManager.CreateAsync(new IdentityRole(role));
+            return new Generalresponse
+            {
+                Success = result.Succeeded,
+                Data = result.Succeeded ? "role created" : result.Errors
             };
         }
 
-
-		public async Task<Generalresponse> addrole(string role)
-        {
-            var res=new Generalresponse();
-            if(!await _rolemanger.RoleExistsAsync(role))
-            {
-                var result = await _rolemanger.CreateAsync(new IdentityRole(role));
-                if(result.Succeeded)
-                {
-                   res.sucess=true;
-                    res.Data = "role created";
-                }
-               res.sucess= false;
-                res.Data = result.Errors;
-            }
-            res.sucess = false;
-            res.Data = "role already exist";
-            return res;
-
-
-		}
-
         public async Task<Generalresponse> Sign_IN_role(Role role)
         {
-           var response =new Generalresponse();
-            var user= await _userManager.FindByEmailAsync(role.Email);
-            if(user!=null)
+            var user = await _userManager.FindByEmailAsync(role.Email);
+            if (user == null)
+                return new Generalresponse { Success = false, Data = "user not exist" };
+
+            var result = await _userManager.AddToRoleAsync(user, role.role);
+            return new Generalresponse
             {
-                 var result= await _userManager.AddToRoleAsync(user, role.role);
-                if(result.Succeeded)
-                {
-					response.sucess = true;
-                    response.Data = "added successfuly";
-				}
-				response.sucess=false;
-                response.Data = result.Errors;
-			}
-            response.sucess = false;
-            response.Data = "user not exist";
-			return response;
-
-		}
-
-       public async Task<Object> RefreshTocken(Refreshtokendto refreshtokendto)
-        {
-            var token = await context.RefreshTokens.FirstOrDefaultAsync(r=>r.Token==refreshtokendto.token);
-            if (token == null || token.IsRevoked || token.Expirydate < DateTime.UtcNow)
-                return "error";
-            else
-            {
-                var user =await _userManager.FindByIdAsync(token.Id.ToString());
-                if(user==null)
-                return "error";
-                //var roles=await _userManager.GetRolesAsync(user);
-                token.IsRevoked = true;
-                var newrefreshtoken =Generaterefreshtoken();
-                var reftoken = new RefreshToken();
-                reftoken.Userid=token.Id;
-                reftoken.Token = newrefreshtoken;
-                reftoken.Expirydate = DateTime.UtcNow.AddDays(7);
-                context.RefreshTokens.Add(reftoken);
-                context.SaveChanges();
-                return new
-                {
-                    acesstoken = GenerateJwtTokenAsync(user),
-                    refreshtoken = reftoken
-                };
-            }
-
+                Success = result.Succeeded,
+                Data = result.Succeeded ? "added successfuly" : result.Errors
+            };
         }
 
-        public async Task Logout(Refreshtokendto logout)
+        public async Task<object> RefreshTocken(Refreshtokendto refreshtokendto)
         {
-            var token=await context.RefreshTokens.FirstOrDefaultAsync(x=>x.Token==logout.token);
+            
+            var token = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshtokendto.token);
+			if (token == null)
+				return "Token not found";
+
+			if (token.IsRevoked)
+				return "Token revoked";
+
+			if (token.Expirydate < DateTime.UtcNow)
+				return "Token expired";
+
+			var user = await _userManager.FindByIdAsync(token.Userid);
+            if (user == null)
+                return "notfound";
+
+            token.IsRevoked = true;
+
+            var newRefreshToken = new RefreshToken
+            {
+                Userid = token.Userid,
+                Token = GenerateRefreshToken(),
+                Expirydate = DateTime.UtcNow.AddDays(7)
+            };
+
+            _context.RefreshTokens.Add(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return new
+            {
+                acesstoken = await GenerateJwtTokenAsync(user),
+                refreshtoken = newRefreshToken.Token
+            };
+        }
+
+        public async Task<Generalresponse> Logout(Refreshtokendto logout)
+        {
+            var res = new Generalresponse();
+
+            var token = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == logout.token);
             if (token != null)
             {
                 token.IsRevoked = true;
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                res.Success = true;
+                res.Data = "logout successfuly";
             }
-               
-
+            else
+            {
+                res.Success = false;
+                res.Data = "token is not valid";
+            }
+            return res;
         }
 
-      public async Task Logoutall(int id)
+        public async Task<Generalresponse> Logoutall(int id)
         {
-            var tokens = await context.RefreshTokens.Where(r => r.Id == id && r.IsRevoked == false).ToListAsync();
-            foreach(var token in tokens)
+			var res = new Generalresponse();
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                res.Success = false;
+                res.Data = "user is not exist";
+                    }
+			var tokens = await _context.RefreshTokens
+                .Where(r => r.Userid == id.ToString() && !r.IsRevoked)
+                .ToListAsync();
+            if(tokens.Count==0)
+            {
+                res.Success = false;
+                res.Data = "user already not login";
+            }
+
+            foreach (var token in tokens)
             {
                 token.IsRevoked = true;
                 token.Expirydate = DateTime.UtcNow;
+                res.Success = true;
+                res.Data = "logout to all machines successfuly";
             }
-            await context.SaveChangesAsync();
+
+            await _context.SaveChangesAsync();
+            return res;
         }
+
         public async Task ForgotPassword(ForgotPassword forgotPassword)
         {
-            
-            var user=await _userManager.FindByEmailAsync(forgotPassword.Email);
+           
+            var user = await _userManager.FindByEmailAsync(forgotPassword.Email);
             if (user != null)
             {
-                var token=await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordresetlink = $"?Email={user.Email}&token={token}";
-                await Sendemail(user.Email, "reset password", "< p > hi{ user.FullName}</ p > to reset paswoord please<a href = '{passwordresetlink}' > clicke here </ a >");
-
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passwordresetlink = $"?Email={user.Email}&token={Uri.EscapeDataString(token)}";
+                var body = $"<p>Hi {user.FullName},</p><p>To reset your password please <a href='{passwordresetlink}'>click here</a>.</p>";
+                await SendEmail(user.Email, "Reset Password", body);
             }
-
-          
         }
 
-       public async Task<Generalresponse> ResetPassword(ResetPassword resetPassword)
+        public async Task<Generalresponse> ResetPassword(ResetPassword resetPassword)
         {
-            var response= new Generalresponse();
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
-            if(user != null) 
-                {
-                 var result=_userManager.ResetPasswordAsync(user, resetPassword.token, resetPassword.Password);
-                response.sucess = true;
-                response.Data = "password reset successfuly";
-                }
-            response.sucess=false;
-            response.Data = "user not found";
-            return response;
+            if (user == null)
+                return new Generalresponse { Success = false, Data = "user not found" };
+
+            var result = await _userManager.ResetPasswordAsync(user, resetPassword.token, resetPassword.Password);
+            return new Generalresponse
+            {
+                Success = result.Succeeded,
+                Data = result.Succeeded ? "password reset successfuly" : result.Errors
+            };
         }
 
-		public async Task<Generalresponse> changepassword(User user,CangePassword cangePassword)
-		{
-            
-            var response=new Generalresponse();
-            
-                var oldpassword = await _userManager.CheckPasswordAsync(user, cangePassword.OldPassword);
-                if(oldpassword)
-                {
-                 var result =  await _userManager.ChangePasswordAsync(user,cangePassword.OldPassword,cangePassword.NewPassword);
-                 if(result.Succeeded)
-                    {
-                        response.sucess = true;
-                        response.Data = " password updated successfuly";
+        public async Task<Generalresponse> changepassword(User user, CangePassword cangePassword)
+        {
+            if (cangePassword.NewPassword != cangePassword.ConfirmNewPassword)
+                return new Generalresponse { Success = false, Data = "new password and confirm password do not match" };
 
-                    }
-                    response.sucess = false;
-                    response.Data = "somthing went wrong";
+            var oldPasswordCorrect = await _userManager.CheckPasswordAsync(user, cangePassword.OldPassword);
+            if (!oldPasswordCorrect)
+                return new Generalresponse { Success = false, Data = "old password is wrong" };
 
-                }
-                response.Data = "pasword is wrong";
-                response.sucess=false;
-            return response;
-		}
-		public async Task Sendemail(string receiver, string subject, string body)
+            var result = await _userManager.ChangePasswordAsync(user, cangePassword.OldPassword, cangePassword.NewPassword);
+            return new Generalresponse
+            {
+                Success = result.Succeeded,
+                Data = result.Succeeded ? "password updated successfuly" : "something went wrong"
+            };
+        }
 
+        private async Task SendEmail(string receiver, string subject, string body)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_config["Emailsettings:Email"]));
+            email.To.Add(MailboxAddress.Parse(receiver));
+            email.Subject = subject;
+            email.Body = new TextPart("html") { Text = body };
 
-		{
-			var email = new MimeMessage();
-			email.From.Add(MailboxAddress.Parse(_config["Emailsettings:Email"]));
-			email.To.Add(MailboxAddress.Parse(receiver));
-			email.Subject = subject;
-			email.Body = new TextPart("html")
-			{
-				Text = body
-			};
+            using var connection = new MailKit.Net.Smtp.SmtpClient();
+            await connection.ConnectAsync(_config["Emailsettings:host"], int.Parse(_config["Emailsettings:port"]!), SecureSocketOptions.StartTls);
+            await connection.AuthenticateAsync(_config["Emailsettings:Email"], _config["Emailsettings:Password"]);
+            await connection.SendAsync(email);
+            await connection.DisconnectAsync(true);
+        }
 
-			var connection = new MailKit.Net.Smtp.SmtpClient();
-			await connection.ConnectAsync(_config["Emailsetrtings:host"], int.Parse(_config["Emailsettings:port"]), SecureSocketOptions.StartTls);
-			await connection.AuthenticateAsync(_config["Emailsettings:Email"], _config["Emailsettings:Password"]);
-
-			await connection.SendAsync(email);
-			await connection.DisconnectAsync(true);
-
-
-		}
-        private string Generaterefreshtoken()
+        private string GenerateRefreshToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
@@ -297,9 +289,7 @@ namespace AICareerCoach.BLL.Services
             };
 
             foreach (var role in userRoles)
-            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -308,13 +298,11 @@ namespace AICareerCoach.BLL.Services
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7), 
+                expires: DateTime.UtcNow.AddDays(7),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-       
     }
 }
