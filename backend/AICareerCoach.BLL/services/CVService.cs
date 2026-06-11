@@ -52,7 +52,7 @@ namespace AICareerCoach.BLL.Services
                 .ToList();
         }
 
-        public  void DeleteCV(int cvId)
+        public void DeleteCV(int cvId)
         {
             var cv = _cvRepo.GetbyId(cvId);
 
