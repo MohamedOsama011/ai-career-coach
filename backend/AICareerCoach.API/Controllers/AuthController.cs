@@ -104,7 +104,7 @@ namespace AICareerCoach.API.Controllers
 		}
 		[Authorize]
 		[HttpPost("changepassword")]
-		public async Task<Object> changepassword(CangePassword cangePassword)
+		public async Task<Object> changepassword(ChangePassword cangePassword)
 		{
 			//var u = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			var user = await _userManager.GetUserAsync(User);
