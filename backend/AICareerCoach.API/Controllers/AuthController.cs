@@ -49,6 +49,7 @@ namespace AICareerCoach.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [Authorize(Roles ="Admin")]
 
         [HttpPost("Addnewrole")]
         public async Task<IActionResult> Addrole([FromBody] string role)
