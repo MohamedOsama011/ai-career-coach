@@ -1,1 +1,163 @@
-<p>cv works!</p>
+<div class="cv-container">
+
+  <div class="page-header">
+
+    <div>
+      <h1>CV Analysis</h1>
+      <p>
+        Benchmarked against 50,000+ successful hires and industry standards
+      </p>
+    </div>
+
+    <input
+      #fileInput
+      hidden
+      type="file"
+      accept=".pdf,.doc,.docx"
+      (change)="onFileSelected($event)"
+    >
+
+    <button
+      class="upload-btn"
+      (click)="fileInput.click()">
+      Re-upload CV
+    </button>
+
+  </div>
+
+  <div class="analysis-grid">
+
+    <!-- LEFT -->
+
+    <div class="score-card">
+
+      <span class="section-title">
+        OVERALL SCORE
+      </span>
+
+      <div class="score-wrapper">
+        <span class="score">{{overallScore}}</span>
+        <span class="total">/100</span>
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Keyword Match</span>
+          <span>{{keywordMatch}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="keywordMatch">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Impact Statements</span>
+          <span>{{impactStatements}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="impactStatements">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Formatting</span>
+          <span>{{formatting}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="formatting">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Leadership Signals</span>
+          <span>{{leadershipSignals}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="leadershipSignals">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+
+    <div class="right-section">
+
+      <div class="card">
+
+        <h3>Strengths</h3>
+
+        <ul>
+          <li *ngFor="let item of strengths">
+            ✅ {{item}}
+          </li>
+        </ul>
+
+      </div>
+
+      <div class="card">
+
+        <h3>Recommended Improvements</h3>
+
+        <ul>
+          <li *ngFor="let item of recommendations">
+            ⚠️ {{item}}
+          </li>
+        </ul>
+
+      </div>
+
+      <div class="card cv-file">
+
+        <div class="file-icon">
+          📄
+        </div>
+
+        <div>
+
+          <h4>{{fileName}}</h4>
+
+          <p>
+            Last scanned {{lastScanned}}
+          </p>
+
+        </div>
+
+        <button
+          class="report-btn"
+          (click)="downloadReport()">
+
+          Download Report
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

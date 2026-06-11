@@ -1,6 +1,11 @@
-﻿using AICareerCoach.BLL.DTOs.Auth;
+﻿using System.Security.Claims;
+using AICareerCoach.BLL.DTOs;
+using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AICareerCoach.API.Controllers
@@ -10,10 +15,15 @@ namespace AICareerCoach.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+		private readonly UserManager<User> _userManager;
 
-        public AuthController(IAuthService authService)
+
+
+
+		public AuthController(IAuthService authService, UserManager<User> userManager)
         {
             _authService = authService;
+			_userManager = userManager;
         }
 
         [HttpPost("register")] // api/auth/register
@@ -44,5 +54,65 @@ namespace AICareerCoach.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-    }
+		[HttpPost("Addnewrole")]
+		public async Task<object> Addrole([FromBody]string role)
+		{
+			
+				var result = await _authService.addrole(role);
+			return result;
+		}
+		[HttpPost("AssignRole")]
+		public async Task<Object> assignrole([FromBody] Role role)
+		{
+			
+				var result = await _authService.Sign_IN_role(role);
+				return result;
+			
+		}
+		[HttpPost("refreshtoken")]
+		public async Task<object> Refreshtoken([FromBody] Refreshtokendto refreshtokendto)
+		{
+			
+				var result = await _authService.RefreshTocken(refreshtokendto);
+			
+			return result;
+				
+		}
+		[HttpPost("logout")]
+		public async Task Logout([FromBody] Refreshtokendto token)
+		{
+			
+				 await _authService.Logout(token);
+				
+			
+		}
+		[HttpPost("logoutall/{id:int}")]
+		public async Task Logoutall(int id )
+		{
+			await _authService.Logoutall(id);
+		}
+		[HttpPost("ForgotPassword")]
+		public async Task ForgotPasswrd(ForgotPassword forgotPassword)
+		{
+			await _authService.ForgotPassword(forgotPassword);
+		}
+
+		[HttpPost("ResetPassword")]
+		public async Task ResetPassword(ResetPassword resetPassword)
+		{
+			await _authService.ResetPassword(resetPassword);
+		}
+		[Authorize]
+		[HttpPost("changepassword")]
+		public async Task<Object> changepassword(CangePassword cangePassword)
+		{
+			//var u = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			var user = await _userManager.GetUserAsync(User);
+		var result=	await _authService.changepassword(user, cangePassword);
+			return result;
+
+		}
+
+
+	}
 }

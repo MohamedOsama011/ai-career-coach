@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, timeout } from 'rxjs/operators';
 import { Job } from '../models/job.model';
 
 
@@ -9,9 +9,7 @@ import { Job } from '../models/job.model';
   providedIn: 'root'
 })
 export class JobsService {
-  private apiUrl = 'https://localhost:7222/api/job';
-  
-  
+  private apiUrl = 'http://localhost:5068/api/job';
 
   private savedJobIdsSubject = new BehaviorSubject<number[]>(this.loadSavedJobIds());
   savedJobIds$ = this.savedJobIdsSubject.asObservable();
@@ -50,14 +48,12 @@ export class JobsService {
   getJobs(): Observable<Job[]> {
     
     return this.http.get<{ items: any[] }>(this.apiUrl).pipe(
+      timeout(7000),
       map(response => {
         if (response && response.items && response.items.length > 0) {
-          // Map backend JobDto to our frontend Job model
-          return response.items.map(item => {
+            return response.items.map(item => {
             const logo = item.company ? item.company.substring(0, 2).toUpperCase() : 'JB';
-            // Calculate a mock match percentage based on skills or title length
             const match = Math.min(99, Math.max(65, 95 - (item.title.length % 15)));
-            // Format currency
             const salaryStr = item.salary > 0 
               ? `$${Math.round(item.salary / 1000)}k` 
               : 'Competitive';
