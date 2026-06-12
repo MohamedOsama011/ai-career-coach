@@ -24,7 +24,10 @@ namespace AICareerCoach.BLL.Interfaces
 
         Task<Generalresponse> ResetPassword(ResetPassword resetPassword);
         Task<Generalresponse> changepassword(User user,CangePassword cangePassword);
-       
+
+        Task<Generalresponse> Getsystemroles();
+		Task<Generalresponse> Getuserroles( User user);
+		Task<Generalresponse> Changeuserrole(User user, string role);
 
 
 
@@ -58,5 +61,9 @@ namespace AICareerCoach.BLL.Interfaces
 
 
 
-    }
+
+
+
+
+	}
 }

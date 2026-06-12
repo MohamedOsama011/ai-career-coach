@@ -271,11 +271,63 @@ namespace AICareerCoach.BLL.Services
             await connection.DisconnectAsync(true);
         }
 
-        private string GenerateRefreshToken()
+
+
+       public async Task<Generalresponse> Getsystemroles()
         {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+
+			var roleNames = await _roleManager.Roles
+								  .Select(r => r.Name)
+								  .ToListAsync();
+
+            return new Generalresponse
+            {
+                Success = true,
+                Data = roleNames
+            };
+
+		}
+
+
+        public async Task<Generalresponse> Getuserroles(User user1)
+        {
+            var response = new Generalresponse();
+            var roles =await _userManager.GetRolesAsync(user1);
+            if (roles.Count > 0)
+            {
+                response.Data = roles;
+                response.Success = true;
+            }
+			response.Data = "user doesnt have any roles yet";
+			response.Success = true;
+
+			return response;
+            
         }
 
+       public async Task<Generalresponse> Changeuserrole(User user,string role)
+        {
+            var response = new Generalresponse();
+
+            var newrole =await _userManager.GetRolesAsync(user);
+            if (newrole.Count == 0)
+            {
+                await _userManager.AddToRoleAsync(user, role);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                foreach (var rol in newrole)
+                {
+                    await _userManager.RemoveFromRoleAsync(user, rol);
+                }
+				await _userManager.AddToRoleAsync(user, role);
+				await _context.SaveChangesAsync();
+			}
+            response.Success = true;
+            response.Data = "role changed successfuly";
+            return response;
+        }
         private async Task<string> GenerateJwtTokenAsync(User user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -303,5 +355,12 @@ namespace AICareerCoach.BLL.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+       
+        private string GenerateRefreshToken()
+        {
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        }
+
+       
     }
 }
