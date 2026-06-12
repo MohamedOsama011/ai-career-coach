@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Data;
+using System.Security.Claims;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
@@ -108,5 +109,30 @@ namespace AICareerCoach.API.Controllers
             var result = await _authService.changepassword(user!, cangePassword);
             return Ok(result);
         }
-    }
+		[Authorize(Roles ="Admin")]
+		[HttpPost("GetSystemRoles")]
+		public async Task<IActionResult> GetSystemRoles()
+		{
+			var result = await _authService.Getsystemroles();
+			return Ok(result);
+		}
+
+		[Authorize]
+        [HttpPost("GetUserRoles")]
+		public async Task<IActionResult> GetUserRoles()
+		{
+			var user = await _userManager.GetUserAsync(User);
+            var result = await _authService.Getuserroles(user!);
+			return Ok(result);
+		}
+		[Authorize(Roles ="Admin")]
+        [HttpPost("ChangeUserRole/{id:alpha}")]
+		public async Task<IActionResult> ChangeUserRole(string id,[FromBody]string role )
+		{
+            var user = await _userManager.FindByIdAsync(id);
+			
+			var result = await _authService.Changeuserrole(user!, role);
+			return Ok(result);
+		}
+	}
 }
