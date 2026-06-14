@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { RoadmapService } from '../../core/services/roadmap.service';
 import { RoadmapStep } from '../../core/models/roadmap.model';
 
@@ -9,9 +9,9 @@ import { RoadmapStep } from '../../core/models/roadmap.model';
   styleUrl: './roadmap.css',
 })
 export class Roadmap implements OnInit {
-  steps: RoadmapStep[] = [];
-  goalTitle: string = 'Senior Frontend Engineer';
-  errorMessage: string = '';
+  steps = signal<RoadmapStep[]>([]);
+  goalTitle = signal('Senior Frontend Engineer');
+  errorMessage = signal('');
 
   constructor(private roadmapService: RoadmapService) {}
 
@@ -21,20 +21,18 @@ export class Roadmap implements OnInit {
 
   loadRoadmap(): void {
     this.roadmapService.getRoadmapSteps().subscribe({
-      next: (data) => {
-        this.steps = data;
-      },
+      next: (data) => this.steps.set(data),
       error: (err) => {
         console.error('Failed to load roadmap', err);
-        this.errorMessage = 'Failed to load roadmap data. Please try again later.';
+        this.errorMessage.set('Failed to load roadmap data. Please try again later.');
       }
     });
   }
 
   modifyGoal(): void {
-    const newGoal = prompt('Enter your target role:', this.goalTitle);
+    const newGoal = prompt('Enter your target role:', this.goalTitle());
     if (newGoal && newGoal.trim()) {
-      this.goalTitle = newGoal.trim();
+      this.goalTitle.set(newGoal.trim());
     }
   }
 }

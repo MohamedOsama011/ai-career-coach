@@ -9,21 +9,21 @@
       <div class="filter-pills">
         <button 
           class="filter-pill" 
-          [class.active]="activeFilter === 'all'" 
+          [class.active]="activeFilter() === 'all'" 
           (click)="setFilter('all')"
         >
           All
         </button>
         <button 
           class="filter-pill" 
-          [class.active]="activeFilter === 'remote'" 
+          [class.active]="activeFilter() === 'remote'" 
           (click)="setFilter('remote')"
         >
           Remote
         </button>
         <button 
           class="filter-pill" 
-          [class.active]="activeFilter === 'saved'" 
+          [class.active]="activeFilter() === 'saved'" 
           (click)="setFilter('saved')"
         >
           Saved
@@ -33,7 +33,7 @@
   </header>
 
   <main class="jobs-list">
-    @for (job of filteredJobs; track job.id) {
+    @for (job of filteredJobs(); track job.id) {
       <app-job-card
         [matchPercentage]="job.matchPercentage"
         [title]="job.title"
@@ -50,7 +50,7 @@
       <div class="empty-state">
         <span class="material-icons empty-icon">work_outline</span>
         <h3>No Job Matches</h3>
-        <p>No jobs are available for the selected filter: <strong>{{ activeFilter }}</strong></p>
+        <p>No jobs are available for the selected filter: <strong>{{ activeFilter() }}</strong></p>
       </div>
     }
   </main>

@@ -1,7 +1,7 @@
 <div class="roadmap-page-container">
   <header class="roadmap-header">
     <div class="header-left">
-      <span class="goal-label">GOAL: {{ goalTitle.toUpperCase() }}</span>
+      <span class="goal-label">GOAL: {{ goalTitle().toUpperCase() }}</span>
       <h1 class="page-title">Career Roadmap</h1>
       <p class="page-subtitle">Adaptive plan generated from your current role, target role, and detected skill gaps.</p>
     </div>
@@ -11,12 +11,12 @@
   </header>
 
   <main class="roadmap-timeline-container">
-    @if (errorMessage) {
-      <div class="error-message">{{ errorMessage }}</div>
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
     }
     <div class="timeline-line"></div>
     <div class="timeline-steps">
-      @for (step of steps; track step.id) {
+      @for (step of steps(); track step.id) {
         <div class="timeline-step" [class.in-progress]="step.status === 'in_progress'">
           <div class="timeline-badge-container">
             <div class="timeline-badge" [class]="step.status">

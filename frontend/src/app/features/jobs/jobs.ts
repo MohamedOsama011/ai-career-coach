@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { JobsService} from '../../core/services/jobs.service';
 import { JobCard } from '../../shared/components/job-card/job-card';
 import { Job } from '../../core/models/job.model';
@@ -10,9 +10,21 @@ import { Job } from '../../core/models/job.model';
   styleUrl: './jobs.css',
 })
 export class Jobs implements OnInit {
-  jobs: Job[] = [];
-  filteredJobs: Job[] = [];
-  activeFilter: 'all' | 'remote' | 'saved' = 'all';
+  jobs = signal<Job[]>([]);
+  activeFilter = signal<'all' | 'remote' | 'saved'>('all');
+  filteredJobs = computed(() => {
+    const jobs = this.jobs();
+    switch (this.activeFilter()) {
+      case 'remote':
+        return jobs.filter(j => j.location.toLowerCase().includes('remote'));
+      case 'saved': {
+        const savedIds = this.jobsService.getSavedJobIds();
+        return jobs.filter(j => savedIds.includes(j.id));
+      }
+      default:
+        return jobs;
+    }
+  });
 
   constructor(private jobsService: JobsService) {}
 
@@ -22,32 +34,13 @@ export class Jobs implements OnInit {
 
   loadJobs(): void {
     this.jobsService.getJobs().subscribe({
-      next: (data) => {
-        this.jobs = data;
-        this.applyFilter();
-      },
-      error: (err) => {
-        console.error('Failed to load jobs', err);
-      }
+      next: (data) => this.jobs.set(data),
+      error: (err) => console.error('Failed to load jobs', err)
     });
   }
 
   setFilter(filter: 'all' | 'remote' | 'saved'): void {
-    this.activeFilter = filter;
-    this.applyFilter();
-  }
-
-  applyFilter(): void {
-    if (this.activeFilter === 'all') {
-      this.filteredJobs = this.jobs;
-    } else if (this.activeFilter === 'remote') {
-      this.filteredJobs = this.jobs.filter(j => 
-        j.location.toLowerCase().includes('remote')
-      );
-    } else if (this.activeFilter === 'saved') {
-      const savedIds = this.jobsService.getSavedJobIds();
-      this.filteredJobs = this.jobs.filter(j => savedIds.includes(j.id));
-    }
+    this.activeFilter.set(filter);
   }
 
   isSaved(jobId: number): boolean {
@@ -60,8 +53,6 @@ export class Jobs implements OnInit {
     } else {
       this.jobsService.saveJob(jobId);
     }
-    // Refresh lists
-    this.applyFilter();
   }
 
   onApply(job: Job): void {
