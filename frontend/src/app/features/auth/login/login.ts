@@ -37,7 +37,7 @@ export class Login {
     }).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
-        this.authService.saveUserInfo(response.fullName, response.email);
+        this.authService.saveUserInfo(response.fullName, response.email, response.roles);
         this.router.navigate(['/dashboard']);
         this.isLoading = false;
       },

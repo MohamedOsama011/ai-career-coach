@@ -1,14 +1,20 @@
 import { Routes } from '@angular/router';
-import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { authGuard } from './core/guards/auth.guard';
+import { redirectIfLoggedIn } from './core/guards/redirect-if-logged-in.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    component: AuthLayout,
+    pathMatch: 'full',
+    canActivate: [redirectIfLoggedIn],
+    loadComponent: () => import('./features/landing/landing').then(m => m.Landing),
+  },
+  {
+    path: '',
+    canActivate: [redirectIfLoggedIn],
+    loadComponent: () => import('./layouts/auth-layout/auth-layout').then(m => m.AuthLayout),
     children: [
-      { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
       { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.Register) },
     ],
@@ -27,5 +33,5 @@ export const routes: Routes = [
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
     ],
   },
-  { path: '**', redirectTo: '/login' },
+  { path: '**', redirectTo: '' },
 ];

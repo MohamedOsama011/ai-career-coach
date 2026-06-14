@@ -20,9 +20,12 @@ export class AuthService{
     saveToken(token: string): void {
         localStorage.setItem('authToken', token);
     }
-    saveUserInfo(fullName: string, email: string): void {
+    saveUserInfo(fullName: string, email: string, roles?: string[]): void {
         localStorage.setItem('userFullName', fullName);
         localStorage.setItem('userEmail', email);
+        if (roles) {
+            localStorage.setItem('userRoles', JSON.stringify(roles));
+        }
     }
     getToken(): string | null {
         return localStorage.getItem('authToken');
@@ -44,10 +47,16 @@ export class AuthService{
     isLoggedIn(): boolean {
         return !!this.getToken();
     }
+    getRoles(): string[] {
+        const stored = localStorage.getItem('userRoles');
+        return stored ? JSON.parse(stored) : [];
+    }
+
     logout(): void {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userFullName');
         localStorage.removeItem('userEmail');
+        localStorage.removeItem('userRoles');
     }
 }
 
