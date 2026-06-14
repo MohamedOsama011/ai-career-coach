@@ -84,17 +84,6 @@ namespace AICareerCoach.API
                 app.UseSwaggerUI();
             }
             
-            app.UseStaticFiles();
-
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-                    Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "Uploads",
-                        "CVs")),
-                RequestPath = "/cvs"
-            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

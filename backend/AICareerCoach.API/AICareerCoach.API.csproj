@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <Folder Include="Uploads\CVs\" />
+    <Folder Include="wwwroot\cvs\" />
   </ItemGroup>
 
 </Project>

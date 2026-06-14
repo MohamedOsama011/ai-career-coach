@@ -15,8 +15,8 @@ namespace AICareerCoach.BLL.Services
         {
             _uploadPath = Path.Combine(
                 Directory.GetCurrentDirectory(),
-                "Uploads",
-                "CVs");
+                "wwwroot",
+                "cvs");
 
             if (!Directory.Exists(_uploadPath))
                 Directory.CreateDirectory(_uploadPath);
@@ -37,13 +37,18 @@ namespace AICareerCoach.BLL.Services
 
             await fileStream.CopyToAsync(stream);
 
-            return filePath;
+            return uniqueFileName;
         }
 
-        public void DeleteFile(string filePath)
+        public void DeleteFile(string fileName)
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
+            var fullPath =
+                Path.Combine(_uploadPath, fileName);
+
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
         }
     }
 }

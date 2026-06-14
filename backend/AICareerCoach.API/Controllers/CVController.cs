@@ -70,7 +70,7 @@ namespace AICareerCoach.API.Controllers
         {
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
-
+            
             var cv = await _cvService.UploadCVAsync(
                 file.OpenReadStream(),
                 file.FileName,
@@ -84,7 +84,7 @@ namespace AICareerCoach.API.Controllers
                 CVId = cv.CVId,
                 UserId = cv.UserId,
                 UploadedAt = cv.UploadedAt,
-                FileName = fileName,
+                FileName = Path.GetFileName(cv.FilePath) ?? "Unknown.pdf",
 
                 DownloadUrl = $"{baseUrl}/cvs/{fileName}"
             });
@@ -102,7 +102,7 @@ namespace AICareerCoach.API.Controllers
                 UploadedAt = cv.UploadedAt,
                 UserId = cv.UserId,
                 FileName = Path.GetFileName(cv.FilePath),
-                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}"
+                DownloadUrl = $"/cvs/{Path.GetFileName(cv.FilePath)}"
             });
 
             return Ok(result);
