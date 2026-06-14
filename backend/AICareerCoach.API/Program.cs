@@ -106,6 +106,9 @@ namespace AICareerCoach.API
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                await RoleSeeder.SeedAsync(roleManager);
                 await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
             }
