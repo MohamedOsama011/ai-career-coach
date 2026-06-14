@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -31,4 +32,20 @@ deleteCV(id:number){
     `${this.apiUrl}/${id}`
   );
 } 
+
+getUserId(): string {
+
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    return '';
+  }
+
+  const decoded: any = jwtDecode(token);
+
+  return decoded[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+  ];
+}
+
 }

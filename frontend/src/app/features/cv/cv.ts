@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CvService } from '../../core/services/cv.service';
+import { AuthService } from '../../core/services/auth.service';
+import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-cv',
@@ -9,22 +11,23 @@ import { CvService } from '../../core/services/cv.service';
   templateUrl: './cv.html',
   styleUrl: './cv.css'
 })
-export class Cv {
+export class Cv implements OnInit{
 
   constructor(
-    private cvService: CvService
+    private cvService: CvService,
+    private authService: AuthService
   ) {}
 
-showCVs = false;
-isUploading = false;
-uploadSuccess = false;
-uploadError = '';
-cvs: any[] = [];
+  showCVs = false;
+  isUploading = false;
+  uploadSuccess = false;
+  uploadError = '';
+  cvs: any[] = [];
 
-  userId = '354dbafd-a999-436b-b48c-86991baf8dab';
+  userId = '';
+
 
   overallScore = 74;
-
   keywordMatch = 81;
   impactStatements = 62;
   formatting = 83;
@@ -51,113 +54,153 @@ cvs: any[] = [];
   fileUrl?: string;
   cvId?: number;
 
+  async onFileSelected(event: Event) {
 
+    this.uploadSuccess = false;
+    this.uploadError = '';
 
-async onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
 
-  this.uploadSuccess = false;
-  this.uploadError = '';
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
 
-  const input = event.target as HTMLInputElement;
+    const file = input.files[0];
 
-  if (!input.files || input.files.length === 0) {
-    this.uploadSuccess = true;
-    return;
+    this.cvService
+      .uploadCV(file, this.userId)
+      .subscribe({
+
+        next: (res: any) => {
+
+          this.uploadSuccess = true;
+
+          this.fileName = file.name;
+
+          this.lastScanned = new Date().toLocaleString();
+
+          this.loadCVs();
+
+          input.value = '';
+
+          setTimeout(() => {
+            this.uploadSuccess = false;
+          }, 3000);
+        },
+
+        error: () => {
+          this.uploadError = 'Upload failed';
+        }
+      });
   }
 
-  const file = input.files[0];
+  loadCVs() {
 
-  this.cvService.uploadCV(file, this.userId)
-    .subscribe({
-      next: (res: any) => {
+    this.cvService
+      .getUserCVs(this.userId)
+      .subscribe({
 
-        this.uploadSuccess = true;
+        next: (response) => {
 
-        this.fileName = res.fileName; 
+          this.cvs = response;
 
-        this.lastScanned = new Date().toLocaleString();
+          this.showCVs = true;
 
-        this.loadCVs();
+          console.log(this.cvs);
+        },
 
-        input.value = '';
+        error: (error) => {
 
-        setTimeout(() => {
-          this.uploadSuccess = false;
-        }, 3000);
-      },
-
-      error: (err) => {
-        this.uploadError = 'Upload failed';
-      }
-    });
-}
-
-downloadReport() {
-  if (!this.cvs || this.cvs.length === 0) return;
-
-  const latestCV = this.cvs.reduce((latest, current) => {
-    return new Date(current.uploadedAt) > new Date(latest.uploadedAt)
-      ? current
-      : latest;
-  });
-
-  const url = `http://localhost:5068/cvs/${latestCV.fileName}`;
-  window.open(url, '_blank');
-}
-
-loadCVs() {
-
-  this.cvService
-    .getUserCVs(this.userId)
-    .subscribe({
-
-      next: (response) => {
-
-        this.cvs = response;
-        this.showCVs = true;
-
-        console.log(this.cvs);
-      }
-    });
-}
-
- deleteCV(cvId: number) {
-
-  this.cvService
-    .deleteCV(cvId)
-    .subscribe({
-
-      next: () => {
-
-        this.cvs =
-          this.cvs.filter(
-            x => x.cvId !== cvId
-          );
-      },
-
-      error: (error) => {
-
-        console.error(error);
-      }
-    });
-}
-
-  downloadCV(cv: any) {
-    if (!cv?.fileName) return;
-
-    const url = `http://localhost:5068/cvs/${cv.fileName}`;
-    window.open(url, '_blank');
+          console.error(error);
+        }
+      });
   }
 
-formatDate(dateString: string): string {
+  deleteCV(cvId: number) {
 
-  const date = new Date(dateString);
+    this.cvService
+      .deleteCV(cvId)
+      .subscribe({
 
-  const offsetInMs = 3 * 60 * 60 * 1000;
+        next: () => {
 
-  const cairoTime = new Date(date.getTime() + offsetInMs);
+          this.cvs =
+            this.cvs.filter(
+              x => x.cvId !== cvId
+            );
+        },
 
-  return cairoTime.toLocaleString();
+        error: (error) => {
+
+          console.error(error);
+        }
+      });
+  }
+
+downloadCV(cv: any) {
+
+  if (!cv?.downloadUrl) return;
+
+  window.open(
+    `http://localhost:5068${cv.downloadUrl}`,
+    '_blank'
+  );
 }
 
+  downloadReport() {
+
+    if (!this.cvs.length) return;
+
+    const latestCV = this.cvs.reduce((latest, current) =>
+      new Date(current.uploadedAt) >
+      new Date(latest.uploadedAt)
+        ? current
+        : latest
+    );
+
+    this.downloadCV(latestCV);
+  }
+
+  formatDate(dateString: string): string {
+
+    const date = new Date(dateString);
+
+    const cairoTime =
+      new Date(date.getTime() + (3 * 60 * 60 * 1000));
+
+    return cairoTime.toLocaleString();
+  }
+
+  getOriginalFileName(fileName: string): string {
+
+    const index = fileName.indexOf('_');
+
+    return index > -1
+      ? fileName.substring(index + 1)
+      : fileName;
+  }
+
+private getUserIdFromToken(): string {
+
+  const token = localStorage.getItem('authToken');
+
+  if (!token) {
+    return '';
+  }
+
+  const payload = JSON.parse(
+    atob(token.split('.')[1])
+  );
+
+  return payload[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+  ] || payload['nameid'] || '';
+}
+
+ngOnInit(): void {
+
+  this.userId = this.getUserIdFromToken();
+
+  this.loadCVs();
+}
 }
