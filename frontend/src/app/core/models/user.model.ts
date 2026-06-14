@@ -23,3 +23,19 @@ export interface User {
   careerGoal?: string;
   createdAt: Date;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface GeneralResponse {
+  success: boolean;
+  data: any;
+}
