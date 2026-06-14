@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { AuthResponse, LoginRequest, RegisterRequest } from "../models/user.model";
+import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GeneralResponse } from "../models/user.model";
 import { Observable } from "rxjs";
 
 @Injectable({ providedIn: 'root'})
@@ -17,6 +17,15 @@ export class AuthService{
     login(data: LoginRequest) : Observable<AuthResponse> {
         return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data);
     }
+
+    forgotPassword(data: ForgotPasswordRequest): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/ForgotPassword`, data);
+    }
+
+    resetPassword(data: ResetPasswordRequest): Observable<GeneralResponse> {
+        return this.http.post<GeneralResponse>(`${this.apiUrl}/ResetPassword`, data);
+    }
+
     saveToken(token: string): void {
         localStorage.setItem('authToken', token);
     }
