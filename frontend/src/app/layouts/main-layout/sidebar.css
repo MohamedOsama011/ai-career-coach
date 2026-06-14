@@ -103,6 +103,7 @@
 .user-avatar {
   width: 36px;
   height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   background: var(--brand-primary);
   color: white;
@@ -111,6 +112,7 @@
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .user-details {
