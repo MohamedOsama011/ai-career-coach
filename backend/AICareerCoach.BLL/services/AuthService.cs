@@ -185,32 +185,25 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<Generalresponse> Logoutall(int id)
         {
-			var res = new Generalresponse();
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
-            {
-                res.Success = false;
-                res.Data = "user is not exist";
-                    }
-			var tokens = await _context.RefreshTokens
+                return new Generalresponse { Success = false, Data = "user is not exist" };
+
+            var tokens = await _context.RefreshTokens
                 .Where(r => r.Userid == id.ToString() && !r.IsRevoked)
                 .ToListAsync();
-            if(tokens.Count==0)
-            {
-                res.Success = false;
-                res.Data = "user already not login";
-            }
+
+            if (tokens.Count == 0)
+                return new Generalresponse { Success = false, Data = "user already not login" };
 
             foreach (var token in tokens)
             {
                 token.IsRevoked = true;
                 token.Expirydate = DateTime.UtcNow;
-                res.Success = true;
-                res.Data = "logout to all machines successfuly";
             }
 
             await _context.SaveChangesAsync();
-            return res;
+            return new Generalresponse { Success = true, Data = "logout to all machines successfuly" };
         }
 
         public async Task ForgotPassword(ForgotPassword forgotPassword)
@@ -292,18 +285,11 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<Generalresponse> Getuserroles(User user1)
         {
-            var response = new Generalresponse();
-            var roles =await _userManager.GetRolesAsync(user1);
+            var roles = await _userManager.GetRolesAsync(user1);
             if (roles.Count > 0)
-            {
-                response.Data = roles;
-                response.Success = true;
-            }
-			response.Data = "user doesnt have any roles yet";
-			response.Success = true;
+                return new Generalresponse { Success = true, Data = roles };
 
-			return response;
-            
+            return new Generalresponse { Success = true, Data = "user doesnt have any roles yet" };
         }
 
        public async Task<Generalresponse> Changeuserrole(User user,string role)
