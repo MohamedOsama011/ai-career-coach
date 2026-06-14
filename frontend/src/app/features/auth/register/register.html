@@ -1,8 +1,8 @@
 <div class="register-container">
     <h2>Register</h2>
-     @if (errorMessage) {
+     @if (errorMessage()) {
     <div class="error-message">
-      {{ errorMessage }}
+      {{ errorMessage() }}
     </div>
   }
     <form (ngSubmit)="onSubmit()">
@@ -22,8 +22,13 @@
             <label for="confirmPassword">Confirm Password:</label>
             <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword" required>
         </div>
-        <button type="submit" [disabled]="isLoading">
-            {{ isLoading ? 'Registering...' : 'Register' }}
+        <button type="submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+                <span class="spinner"></span>
+                Registering...
+            } @else {
+                Register
+            }
         </button>
     </form>
     <p>Already have an account? <a routerLink="/login">Login here</a></p>

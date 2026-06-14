@@ -1,8 +1,8 @@
 <div class="login-container">
     <h2>Login</h2>
 
-    @if (errorMessage) {
-        <div class="error-message">{{ errorMessage }}</div>
+    @if (errorMessage()) {
+        <div class="error-message">{{ errorMessage() }}</div>
     }
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
@@ -14,8 +14,8 @@
         <label for="password">Password:</label>
         <input type="password" id="password" [(ngModel)]="password" name="password" required>
         </div>
-        <button type="submit" [disabled]="isLoading">
-            @if (isLoading) {
+        <button type="submit" [disabled]="isLoading()">
+            @if (isLoading()) {
                 <span class="spinner"></span>
                 Logging in...
             } @else {

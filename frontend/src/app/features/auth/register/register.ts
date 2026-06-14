@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
@@ -16,8 +16,8 @@ export class Register {
   email: string = '';
   password: string = '';
   confirmPassword: string = '';
-  errorMessage: string = '';
-  isLoading: boolean = false;
+  errorMessage = signal('');
+  isLoading = signal(false);
 
   constructor(
     private authService: AuthService,
@@ -25,36 +25,36 @@ export class Register {
   ) {}
 
   onSubmit() {
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
     if (!this.email || !this.password || !this.confirmPassword) {
-      this.errorMessage = 'All fields are required';
+      this.errorMessage.set('All fields are required');
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'Passwords do not match';
+      this.errorMessage.set('Passwords do not match');
       return;
     }
 
     if (this.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters long';
+      this.errorMessage.set('Password must be at least 6 characters long');
       return;
     }
     //password RequireDigit
     if (!/\d/.test(this.password)) {
-      this.errorMessage = 'Password must contain at least one digit';
+      this.errorMessage.set('Password must contain at least one digit');
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authService.register({
       fullName: this.fullName,
       email: this.email,
       password: this.password
     }).pipe(
-      finalize(() => this.isLoading = false)
+      finalize(() => this.isLoading.set(false))
     ).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
@@ -64,9 +64,11 @@ export class Register {
       error: (error) => {
         console.error('Registration failed:', error);
         console.error('Error body:', JSON.stringify(error.error));
-        this.errorMessage = typeof error.error === 'object' && error.error?.message
-          ? error.error.message
-          : 'An error occurred during registration. Please try again.';
+        this.errorMessage.set(
+          typeof error.error === 'object' && error.error?.message
+            ? error.error.message
+            : 'An error occurred during registration. Please try again.'
+        );
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
@@ -14,8 +14,8 @@ import { Router, RouterLink } from '@angular/router';
 export class Login {
   email: string = '';
   password: string = '';
-  errorMessage: string = '';
-  isLoading: boolean = false;
+  errorMessage = signal('');
+  isLoading = signal(false);
 
   constructor(
     private authService: AuthService,
@@ -23,20 +23,20 @@ export class Login {
   ) {}
 
   onSubmit(){
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
     if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both email and password.';
+      this.errorMessage.set('Please enter both email and password.');
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authService.login({
       email: this.email,
       password: this.password
     }).pipe(
-      finalize(() => this.isLoading = false)
+      finalize(() => this.isLoading.set(false))
     ).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
@@ -46,9 +46,11 @@ export class Login {
       error: (error) => {
         console.error('Login failed:', error);
         console.error('Error body:', JSON.stringify(error.error));
-        this.errorMessage = typeof error.error === 'object' && error.error?.message
-          ? error.error.message
-          : 'Invalid email or password. Please try again.';
+        this.errorMessage.set(
+          typeof error.error === 'object' && error.error?.message
+            ? error.error.message
+            : 'Invalid email or password. Please try again.'
+        );
       }
     });
   }
