@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { 
   DashboardService, 
   DashboardMetrics, 
@@ -16,6 +17,8 @@ import {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
+  userName = signal('');
+  greeting = signal('GOOD MORNING');
   metrics?: DashboardMetrics;
   skills: DashboardSkill[] = [];
   events: DashboardEvent[] = [];
@@ -25,11 +28,21 @@ export class Dashboard implements OnInit {
   roadmapSegments = Array(12).fill(0);
 
   constructor(
+    private authService: AuthService,
     private dashboardService: DashboardService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      this.greeting.set('GOOD MORNING');
+    } else if (hour < 18) {
+      this.greeting.set('GOOD AFTERNOON');
+    } else {
+      this.greeting.set('GOOD EVENING');
+    }
+    this.userName.set(this.authService.getUserFullName());
     this.loadDashboardData();
   }
 
