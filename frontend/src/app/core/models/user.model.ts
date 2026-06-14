@@ -39,3 +39,11 @@ export interface GeneralResponse {
   success: boolean;
   data: any;
 }
+
+export interface ProfileResponse {
+  fullName: string;
+  email: string;
+  careerGoal: string;
+  createdAt: string;
+  cvCount: number;
+}

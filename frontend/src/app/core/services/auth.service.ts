@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GeneralResponse } from "../models/user.model";
+import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GeneralResponse, ProfileResponse } from "../models/user.model";
 import { Observable } from "rxjs";
 
 @Injectable({ providedIn: 'root'})
@@ -24,6 +24,10 @@ export class AuthService{
 
     resetPassword(data: ResetPasswordRequest): Observable<GeneralResponse> {
         return this.http.post<GeneralResponse>(`${this.apiUrl}/ResetPassword`, data);
+    }
+
+    getProfile(): Observable<ProfileResponse> {
+        return this.http.get<ProfileResponse>(`${this.apiUrl}/profile`);
     }
 
     saveToken(token: string): void {
