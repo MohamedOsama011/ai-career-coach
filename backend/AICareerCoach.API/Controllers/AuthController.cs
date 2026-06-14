@@ -3,8 +3,10 @@ using System.Security.Claims;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,11 +18,13 @@ namespace AICareerCoach.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
+        private readonly AICareerCoachDbContext _context;
 
-        public AuthController(IAuthService authService, UserManager<User> userManager)
+        public AuthController(IAuthService authService, UserManager<User> userManager, AICareerCoachDbContext context)
         {
             _authService = authService;
             _userManager = userManager;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -99,6 +103,25 @@ namespace AICareerCoach.API.Controllers
         {
             var result = await _authService.ResetPassword(resetPassword);
             return Ok(result);
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var cvCount = await _context.Set<CV>()
+                .CountAsync(c => c.UserId == user!.Id);
+
+            return Ok(new
+            {
+                fullName = user!.FullName,
+                email = user.Email,
+                careerGoal = user.CareerGoal,
+                createdAt = user.CreatedAt,
+                cvCount
+            });
         }
 
         [Authorize]
