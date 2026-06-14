@@ -213,7 +213,8 @@ namespace AICareerCoach.BLL.Services
             if (user != null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordresetlink = $"?Email={user.Email}&token={Uri.EscapeDataString(token)}";
+                var frontendUrl = _config["AppSettings:FrontendUrl"];
+                var passwordresetlink = $"{frontendUrl}/reset-password?Email={user.Email}&token={Uri.EscapeDataString(token)}";
                 var body = $"<p>Hi {user.FullName},</p><p>To reset your password please <a href='{passwordresetlink}'>click here</a>.</p>";
                 await SendEmail(user.Email, "Reset Password", body);
             }
