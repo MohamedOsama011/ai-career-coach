@@ -8,7 +8,7 @@ import { jwtDecode } from 'jwt-decode';
 export class CvService {
   private http = inject(HttpClient);
 
-private apiUrl = 'http://localhost:5068/api/CV';
+private apiUrl = 'https://localhost:7222/api/cv';
 
 uploadCV(file: File, userId: string) {
 
