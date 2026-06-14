@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router, RouterLink } from '@angular/router';
 
@@ -52,17 +53,20 @@ export class Register {
       fullName: this.fullName,
       email: this.email,
       password: this.password
-    }).subscribe({
+    }).pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
         this.authService.saveUserInfo(response.fullName, response.email, response.roles);
         this.router.navigate(['/dashboard']);
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Registration failed:', error);
-        this.errorMessage = error.error?.message || 'An error occurred during registration';
-        this.isLoading = false;
+        console.error('Error body:', JSON.stringify(error.error));
+        this.errorMessage = typeof error.error === 'object' && error.error?.message
+          ? error.error.message
+          : 'An error occurred during registration. Please try again.';
       }
     });
   }

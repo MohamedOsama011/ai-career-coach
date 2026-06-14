@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router, RouterLink } from '@angular/router';
 
@@ -34,17 +35,20 @@ export class Login {
     this.authService.login({
       email: this.email,
       password: this.password
-    }).subscribe({
+    }).pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
-        this.authService.saveUserInfo(response.fullName, response.email, response.roles);
+        this.authService.saveUserInfo(response.fullName, this.email, response.roles);
         this.router.navigate(['/dashboard']);
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Login failed:', error);
-        this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
-        this.isLoading = false;
+        console.error('Error body:', JSON.stringify(error.error));
+        this.errorMessage = typeof error.error === 'object' && error.error?.message
+          ? error.error.message
+          : 'Invalid email or password. Please try again.';
       }
     });
   }
