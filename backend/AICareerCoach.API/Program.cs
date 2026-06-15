@@ -1,14 +1,15 @@
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.DAL.Data;
-using AICareerCoach.DAL.Seed;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
+using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 namespace AICareerCoach.API
@@ -43,6 +44,10 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
+
+            builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
+            builder.Services.AddScoped<ILlmService, LlmService>();
+            builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
 
             builder.Services.AddAuthentication(options =>
             {

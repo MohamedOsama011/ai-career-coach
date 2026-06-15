@@ -23,5 +23,7 @@ namespace AICareerCoach.DAL.Data
 
         public DbSet<CV> CVs { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+        public DbSet<AiFeedbackCache> AiFeedbackCaches { get; set; }
     }
 }
