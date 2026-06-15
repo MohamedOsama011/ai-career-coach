@@ -1,0 +1,47 @@
+<div class="roadmap-page-container">
+  <header class="roadmap-header">
+    <div class="header-left">
+      <span class="goal-label">GOAL: {{ goalTitle().toUpperCase() }}</span>
+      <h1 class="page-title">Career Roadmap</h1>
+      <p class="page-subtitle">Adaptive plan generated from your current role, target role, and detected skill gaps.</p>
+    </div>
+    <div class="header-right">
+      <button class="modify-goal-btn" (click)="modifyGoal()">Modify Goal</button>
+    </div>
+  </header>
+
+  <main class="roadmap-timeline-container">
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
+    <div class="timeline-line"></div>
+    <div class="timeline-steps">
+      @for (step of steps(); track step.id) {
+        <div class="timeline-step" [class.in-progress]="step.status === 'in_progress'">
+          <div class="timeline-badge-container">
+            <div class="timeline-badge" [class]="step.status">
+              @if (step.status === 'complete') {
+                <span class="material-icons badge-icon">check_circle</span>
+              } @else if (step.status === 'in_progress') {
+                <span class="material-icons badge-icon">schedule</span>
+              } @else {
+                <div class="upcoming-circle"></div>
+              }
+            </div>
+          </div>
+          
+          <div class="step-card" [class]="step.status">
+            <div class="card-header">
+              <span class="step-week">{{ step.week }}</span>
+              <span class="step-status" [class]="step.status">
+                {{ step.status === 'in_progress' ? 'IN PROGRESS' : (step.status === 'complete' ? 'COMPLETE' : 'UPCOMING') }}
+              </span>
+            </div>
+            <h3 class="step-title">{{ step.title }}</h3>
+            <p class="step-description">{{ step.description }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

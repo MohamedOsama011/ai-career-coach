@@ -1,0 +1,43 @@
+<div class="skills-page-container">
+  <header class="skills-header">
+    <div class="header-left">
+      <span class="track-label">DETECTED AGAINST SENIOR FRONTEND TRACK</span>
+      <h1 class="page-title">Skills Gap Analysis</h1>
+      <p class="page-subtitle">Your current proficiency vs the median requirement for your target role.</p>
+    </div>
+  </header>
+
+  <div class="legend-container">
+    <div class="legend-item">
+      <span class="legend-dot current"></span>
+      <span class="legend-text">CURRENT</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot target"></span>
+      <span class="legend-text">TARGET</span>
+    </div>
+  </div>
+
+  <div class="skills-grid">
+    @for (category of categories; track category.title) {
+      <div class="category-card">
+        <h2 class="category-title">{{ category.title }}</h2>
+        <div class="skills-list">
+          @for (skill of category.skills; track skill.name) {
+            <div class="skill-row">
+              <div class="skill-info">
+                <span class="skill-name">{{ skill.name }}</span>
+                <span class="skill-ratio">{{ skill.current }}/{{ skill.target }}</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-track"></div>
+                <div class="progress-bar target" [style.width.%]="skill.target"></div>
+                <div class="progress-bar current" [style.width.%]="skill.current"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

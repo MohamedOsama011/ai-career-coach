@@ -1,0 +1,11 @@
+.main-area {
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px;
+}

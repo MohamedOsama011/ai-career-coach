@@ -1,0 +1,29 @@
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <a routerLink="/dashboard" class="logo-text">AI Career Coach</a>
+  </div>
+
+  <div class="sidebar-nav">
+    @for (item of navItems; track item.path) {
+      <a
+        class="nav-item"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+      >
+        <span class="material-icons nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">{{ authService.getUserInitials() }}</div>
+      <div class="user-details">
+        <span class="user-name">{{ authService.getUserFullName() }}</span>
+        <span class="user-email">{{ authService.getUserEmail() }}</span>
+      </div>
+    </div>
+  </div>
+</nav>

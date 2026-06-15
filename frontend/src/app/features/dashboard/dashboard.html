@@ -1,0 +1,127 @@
+<div class="dashboard-page-container">
+  <header class="dashboard-header">
+    <div class="header-left">
+      <span class="user-greeting">{{ greeting() }}, {{ userName() }}</span>
+      <h1 class="page-title">Your Career Overview</h1>
+      <p class="page-subtitle">A live snapshot of your trajectory, opportunities, and next best actions.</p>
+    </div>
+    <div class="header-right">
+      <button class="start-interview-btn" (click)="startInterview()">
+        <span class="material-icons sparkles-icon">psychology</span>
+        Start Mock Interview
+      </button>
+    </div>
+  </header>
+
+  <!-- Row 1: Metrics Row -->
+  <div class="metrics-grid" *ngIf="metrics">
+    <!-- Card 1: CV Score -->
+    <div class="metric-card" (click)="viewCV()">
+      <span class="metric-label">CV ANALYSIS SCORE</span>
+      <div class="score-display">
+        <span class="score-num">{{ metrics.cvScore }}</span>
+        <span class="score-change">{{ metrics.cvScoreChange }}</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-track"></div>
+        <div class="progress-bar-fill" [style.width.%]="metrics.cvScore"></div>
+      </div>
+      <p class="metric-footer">Top matches: {{ metrics.cvTopMatches }}</p>
+      <a class="report-link" (click)="viewCV(); $event.stopPropagation()">Open full report &nearr;</a>
+    </div>
+
+    <!-- Card 2: Roadmap Milestones -->
+    <div class="metric-card" (click)="viewRoadmap()">
+      <span class="metric-label">ROADMAP PROGRESS</span>
+      <div class="score-display">
+        <span class="score-num">{{ metrics.roadmapCompleted }}</span>
+        <span class="score-total">/ {{ metrics.roadmapTotal }} milestones</span>
+      </div>
+      <div class="roadmap-segments">
+        @for (seg of roadmapSegments; track $index) {
+          <div 
+            class="segment" 
+            [class.active]="$index < metrics.roadmapCompleted"
+          ></div>
+        }
+      </div>
+      <p class="metric-footer footer-next">Next: {{ metrics.roadmapNext }}</p>
+    </div>
+
+    <!-- Card 3: Interview Readiness -->
+    <div class="metric-card" (click)="startInterview()">
+      <span class="metric-label">INTERVIEW READINESS</span>
+      <div class="score-display">
+        <span class="score-num">{{ metrics.interviewGrade }}</span>
+        <a class="sessions-link" (click)="startInterview(); $event.stopPropagation()">
+          {{ metrics.interviewSessions }} sessions logged
+        </a>
+      </div>
+      <div class="interview-tags">
+        @for (topic of metrics.interviewTopics; track topic) {
+          <span class="topic-tag">{{ topic.toUpperCase() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Skills & Upcoming Grid -->
+  <div class="dashboard-middle-grid">
+    <!-- Skills Gap Analysis (2/3 width) -->
+    <div class="skills-gap-card" (click)="viewSkills()">
+      <div class="card-header-row">
+        <span class="metric-label">SKILLS GAP ANALYSIS</span>
+        <span class="sync-status">SYSTEM_SYNC_ACTIVE</span>
+      </div>
+      <div class="skills-list">
+        @for (skill of skills; track skill.name) {
+          <div class="skill-row">
+            <div class="skill-meta">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-status" [class]="skill.type">{{ skill.status }}</span>
+            </div>
+            <div class="skill-bar-container">
+              <div class="skill-bar-track"></div>
+              <div 
+                class="skill-bar-fill" 
+                [class]="skill.type" 
+                [style.width.%]="skill.progress"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Upcoming List (1/3 width) -->
+    <div class="upcoming-card">
+      <span class="metric-label">UPCOMING</span>
+      <div class="events-list">
+        @for (ev of events; track ev.title) {
+          <div class="event-row">
+            <div class="event-day">{{ ev.day }}</div>
+            <div class="event-title">{{ ev.title }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Recommended Jobs -->
+  <div class="recommended-card">
+    <div class="card-header-row">
+      <span class="metric-label">RECOMMENDED FOR YOU</span>
+      <a class="view-all-link" (click)="viewJobs()">View all &nearr;</a>
+    </div>
+    <div class="recommendations-grid">
+      @for (job of recommendations; track job.title) {
+        <div class="job-mini-card" (click)="viewJobs()">
+          <span class="job-match-score">{{ job.match }}% MATCH</span>
+          <h3 class="job-title">{{ job.title }}</h3>
+          <p class="job-company">{{ job.company }}</p>
+          <span class="job-salary">{{ job.salary }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

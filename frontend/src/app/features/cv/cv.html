@@ -1,0 +1,248 @@
+<div class="cv-container">
+<div class="page-header">
+
+  <div>
+    <h1>CV Analysis</h1>
+    <p>
+      Benchmarked against 50,000+ successful hires and industry standards
+    </p>
+  </div>
+
+  <input
+    #fileInput
+    hidden
+    type="file"
+    accept=".pdf,.doc,.docx"
+    (change)="onFileSelected($event)"
+  >
+
+
+
+<div *ngIf="uploadSuccess" class="success-message">
+  ✅ CV uploaded successfully
+</div>
+
+<div *ngIf="uploadError" class="error-message">
+  ❌ {{ uploadError }}
+</div>
+
+<button
+  class="upload-btn"
+  (click)="fileInput.click()"
+  [disabled]="isUploading">
+  Re-upload CV
+</button>
+
+</div>
+
+
+<div
+  *ngIf="uploadError"
+  class="error-message">
+
+  {{ uploadError }}
+
+</div>
+
+  <div class="analysis-grid">
+
+    <!-- LEFT -->
+
+    <div class="score-card">
+
+      <span class="section-title">
+        OVERALL SCORE
+      </span>
+
+      <div class="score-wrapper">
+        <span class="score">{{overallScore}}</span>
+        <span class="total">/100</span>
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Keyword Match</span>
+          <span>{{keywordMatch}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="keywordMatch">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Impact Statements</span>
+          <span>{{impactStatements}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="impactStatements">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Formatting</span>
+          <span>{{formatting}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="formatting">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="metric">
+
+        <div class="metric-header">
+          <span>Leadership Signals</span>
+          <span>{{leadershipSignals}}%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill"
+               [style.width.%]="leadershipSignals">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+
+    <div class="right-section">
+
+      <div class="card">
+
+        <h3>Strengths</h3>
+
+        <ul>
+          <li *ngFor="let item of strengths">
+            ✅ {{item}}
+          </li>
+        </ul>
+
+      </div>
+
+      <div class="card">
+
+        <h3>Recommended Improvements</h3>
+
+        <ul>
+          <li *ngFor="let item of recommendations">
+            ⚠️ {{item}}
+          </li>
+        </ul>
+
+      </div>
+
+      <div class="card cv-file">
+
+  <div class="file-icon">
+    📄
+  </div>
+
+  <div class="file-info">
+
+    <h4>{{fileName}}</h4>
+
+    <p>
+      Last scanned {{lastScanned}}
+    </p>
+
+  </div>
+
+<button
+  class="report-btn"
+  (click)="downloadReport()"
+  [disabled]="!cvs || cvs.length === 0">
+
+  Download Latest
+
+</button>
+
+</div>
+
+<div class="card">
+
+  <div class="cv-actions">
+
+    <button
+      class="my-cvs-btn"
+      (click)="loadCVs()">
+
+      My CVs
+
+    </button>
+
+  </div>
+
+</div>
+
+<div
+  class="card"
+  *ngIf="showCVs">
+
+  <h3>
+    Uploaded CVs
+  </h3>
+
+  <div
+    class="cv-item"
+    *ngFor="let cv of cvs">
+
+    <div class="cv-data">
+
+<h4>
+{{ getOriginalFileName(cv.fileName) }}
+</h4>
+
+      <p>
+
+{{ formatDate(cv.uploadedAt) }} 
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+<button
+  class="download-btn"
+  (click)="downloadCV(cv)">
+
+  Download
+
+</button>
+
+      <button
+        class="delete-btn"
+        (click)="deleteCV(cv.cvId)">
+
+        Delete
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+    </div>
+
+  </div>
+
+</div>

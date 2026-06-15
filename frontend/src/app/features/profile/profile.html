@@ -1,0 +1,56 @@
+<div class="profile-page">
+  <header class="profile-header">
+    <div class="avatar-circle">{{ getUserInitials() }}</div>
+    <div class="header-info">
+      <h1>{{ profile()?.fullName || 'User' }}</h1>
+      <p>{{ profile()?.email }}</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading">Loading profile...</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">{{ errorMessage() }}</div>
+  }
+
+  @if (profile(); as p) {
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-value">{{ p.cvCount }}</span>
+        <span class="stat-label">CVs Uploaded</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ p.careerGoal || '—' }}</span>
+        <span class="stat-label">Career Goal</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ formatDate(p.createdAt) }}</span>
+        <span class="stat-label">Member Since</span>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>Account Information</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Full Name</label>
+          <div class="info-value">{{ p.fullName }}</div>
+        </div>
+        <div class="info-item">
+          <label>Email</label>
+          <div class="info-value">{{ p.email }}</div>
+        </div>
+        <div class="info-item">
+          <label>Career Goal</label>
+          <div class="info-value">{{ p.careerGoal || 'Not set' }}</div>
+        </div>
+        <div class="info-item">
+          <label>Member Since</label>
+          <div class="info-value">{{ formatDate(p.createdAt) }}</div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
