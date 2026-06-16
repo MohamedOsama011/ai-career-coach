@@ -49,7 +49,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AiFeedbackCaches");
+                    b.ToTable("AiFeedbackCaches", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.CV", b =>
@@ -75,7 +75,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CVs");
+                    b.ToTable("CVs", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Job", b =>
@@ -114,7 +114,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
@@ -143,7 +143,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("Userid");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Roadmap", b =>
@@ -176,7 +176,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("CVId");
 
-                    b.ToTable("Roadmaps");
+                    b.ToTable("Roadmaps", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RoadmapStep", b =>
@@ -213,7 +213,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("RoadmapId");
 
-                    b.ToTable("RoadmapSteps");
+                    b.ToTable("RoadmapSteps", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.mockInterview", b =>
@@ -253,7 +253,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Interviews");
+                    b.ToTable("Interviews", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Models.User", b =>

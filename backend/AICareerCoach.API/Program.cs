@@ -1,6 +1,7 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
+using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
@@ -44,8 +45,8 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
-
-            builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
+            IServiceCollection 
+               serviceCollection = builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
 
@@ -102,7 +103,7 @@ namespace AICareerCoach.API
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                await RoleSeeder.SeedAsync(roleManager);
+                //await RoleSeeder.SeedAsync(roleManager);
                 await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
             }

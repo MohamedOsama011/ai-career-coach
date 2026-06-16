@@ -1,8 +1,7 @@
-﻿
-namespace AICareerCoach.BLL.Interfaces
+﻿namespace AICareerCoach.BLL.Services.Interfaces
 {
     public interface IPdfExtractorService
     {
-        string ExtractText(string filePath);
+        Task<string> ExtractTextAsync(Stream pdfStream);
     }
 }
