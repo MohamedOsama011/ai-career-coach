@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AICareerCoach.BLL.Interfaces;
+﻿using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.repository;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AICareerCoach.BLL.Services
 {
@@ -14,12 +17,17 @@ namespace AICareerCoach.BLL.Services
         private readonly IBaserepo<CV> _cvRepo;
         private readonly IFileStorageService _fileStorage;
 
+        private readonly AICareerCoachDbContext context;
+
+
         public CVService(
             IBaserepo<CV> cvRepo,
-            IFileStorageService fileStorage)
+            IFileStorageService fileStorage,
+            AICareerCoachDbContext _context)
         {
             _cvRepo = cvRepo;
             _fileStorage = fileStorage;
+            context= _context;
         }
 
         public async Task<CV> UploadCVAsync(
@@ -27,21 +35,23 @@ namespace AICareerCoach.BLL.Services
             string fileName,
             string userId)
         {
-            var savedPath =
-                await _fileStorage.SaveFileAsync(
-                    fileStream,
-                    fileName);
+                var savedPath =
+                    await _fileStorage.SaveFileAsync(
+                        fileStream,
+                        fileName);
 
-            var cv = new CV
-            {
-                UserId = userId,
-                FilePath = savedPath,
-                UploadedAt = DateTime.UtcNow
-            };
+                var cv = new CV
+                {
+                    UserId = userId,
+                    FilePath = savedPath,
+                    UploadedAt = DateTime.UtcNow
 
-            _cvRepo.Add(cv);
+                };
 
-            return cv;
+                _cvRepo.Add(cv);
+
+                return cv;
+ 
         }
 
         public List<CV> GetUserCVs(string userId)
