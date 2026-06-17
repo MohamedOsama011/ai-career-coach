@@ -9,12 +9,11 @@ namespace AICareerCoach.DAL.Entities
 {
     public class AiFeedbackCache
     {
-        public int Id { get; set; }
-        public string UserId { get; set; }
-        public string CvHash { get; set; } = string.Empty;  
+        public string Id { get; set; }
+        public string Cvid { get; set; }
         public string FeedbackJson { get; set; } = string.Empty; 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public User User { get; set; } = null!; 
+        public virtual CV CV { get; set; }
     }
 }
