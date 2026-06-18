@@ -32,75 +32,79 @@
     <div class="error-message">{{ uploadError() }}</div>
   }
 
+  @if (loadingFeedback()) {
+    <div class="loading-message">Analyzing your CV...</div>
+  }
+
+  @if (feedbackError()) {
+    <div class="error-message">{{ feedbackError() }}</div>
+  }
+
   <div class="analysis-grid">
     <!-- LEFT: Score Card -->
     <div class="score-card">
-      <span class="metric-label">OVERALL SCORE</span>
-      <div class="score-wrapper">
-        <span class="score">{{ overallScore }}</span>
-        <span class="score-total">/100</span>
-      </div>
+      @if (feedback(); as fb) {
+        <span class="metric-label">OVERALL SCORE</span>
+        <div class="score-wrapper">
+          <span class="score">{{ fb.overallScore }}</span>
+          <span class="score-total">/100</span>
+        </div>
 
-      <div class="metric">
-        <div class="metric-header">
-          <span>Keyword Match</span>
-          <span>{{ keywordMatch }}%</span>
+        <div class="overall-summary">
+          <h3>Key Strengths</h3>
+          <ul>
+            @for (item of fb.strengths; track $index) {
+              <li class="strength-item">{{ item }}</li>
+            }
+          </ul>
         </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="keywordMatch"></div>
-        </div>
-      </div>
 
-      <div class="metric">
-        <div class="metric-header">
-          <span>Impact Statements</span>
-          <span>{{ impactStatements }}%</span>
+        @if (fb.missingKeywords.length) {
+          <div class="keywords-section">
+            <h3>Missing Keywords</h3>
+            <div class="keywords-list">
+              @for (kw of fb.missingKeywords; track $index) {
+                <span class="keyword-tag">{{ kw }}</span>
+              }
+            </div>
+          </div>
+        }
+      } @else if (!loadingFeedback()) {
+        <span class="metric-label">OVERALL SCORE</span>
+        <div class="score-wrapper">
+          <span class="score">—</span>
         </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="impactStatements"></div>
-        </div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-header">
-          <span>Formatting</span>
-          <span>{{ formatting }}%</span>
-        </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="formatting"></div>
-        </div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-header">
-          <span>Leadership Signals</span>
-          <span>{{ leadershipSignals }}%</span>
-        </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="leadershipSignals"></div>
-        </div>
-      </div>
+        <p class="empty-message">Upload your CV to get started</p>
+      }
     </div>
 
     <!-- RIGHT -->
     <div class="right-section">
-      <div class="card">
-        <h3>Strengths</h3>
-        <ul>
-          @for (item of strengths; track $index) {
-            <li class="strength-item">{{ item }}</li>
-          }
-        </ul>
-      </div>
+      @if (feedback(); as fb) {
+        <div class="card">
+          <h3>Summary</h3>
+          <p class="summary-text">{{ fb.overallSummary }}</p>
+        </div>
 
-      <div class="card">
-        <h3>Recommended Improvements</h3>
-        <ul>
-          @for (item of recommendations; track $index) {
-            <li class="improvement-item">{{ item }}</li>
+        <div class="card">
+          <h3>Suggested Improvements</h3>
+          @for (suggestion of fb.suggestions; track $index) {
+            <div class="suggestion">
+              <div class="suggestion-header">
+                <span class="suggestion-category">{{ suggestion.category }}</span>
+                <span class="priority-badge {{ priorityClass(suggestion.priority) }}">{{ suggestion.priority }}</span>
+              </div>
+              <p class="suggestion-issue">{{ suggestion.issue }}</p>
+              <p class="suggestion-rec">{{ suggestion.recommendation }}</p>
+            </div>
           }
-        </ul>
-      </div>
+        </div>
+      } @else if (!loadingFeedback()) {
+        <div class="card">
+          <h3>Summary</h3>
+          <p class="summary-text">Upload your CV to see the AI-powered analysis.</p>
+        </div>
+      }
 
       <div class="card file-card">
         <span class="material-icons file-icon">description</span>
@@ -126,6 +130,7 @@
           <h3>Uploaded CVs</h3>
           @for (cv of cvs(); track cv.cvId) {
             <div class="cv-item">
+              <span class="material-icons file-icon">description</span>
               <div class="cv-data">
                 <h4>{{ getOriginalFileName(cv.fileName) }}</h4>
                 <p>{{ formatDate(cv.uploadedAt) }}</p>

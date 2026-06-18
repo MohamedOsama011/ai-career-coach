@@ -2,6 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
+import { AiService } from '../../core/services/ai.service';
+import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.model';
 
 @Component({
   selector: 'app-cv',
@@ -16,36 +18,24 @@ export class Cv implements OnInit {
   uploadError = signal('');
   cvs = signal<any[]>([]);
 
-  overallScore = 74;
-  keywordMatch = 81;
-  impactStatements = 62;
-  formatting = 83;
-  leadershipSignals = 65;
-
-  strengths = [
-    'Quantified impact with measurable outcomes across multiple projects',
-    'Strong technical keyword density aligned with software engineering roles',
-    'Concise and professional summary section',
-    'Projects demonstrate practical experience and problem solving'
-  ];
-
-  recommendations = [
-    'Add leadership outcomes and team collaboration examples',
-    'Surface system design and architecture experience more prominently',
-    'Replace generic wording with measurable business impact',
-    'Expand project descriptions with technologies and responsibilities'
-  ];
+  feedback = signal<CvFeedback | null>(null);
+  loadingFeedback = signal(false);
+  feedbackError = signal('');
 
   fileName = signal('No CV Uploaded');
   lastScanned = signal('-');
 
   private userId = '';
 
-  constructor(private cvService: CvService) {}
+  constructor(
+    private cvService: CvService,
+    private aiService: AiService
+  ) {}
 
   ngOnInit(): void {
     this.userId = this.getUserIdFromToken();
     this.loadCVs();
+    this.loadFeedback();
   }
 
   onFileSelected(event: Event): void {
@@ -64,11 +54,12 @@ export class Cv implements OnInit {
     this.cvService.uploadCV(file, this.userId).pipe(
       finalize(() => this.isUploading.set(false))
     ).subscribe({
-      next: (res: any) => {
+      next: () => {
         this.uploadSuccess.set(true);
         this.fileName.set(file.name);
         this.lastScanned.set(new Date().toLocaleString());
         this.loadCVs();
+        this.loadFeedback();
         input.value = '';
         setTimeout(() => this.uploadSuccess.set(false), 3000);
       },
@@ -79,12 +70,26 @@ export class Cv implements OnInit {
   }
 
   loadCVs(): void {
+    if (!this.userId) return;
     this.cvService.getUserCVs(this.userId).subscribe({
       next: (response) => {
         this.cvs.set(response);
         this.showCVs.set(true);
       },
       error: (error) => console.error(error)
+    });
+  }
+
+  loadFeedback(): void {
+    if (!this.userId) return;
+    this.loadingFeedback.set(true);
+    this.feedbackError.set('');
+
+    this.aiService.getCvFeedback(this.userId).pipe(
+      finalize(() => this.loadingFeedback.set(false))
+    ).subscribe({
+      next: (result) => this.feedback.set(result),
+      error: () => this.feedbackError.set('Could not load CV analysis. Upload a CV first.')
     });
   }
 
@@ -122,6 +127,15 @@ export class Cv implements OnInit {
   getOriginalFileName(fileName: string): string {
     const index = fileName.indexOf('_');
     return index > -1 ? fileName.substring(index + 1) : fileName;
+  }
+
+  priorityClass(priority: string): string {
+    const map: Record<string, string> = {
+      'High': 'badge-high',
+      'Medium': 'badge-medium',
+      'Low': 'badge-low'
+    };
+    return map[priority] || 'badge-low';
   }
 
   private getUserIdFromToken(): string {
