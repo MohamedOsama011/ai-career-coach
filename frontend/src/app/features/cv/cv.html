@@ -7,25 +7,28 @@
         <p class="page-subtitle">Benchmarked against 50,000+ successful hires and industry standards</p>
       }
     </div>
-    <div class="header-right">
-      <input
-        #fileInput
-        hidden
-        type="file"
-        accept=".pdf,.doc,.docx"
-        (change)="onFileSelected($event)"
-      >
-      <button class="upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
-        @if (isUploading()) {
-          <span class="spinner"></span>
-          Uploading...
-        } @else {
-          <span class="material-icons">upload</span>
-          {{ hasCV() ? 'Reupload CV' : 'Upload CV' }}
-        }
-      </button>
-    </div>
+    @if (hasCV()) {
+      <div class="header-right">
+        <button class="upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+          @if (isUploading()) {
+            <span class="spinner"></span>
+            Uploading...
+          } @else {
+            <span class="material-icons">upload</span>
+            Reupload CV
+          }
+        </button>
+      </div>
+    }
   </header>
+
+  <input
+    #fileInput
+    hidden
+    type="file"
+    accept=".pdf,.doc,.docx"
+    (change)="onFileSelected($event)"
+  >
 
   @if (uploadSuccess()) {
     <div class="success-message">CV uploaded successfully</div>
@@ -43,7 +46,7 @@
     <div class="loading-message">Analyzing your CV...</div>
   }
 
-  @if (feedbackError()) {
+  @if (hasCV() && feedbackError()) {
     <div class="error-message">{{ feedbackError() }}</div>
   }
 

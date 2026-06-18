@@ -95,7 +95,6 @@ export class Cv implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userId = this.getUserIdFromToken();
     this.loadCVs();
-    this.loadFeedback();
   }
 
   loadCVs(): void {
@@ -104,6 +103,9 @@ export class Cv implements OnInit, OnDestroy {
       next: (response) => {
         this.cvs.set(response);
         this.showCVs.set(true);
+        if (response.length > 0) {
+          this.loadFeedback();
+        }
       },
       error: (error) => console.error(error)
     });
