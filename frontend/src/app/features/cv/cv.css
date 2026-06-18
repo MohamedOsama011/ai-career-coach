@@ -17,7 +17,14 @@
   display: flex;
   flex-direction: column;
 }
-
+.header-left span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9CA3AF;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
 .page-title {
   font-size: 32px;
   font-weight: 800;
@@ -143,6 +150,12 @@
   margin-top: 8px;
 }
 
+.overall-summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .overall-summary h3 {
   font-size: 11px;
   font-weight: 700;
@@ -222,23 +235,20 @@
 }
 
 .strength-item {
-  padding: 10px 0 10px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
   border-bottom: 1px solid #F3F4F6;
   font-size: 14px;
   color: #374151;
   line-height: 1.5;
-  position: relative;
 }
 
-.strength-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 14px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #111827;
+.strength-item .check-icon {
+  flex-shrink: 0;
+  color: #111827;
+  margin-top: 2px;
 }
 
 .strength-item:last-child {
