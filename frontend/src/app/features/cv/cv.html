@@ -55,6 +55,48 @@
           <span class="score-total">/100</span>
         </div>
 
+        <div class="sub-scores">
+          <div class="metric">
+            <div class="metric-header">
+              <span>Keyword Match</span>
+              <span>{{ fb.keywordMatch }}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="fb.keywordMatch"></div>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-header">
+              <span>Impact Statements</span>
+              <span>{{ fb.impactStatements }}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="fb.impactStatements"></div>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-header">
+              <span>Formatting</span>
+              <span>{{ fb.formatting }}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="fb.formatting"></div>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-header">
+              <span>Leadership Signals</span>
+              <span>{{ fb.leadershipSignals }}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="fb.leadershipSignals"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="overall-summary">
           <h3>Key Strengths</h3>
           <ul>
