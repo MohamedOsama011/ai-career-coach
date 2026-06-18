@@ -40,7 +40,10 @@ namespace AICareerCoach.BLL.services
 
         public async Task<CvFeedbackDto> GetFeedbackAsync(string userId)
         {
-            var cv = await _context.CVs.FirstOrDefaultAsync(c => c.UserId == userId)
+            var cv = await _context.CVs
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.UploadedAt)
+                .FirstOrDefaultAsync()
                 ?? throw new Exception("No CV found. Please upload your CV first.");
 
             var fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "cvs", cv.FilePath);
