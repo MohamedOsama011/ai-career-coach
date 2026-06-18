@@ -182,7 +182,7 @@
 }
 
 .sub-scores {
-  margin-bottom: 8px;
+  margin-bottom: 28px;
 }
 
 .metric {
@@ -214,6 +214,7 @@
 .progress-bar-fill {
   height: 100%;
   border-radius: 9999px;
+  background: linear-gradient(90deg, #2563EB, #3B82F6);
   transform-origin: left;
   transform: scaleX(0);
   animation-name: fillBar;
@@ -222,11 +223,6 @@
   animation-delay: calc(var(--i, 0) * 0.12s + 0.25s);
   animation-fill-mode: both;
 }
-
-.metric:nth-child(1) .progress-bar-fill { background: linear-gradient(90deg, #2563EB, #3B82F6); }
-.metric:nth-child(2) .progress-bar-fill { background: linear-gradient(90deg, #059669, #10B981); }
-.metric:nth-child(3) .progress-bar-fill { background: linear-gradient(90deg, #D97706, #F59E0B); }
-.metric:nth-child(4) .progress-bar-fill { background: linear-gradient(90deg, #DC2626, #EF4444); }
 
 @keyframes fillBar {
   from { transform: scaleX(0); }
