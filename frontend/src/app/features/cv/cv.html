@@ -94,12 +94,15 @@
           <h3>Suggested Improvements</h3>
           @for (suggestion of fb.suggestions; track $index) {
             <div class="suggestion">
-              <div class="suggestion-header">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              <div class="suggestion-content">
+                <div class="suggestion-header">
                 <span class="suggestion-category">{{ suggestion.category }}</span>
                 <span class="priority-badge {{ priorityClass(suggestion.priority) }}">{{ suggestion.priority }}</span>
               </div>
               <p class="suggestion-issue">{{ suggestion.issue }}</p>
               <p class="suggestion-rec">{{ suggestion.recommendation }}</p>
+              </div>
             </div>
           }
         </div>
