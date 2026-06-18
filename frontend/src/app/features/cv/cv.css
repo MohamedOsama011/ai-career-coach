@@ -264,6 +264,7 @@
 
 .suggestion {
   display: flex;
+  align-items: center;
   gap: 12px;
   padding: 16px 0;
   border-bottom: 1px solid #F3F4F6;
@@ -277,7 +278,6 @@
 .suggestion .alert-icon {
   flex-shrink: 0;
   color: #eb9b00;
-  margin-top: 2px;
 }
 
 .suggestion-content {
