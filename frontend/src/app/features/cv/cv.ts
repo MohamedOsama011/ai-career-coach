@@ -1,31 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
-import { AuthService } from '../../core/services/auth.service';
-import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-cv',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './cv.html',
   styleUrl: './cv.css'
 })
-export class Cv implements OnInit{
-
-  constructor(
-    private cvService: CvService,
-    private authService: AuthService
-  ) {}
-
-  showCVs = false;
-  isUploading = false;
-  uploadSuccess = false;
-  uploadError = '';
-  cvs: any[] = [];
-
-  userId = '';
-
+export class Cv implements OnInit {
+  showCVs = signal(false);
+  isUploading = signal(false);
+  uploadSuccess = signal(false);
+  uploadError = signal('');
+  cvs = signal<any[]>([]);
 
   overallScore = 74;
   keywordMatch = 81;
@@ -47,17 +36,21 @@ export class Cv implements OnInit{
     'Expand project descriptions with technologies and responsibilities'
   ];
 
-  fileName = 'No CV Uploaded';
-  lastScanned = '-';
+  fileName = signal('No CV Uploaded');
+  lastScanned = signal('-');
 
-  selectedFile?: File;
-  fileUrl?: string;
-  cvId?: number;
+  private userId = '';
 
-  async onFileSelected(event: Event) {
+  constructor(private cvService: CvService) {}
 
-    this.uploadSuccess = false;
-    this.uploadError = '';
+  ngOnInit(): void {
+    this.userId = this.getUserIdFromToken();
+    this.loadCVs();
+  }
+
+  onFileSelected(event: Event): void {
+    this.uploadSuccess.set(false);
+    this.uploadError.set('');
 
     const input = event.target as HTMLInputElement;
 
@@ -66,141 +59,82 @@ export class Cv implements OnInit{
     }
 
     const file = input.files[0];
+    this.isUploading.set(true);
 
-    this.cvService
-      .uploadCV(file, this.userId)
-      .subscribe({
-
-        next: (res: any) => {
-
-          this.uploadSuccess = true;
-
-          this.fileName = file.name;
-
-          this.lastScanned = new Date().toLocaleString();
-
-          this.loadCVs();
-
-          input.value = '';
-
-          setTimeout(() => {
-            this.uploadSuccess = false;
-          }, 3000);
-        },
-
-        error: () => {
-          this.uploadError = 'Upload failed';
-        }
-      });
+    this.cvService.uploadCV(file, this.userId).pipe(
+      finalize(() => this.isUploading.set(false))
+    ).subscribe({
+      next: (res: any) => {
+        this.uploadSuccess.set(true);
+        this.fileName.set(file.name);
+        this.lastScanned.set(new Date().toLocaleString());
+        this.loadCVs();
+        input.value = '';
+        setTimeout(() => this.uploadSuccess.set(false), 3000);
+      },
+      error: () => {
+        this.uploadError.set('Upload failed');
+      }
+    });
   }
 
-  loadCVs() {
-
-    this.cvService
-      .getUserCVs(this.userId)
-      .subscribe({
-
-        next: (response) => {
-
-          this.cvs = response;
-
-          this.showCVs = true;
-
-          console.log(this.cvs);
-        },
-
-        error: (error) => {
-
-          console.error(error);
-        }
-      });
+  loadCVs(): void {
+    this.cvService.getUserCVs(this.userId).subscribe({
+      next: (response) => {
+        this.cvs.set(response);
+        this.showCVs.set(true);
+      },
+      error: (error) => console.error(error)
+    });
   }
 
-  deleteCV(cvId: number) {
-
-    this.cvService
-      .deleteCV(cvId)
-      .subscribe({
-
-        next: () => {
-
-          this.cvs =
-            this.cvs.filter(
-              x => x.cvId !== cvId
-            );
-        },
-
-        error: (error) => {
-
-          console.error(error);
-        }
-      });
+  deleteCV(cvId: number): void {
+    this.cvService.deleteCV(cvId).subscribe({
+      next: () => {
+        this.cvs.set(this.cvs().filter(x => x.cvId !== cvId));
+      },
+      error: (error) => console.error(error)
+    });
   }
 
-downloadCV(cv: any) {
+  downloadCV(cv: any): void {
+    if (!cv?.downloadUrl) return;
+    window.open(cv.downloadUrl, '_blank');
+  }
 
-  if (!cv?.downloadUrl) return;
+  downloadReport(): void {
+    const cvs = this.cvs();
+    if (!cvs.length) return;
 
-  window.open(
-    `http://localhost:5068${cv.downloadUrl}`,
-    '_blank'
-  );
-}
-
-  downloadReport() {
-
-    if (!this.cvs.length) return;
-
-    const latestCV = this.cvs.reduce((latest, current) =>
-      new Date(current.uploadedAt) >
-      new Date(latest.uploadedAt)
-        ? current
-        : latest
+    const latestCV = cvs.reduce((latest, current) =>
+      new Date(current.uploadedAt) > new Date(latest.uploadedAt) ? current : latest
     );
 
     this.downloadCV(latestCV);
   }
 
   formatDate(dateString: string): string {
-
     const date = new Date(dateString);
-
-    const cairoTime =
-      new Date(date.getTime() + (3 * 60 * 60 * 1000));
-
+    const cairoTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
     return cairoTime.toLocaleString();
   }
 
   getOriginalFileName(fileName: string): string {
-
     const index = fileName.indexOf('_');
-
-    return index > -1
-      ? fileName.substring(index + 1)
-      : fileName;
+    return index > -1 ? fileName.substring(index + 1) : fileName;
   }
 
-private getUserIdFromToken(): string {
+  private getUserIdFromToken(): string {
+    const token = localStorage.getItem('authToken');
+    if (!token) return '';
 
-  const token = localStorage.getItem('authToken');
-
-  if (!token) {
-    return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload[
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+      ] || payload['nameid'] || '';
+    } catch {
+      return '';
+    }
   }
-
-  const payload = JSON.parse(
-    atob(token.split('.')[1])
-  );
-
-  return payload[
-    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
-  ] || payload['nameid'] || '';
-}
-
-ngOnInit(): void {
-
-  this.userId = this.getUserIdFromToken();
-
-  this.loadCVs();
-}
 }
