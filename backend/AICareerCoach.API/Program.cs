@@ -45,8 +45,8 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
-            IServiceCollection 
-               serviceCollection = builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
+            
+            builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
 

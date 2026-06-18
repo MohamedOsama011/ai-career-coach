@@ -7,6 +7,6 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface ILlmService
     {
-        Task<CvFeedbackDto> GetCvFeedbackAsync(Stream  file,string id);
+        Task<CvFeedbackDto> GetCvFeedbackAsync(string cvText);
     }
 }

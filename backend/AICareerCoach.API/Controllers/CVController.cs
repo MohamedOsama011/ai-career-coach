@@ -1,9 +1,8 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Data;
-using AICareerCoach.DAL.Entities;
+using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -13,11 +12,13 @@ namespace AICareerCoach.API.Controllers
     {
         private readonly ICVService _cvService;
         private readonly IConfiguration _config;
+        private readonly UserManager<User> _userManager;
 
-        public CVController(ICVService cvService, IConfiguration config)
+        public CVController(ICVService cvService, IConfiguration config, UserManager<User> userManager)
         {
             _cvService = cvService;
             _config = config;
+            _userManager = userManager;
         }
 
 
@@ -66,15 +67,21 @@ namespace AICareerCoach.API.Controllers
         //}
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadCV(IFormFile file, string userId)
+        public async Task<IActionResult> UploadCV(IFormFile file, [FromForm] string? userId = null)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var effectiveUserId = user?.Id ?? userId;
+
+            if (string.IsNullOrEmpty(effectiveUserId))
+                return Unauthorized("User ID required. Either authenticate or provide userId in the form.");
+
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
             
             var cv = await _cvService.UploadCVAsync(
                 file.OpenReadStream(),
                 file.FileName,
-                userId);
+                effectiveUserId);
 
             var fileName = Path.GetFileName(cv.FilePath);
             var baseUrl = _config["AppSettings:BaseUrl"];
@@ -102,7 +109,7 @@ namespace AICareerCoach.API.Controllers
                 UploadedAt = cv.UploadedAt,
                 UserId = cv.UserId,
                 FileName = Path.GetFileName(cv.FilePath),
-                DownloadUrl = $"/cvs/{Path.GetFileName(cv.FilePath)}"
+                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}"
             });
 
             return Ok(result);

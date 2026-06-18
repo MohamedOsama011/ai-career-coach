@@ -7,32 +7,26 @@ namespace AICareerCoach.BLL.Services
 {
     public class PdfExtractorService : IPdfExtractorService
     {
-        public async Task<string> ExtractTextAsync(Stream pdfStream)
+        public string ExtractText(string filePath)
         {
-            if (pdfStream == null || pdfStream.Length == 0)
-                throw new Exception("PDF file is empty.");
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("CV file not found.", filePath);
 
-            using var document = PdfDocument.Open(pdfStream);
+            var sb = new StringBuilder();
 
-            var extractedText = new StringBuilder();
-
+            using var document = PdfDocument.Open(filePath);
             foreach (var page in document.GetPages())
             {
-                extractedText.AppendLine(page.Text);
+                var words = page.GetWords();
+                sb.AppendLine(string.Join(" ", words.Select(w => w.Text)));
             }
 
-            return CleanText(extractedText.ToString());
-        }
+            var text = sb.ToString().Trim();
 
-        private string CleanText(string text)
-        {
             if (string.IsNullOrWhiteSpace(text))
-                return string.Empty;
+                throw new Exception("Could not extract text from PDF. Make sure it's not a scanned image.");
 
-            return text
-                .Replace("\r\n", "\n")
-                .Replace("\n\n", "\n")
-                .Trim();
+            return text;
         }
     }
 }

@@ -9,6 +9,6 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface ICvFeedbackService
     {
-        Task<CvFeedbackDto> GetFeedbackAsync(string data);
+        Task<CvFeedbackDto> GetFeedbackAsync(string userId);
     }
 }

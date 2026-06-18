@@ -9,29 +9,25 @@ namespace AICareerCoach.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class AiController : ControllerBase
     {
         private readonly ICvFeedbackService _feedbackService;
-        private readonly ILlmService _llmService;
         private readonly UserManager<User> _userManager;
 
-        public AiController(ICvFeedbackService feedbackService, UserManager<User> userManager, ILlmService llmService)
+        public AiController(ICvFeedbackService feedbackService, UserManager<User> userManager)
         {
             _feedbackService = feedbackService;
             _userManager = userManager;
-            _llmService = llmService;
         }
 
         [HttpGet("cv-feedback")]
-        public async Task<IActionResult> GetCvFeedback(IFormFile File)
+        public async Task<IActionResult> GetCvFeedback()
         {
-            var stream = File.OpenReadStream();
             try
             {
                 var user = await _userManager.GetUserAsync(User);
 
-                var result = await _llmService.GetCvFeedbackAsync(stream,user.Id);
+                var result = await _feedbackService.GetFeedbackAsync(user.Id);
                 return Ok(result);
             }
             catch (Exception ex)

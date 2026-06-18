@@ -15,6 +15,11 @@ namespace AICareerCoach.BLL.DTOs.CV
         public List<string> MissingKeywords { get; set; } = new();
         public bool FromCache { get; set; }
         public DateTime GeneratedAt { get; set; }
+
+        public int KeywordMatch { get; set; }       
+        public int ImpactStatements { get; set; }   
+        public int Formatting { get; set; }         
+        public int LeadershipSignals { get; set; }
     }
     public class FeedbackSuggestion
     {

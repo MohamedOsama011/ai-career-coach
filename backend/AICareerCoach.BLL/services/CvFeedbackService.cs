@@ -1,47 +1,93 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.BLL.services
 {
     public class CvFeedbackService : ICvFeedbackService
     {
-        private readonly Kernel _kernel;
-        public CvFeedbackService(Kernel kernel)
+        private readonly AICareerCoachDbContext _context; 
+        private readonly IPdfExtractorService _pdfExtractor;
+        private readonly ILlmService _llmService;
+        private readonly IWebHostEnvironment _env;
+        private readonly ILogger<CvFeedbackService> _logger;
+        public CvFeedbackService(
+            AICareerCoachDbContext context,
+            IPdfExtractorService pdfExtractor,
+            ILlmService llmService,
+            IWebHostEnvironment env,
+            ILogger<CvFeedbackService> logger)
         {
-            _kernel = kernel;
+            _context = context;
+            _pdfExtractor = pdfExtractor;
+            _llmService = llmService;
+            _env = env;
+            _logger = logger;
 
         }
 
-        public async Task<CvFeedbackDto> GetFeedbackAsync(string cvtext)
+        public async Task<CvFeedbackDto> GetFeedbackAsync(string userId)
         {
-            var prompt = $"""
-                You are an expert career coach specializing in CV/resume feedback,
-                analyze the CV of a user and provide detailed feedback on how to improve it.
-                provide an overall summary, an overall score out of 10, List of FeedbackSuggestion  ,list of missing Keywords or missing skills.
-                cv:{cvtext}
-                """;
+            var cv = await _context.CVs.FirstOrDefaultAsync(c => c.UserId == userId)
+                ?? throw new Exception("No CV found. Please upload your CV first.");
 
-            var settings = new OpenAIPromptExecutionSettings
+            var fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "cvs", cv.FilePath);
+            var cvText = _pdfExtractor.ExtractText(fullPath);
+
+            var cvHash = ComputeHash(cvText);
+
+            var cached = await _context.AiFeedbackCaches
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.CvHash == cvHash);
+
+            if (cached != null)
             {
-                ResponseFormat = typeof(CvFeedbackDto)
-            };
-            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-            var history = new ChatHistory();
-            history.AddUserMessage(prompt);
-            var result = await chatCompletionService.GetChatMessageContentsAsync(history, settings, _kernel);
-            var feedback = JsonSerializer.Deserialize<CvFeedbackDto>(result[0].Content!);
-            return feedback;
+                _logger.LogInformation("Returning cached feedback for user {UserId}", userId);
+                var cachedResult = JsonSerializer.Deserialize<CvFeedbackDto>(cached.FeedbackJson)!;
+                cachedResult.FromCache = true;
+                return cachedResult;
+            }
 
+            _logger.LogInformation("Calling LLM for user {UserId}", userId);
+            var feedback = await _llmService.GetCvFeedbackAsync(cvText);
+            feedback.FromCache = false;
+
+            if (feedback.OverallScore > 0) 
+            {
+                var oldCache = await _context.AiFeedbackCaches.Where(c => c.UserId == userId).ToListAsync();
+                _context.AiFeedbackCaches.RemoveRange(oldCache);
+
+                _context.AiFeedbackCaches.Add(new AiFeedbackCache
+                {
+                    UserId = userId,
+                    CvHash = cvHash,
+                    FeedbackJson = JsonSerializer.Serialize(feedback),
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                cv.ExtractedData = cvText;
+                await _context.SaveChangesAsync();
+            }
+
+            return feedback;
+        }
+
+        private static string ComputeHash(string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            var hash = MD5.HashData(bytes);
+            return Convert.ToHexString(hash);
 
         }
     }
