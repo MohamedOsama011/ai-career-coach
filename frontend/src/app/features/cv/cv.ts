@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
@@ -26,20 +26,35 @@ export class Cv implements OnInit, OnDestroy {
   deleteSuccess = signal('');
   private animationTimer: number | null = null;
 
+  hasCV = computed(() => this.cvs().length > 0);
   fileName = signal('No CV Uploaded');
   lastScanned = signal('-');
 
   private userId = '';
+  isDragOver = signal(false);
 
   constructor(
     private cvService: CvService,
     private aiService: AiService
   ) {}
 
-  ngOnInit(): void {
-    this.userId = this.getUserIdFromToken();
-    this.loadCVs();
-    this.loadFeedback();
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver.set(false);
+    const file = event.dataTransfer?.files[0];
+    if (file && (file.name.endsWith('.pdf') || file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
+      this.uploadFile(file);
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -53,6 +68,11 @@ export class Cv implements OnInit, OnDestroy {
     }
 
     const file = input.files[0];
+    this.uploadFile(file);
+    input.value = '';
+  }
+
+  private uploadFile(file: File): void {
     this.isUploading.set(true);
 
     this.cvService.uploadCV(file, this.userId).pipe(
@@ -64,13 +84,18 @@ export class Cv implements OnInit, OnDestroy {
         this.lastScanned.set(new Date().toLocaleString());
         this.loadCVs();
         this.loadFeedback();
-        input.value = '';
         setTimeout(() => this.uploadSuccess.set(false), 3000);
       },
       error: () => {
         this.uploadError.set('Upload failed');
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.userId = this.getUserIdFromToken();
+    this.loadCVs();
+    this.loadFeedback();
   }
 
   loadCVs(): void {
