@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
@@ -11,7 +11,7 @@ import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.mo
   templateUrl: './cv.html',
   styleUrl: './cv.css'
 })
-export class Cv implements OnInit {
+export class Cv implements OnInit, OnDestroy {
   showCVs = signal(false);
   isUploading = signal(false);
   uploadSuccess = signal(false);
@@ -21,6 +21,8 @@ export class Cv implements OnInit {
   feedback = signal<CvFeedback | null>(null);
   loadingFeedback = signal(false);
   feedbackError = signal('');
+  displayedScore = signal(0);
+  private animationTimer: number | null = null;
 
   fileName = signal('No CV Uploaded');
   lastScanned = signal('-');
@@ -88,7 +90,10 @@ export class Cv implements OnInit {
     this.aiService.getCvFeedback(this.userId).pipe(
       finalize(() => this.loadingFeedback.set(false))
     ).subscribe({
-      next: (result) => this.feedback.set(result),
+      next: (result) => {
+        this.feedback.set(result);
+        this.startScoreAnimation(result.overallScore);
+      },
       error: () => this.feedbackError.set('Could not load CV analysis. Upload a CV first.')
     });
   }
@@ -136,6 +141,35 @@ export class Cv implements OnInit {
       'Low': 'badge-low'
     };
     return map[priority] || 'badge-low';
+  }
+
+  startScoreAnimation(target: number): void {
+    this.displayedScore.set(0);
+    if (this.animationTimer !== null) {
+      clearInterval(this.animationTimer);
+      this.animationTimer = null;
+    }
+    const duration = 800;
+    const step = Math.max(1, Math.ceil(target / (duration / 16)));
+    const id = setInterval(() => {
+      this.displayedScore.update(prev => {
+        const next = prev + step;
+        if (next >= target) {
+          clearInterval(id);
+          this.animationTimer = null;
+          return target;
+        }
+        return next;
+      });
+    }, 16);
+    this.animationTimer = id;
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationTimer) {
+      clearInterval(this.animationTimer);
+      this.animationTimer = null;
+    }
   }
 
   private getUserIdFromToken(): string {

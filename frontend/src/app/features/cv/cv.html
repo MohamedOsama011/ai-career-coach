@@ -47,7 +47,7 @@
       @if (feedback(); as fb) {
         <span class="metric-label">OVERALL SCORE</span>
         <div class="score-wrapper">
-          <span class="score">{{ fb.overallScore }}</span>
+          <span class="score">{{ displayedScore() }}</span>
           <span class="score-total">/100</span>
         </div>
 
