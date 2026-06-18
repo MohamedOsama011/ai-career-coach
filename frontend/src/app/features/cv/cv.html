@@ -29,6 +29,10 @@
     <div class="success-message">CV uploaded successfully</div>
   }
 
+  @if (deleteSuccess()) {
+    <div class="success-message">{{ deleteSuccess() }}</div>
+  }
+
   @if (uploadError()) {
     <div class="error-message">{{ uploadError() }}</div>
   }
@@ -129,7 +133,18 @@
               </div>
               <div class="actions">
                 <button class="action-btn" (click)="downloadCV(cv)">Download</button>
-                <button class="delete-btn" (click)="deleteCV(cv.cvId)">Delete</button>
+                <button
+                  class="delete-btn"
+                  (click)="deleteCV(cv.cvId)"
+                  [disabled]="deletingCvId() === cv.cvId"
+                >
+                  @if (deletingCvId() === cv.cvId) {
+                    <span class="delete-spinner"></span>
+                    Deleting...
+                  } @else {
+                    Delete
+                  }
+                </button>
               </div>
             </div>
           }

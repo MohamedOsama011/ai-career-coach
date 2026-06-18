@@ -472,10 +472,27 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.delete-btn:hover {
+.delete-btn:hover:not(:disabled) {
   background: #B91C1C;
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.delete-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
 @media (max-width: 1024px) {

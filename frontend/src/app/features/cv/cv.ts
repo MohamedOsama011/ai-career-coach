@@ -22,6 +22,8 @@ export class Cv implements OnInit, OnDestroy {
   loadingFeedback = signal(false);
   feedbackError = signal('');
   displayedScore = signal(0);
+  deletingCvId = signal<number | null>(null);
+  deleteSuccess = signal('');
   private animationTimer: number | null = null;
 
   fileName = signal('No CV Uploaded');
@@ -99,11 +101,34 @@ export class Cv implements OnInit, OnDestroy {
   }
 
   deleteCV(cvId: number): void {
-    this.cvService.deleteCV(cvId).subscribe({
+    if (!confirm('Are you sure you want to delete this CV?')) return;
+
+    this.deletingCvId.set(cvId);
+    this.deleteSuccess.set('');
+
+    this.cvService.deleteCV(cvId).pipe(
+      finalize(() => this.deletingCvId.set(null))
+    ).subscribe({
       next: () => {
-        this.cvs.set(this.cvs().filter(x => x.cvId !== cvId));
+        const remaining = this.cvs().filter(x => x.cvId !== cvId);
+        this.cvs.set(remaining);
+        this.deleteSuccess.set('CV deleted successfully');
+        setTimeout(() => this.deleteSuccess.set(''), 3000);
+
+        if (remaining.length === 0) {
+          this.feedback.set(null);
+          this.displayedScore.set(0);
+          this.fileName.set('No CV Uploaded');
+          this.lastScanned.set('-');
+        } else {
+          this.loadFeedback();
+        }
       },
-      error: (error) => console.error(error)
+      error: () => {
+        this.deleteSuccess.set('');
+        this.uploadError.set('Failed to delete CV');
+        setTimeout(() => this.uploadError.set(''), 3000);
+      }
     });
   }
 
