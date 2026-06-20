@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { catchError, map, timeout } from 'rxjs/operators';
-import { Job } from '../models/job.model';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, timeout } from 'rxjs/operators';
+import { Job, JobRecommendationResult } from '../models/job.model';
 
 
 @Injectable({
@@ -72,11 +72,13 @@ export class JobsService {
           });
         }
         return [];
-      }),
-      catchError(() => {
-        console.error('Failed to fetch jobs from API');
-        return of([]);
       })
+    );
+  }
+
+  getRecommendations(): Observable<JobRecommendationResult> {
+    return this.http.get<JobRecommendationResult>(`${this.apiUrl}/recommendations`).pipe(
+      timeout(7000)
     );
   }
 }

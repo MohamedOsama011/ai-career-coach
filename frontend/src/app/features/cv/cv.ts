@@ -17,6 +17,7 @@ export class Cv implements OnInit, OnDestroy {
   uploadSuccess = signal(false);
   uploadError = signal('');
   cvs = signal<any[]>([]);
+  loadingCVs = signal(true);
 
   feedback = signal<CvFeedback | null>(null);
   loadingFeedback = signal(false);
@@ -99,15 +100,20 @@ export class Cv implements OnInit, OnDestroy {
 
   loadCVs(): void {
     if (!this.userId) return;
+    this.loadingCVs.set(true);
     this.cvService.getUserCVs(this.userId).subscribe({
       next: (response) => {
         this.cvs.set(response);
         this.showCVs.set(true);
+        this.loadingCVs.set(false);
         if (response.length > 0) {
           this.loadFeedback();
         }
       },
-      error: (error) => console.error(error)
+      error: (error) => {
+        console.error(error);
+        this.loadingCVs.set(false);
+      }
     });
   }
 

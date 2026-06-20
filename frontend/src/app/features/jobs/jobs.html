@@ -1,9 +1,7 @@
 <div class="jobs-page-container">
   <header class="jobs-header">
     <div class="header-left">
-      <span class="recommendations-label">JOB MATCHES</span>
       <h1 class="page-title">Job Matches</h1>
-      <p class="page-subtitle">Recommendations from your RAG pipeline and the full jobs catalog in one place.</p>
     </div>
 
     <div class="header-right">
@@ -34,17 +32,32 @@
         <div class="panel-header">
           <div>
             <h2 class="panel-title">Top Recommendations</h2>
-            <p class="panel-subtitle">
-              Ranked against your CV and roadmap context.
-              @if (recommendationsGeneratedAt()) {
-                Last generated {{ recommendationsGeneratedAt() | date:'medium' }}
-              }
-            </p>
+            @if (recommendationsGeneratedAt()) {
+              <p class="panel-subtitle">Last generated {{ recommendationsGeneratedAt() | date:'medium' }}</p>
+            }
           </div>
         </div>
 
         @if (recommendationsLoading()) {
-          <div class="state-box">Loading recommendations...</div>
+          <div class="skeleton-list">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="skeleton-card" [style.--i]="$index">
+                <div class="sk-badge-row">
+                  <span class="skeleton sk-badge"></span>
+                  <span class="skeleton sk-icon-btn"></span>
+                </div>
+                <div class="sk-content-row">
+                  <span class="skeleton sk-logo"></span>
+                  <div class="sk-title-group">
+                    <span class="skeleton sk-title-line"></span>
+                    <span class="skeleton sk-company-line"></span>
+                  </div>
+                </div>
+                <span class="skeleton sk-description"></span>
+                <span class="skeleton sk-explanation"></span>
+              </div>
+            }
+          </div>
         } @else if (recommendationsError()) {
           <div class="state-box error">{{ recommendationsError() }}</div>
         } @else if (recommendations().length === 0) {
@@ -78,7 +91,10 @@
                   </div>
                 </div>
 
-              <p class="recommendation-description">{{ job.description }}</p>
+              <div class="description-row">
+                <p class="recommendation-description">{{ job.description }}</p>
+                <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>
+              </div>
               <div class="explanation-box" [class.expanded]="isExplanationExpanded(job.jobId)">
                 <button class="explanation-toggle" (click)="toggleExplanation(job.jobId)" type="button">
                   <span class="material-icons">tips_and_updates</span>
@@ -89,10 +105,6 @@
                   <p class="explanation-text">{{ job.matchExplanation }}</p>
                 }
               </div>
-
-                <div class="recommendation-actions">
-                  <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>
-                </div>
               </article>
             }
           </div>
@@ -100,7 +112,10 @@
       </section>
     } @else {
       <section class="panel-shell">
-        <header class="filters-row">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">All Jobs</h2>
+          </div>
           <div class="filter-pills">
             <button
               class="filter-pill"
@@ -127,17 +142,37 @@
               Saved
             </button>
           </div>
-        </header>
+        </div>
 
         @if (jobsLoading()) {
-          <div class="state-box">Loading jobs...</div>
+          <div class="skeleton-list">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="skeleton-grid-card" [style.--i]="$index">
+                <span class="skeleton sk-logo"></span>
+                <div class="sk-info">
+                  <span class="skeleton sk-grid-title"></span>
+                  <span class="skeleton sk-meta"></span>
+                </div>
+                <div class="sk-skills-row">
+                  <span class="skeleton sk-skill-tag"></span>
+                  <span class="skeleton sk-skill-tag"></span>
+                  <span class="skeleton sk-skill-tag"></span>
+                </div>
+                <span class="skeleton sk-salary"></span>
+                <div class="sk-actions">
+                  <span class="skeleton sk-icon-btn"></span>
+                  <span class="skeleton sk-btn"></span>
+                </div>
+              </div>
+            }
+          </div>
         } @else if (jobsError()) {
           <div class="state-box error">{{ jobsError() }}</div>
         } @else {
           <div class="jobs-list">
             @for (job of filteredJobs(); track job.id) {
               <app-job-card
-                [matchPercentage]="job.matchPercentage"
+                [style.--i]="$index"
                 [title]="job.title"
                 [company]="job.company"
                 [location]="job.location"

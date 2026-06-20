@@ -13,7 +13,6 @@ import { Card } from '../card/card';
       </div>
       
       <div class="info-area">
-        <div class="match-score">{{ matchPercentage() }}% MATCH</div>
         <h3 class="job-title">{{ title() }}</h3>
         <div class="job-meta">
           <span class="company">{{ company() }}</span>
@@ -54,6 +53,8 @@ import { Card } from '../card/card';
     :host {
       display: block;
       margin-bottom: 16px;
+      animation: cardFadeIn 0.4s ease both;
+      animation-delay: calc(var(--i, 0) * 0.08s);
     }
     .job-card-container {
       display: grid;
@@ -90,14 +91,6 @@ import { Card } from '../card/card';
       flex-direction: column;
       justify-content: center;
     }
-    .match-score {
-      font-size: 11px;
-      font-weight: 700;
-      color: #3B82F6;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
     .job-title {
       font-size: 18px;
       font-weight: 700;
@@ -124,15 +117,15 @@ import { Card } from '../card/card';
     .skills-area {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       justify-content: flex-start;
       align-items: center;
     }
     .skill-tag {
       background: #F3F4F6;
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 13px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
       color: #374151;
       font-weight: 500;
       line-height: 1;
@@ -218,10 +211,14 @@ import { Card } from '../card/card';
         flex: 1;
       }
     }
+
+    @keyframes cardFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   `],
 })
 export class JobCard {
-  matchPercentage = input.required<number>();
   title = input.required<string>();
   company = input.required<string>();
   location = input.required<string>();

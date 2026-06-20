@@ -99,14 +99,6 @@
   font-weight: 600;
 }
 
-.loading-message {
-  padding: 12px 16px;
-  background: #EFF6FF;
-  color: #1D4ED8;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
 .analysis-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
@@ -749,5 +741,113 @@
 
   .drop-zone h2 {
     font-size: 18px;
+  }
+}
+
+/* ── Skeleton: CV Analysis Grid ── */
+
+.sk-cv-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+.sk-cv-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.sk-cv-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-label         { width: 120px; height: 14px; }
+
+.sk-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sk-score-circle  { width: 80px; height: 80px; border-radius: 50%; }
+.sk-score-total   { width: 40px; height: 24px; }
+
+.sk-cv-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-metric-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sk-metric-label  { width: 50%; height: 14px; }
+.sk-metric-value  { width: 30px; height: 14px; }
+.sk-progress-bar  { width: 100%; height: 6px; border-radius: 9999px; }
+
+.sk-cv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-section-title  { width: 40%; height: 14px; }
+.sk-strength-line  { width: 80%; height: 14px; }
+
+.sk-keywords-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sk-keyword-tag   { width: 60px; height: 24px; border-radius: 9999px; }
+
+.sk-cv-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sk-cv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.sk-card-title    { width: 30%; height: 14px; }
+.sk-summary-line  { width: 100%; height: 14px; }
+
+.sk-suggestion-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-suggestion-badge  { width: 80px; height: 18px; border-radius: 9999px; }
+.sk-suggestion-line   { width: 100%; height: 14px; }
+
+@media (max-width: 1024px) {
+  .sk-cv-grid {
+    grid-template-columns: 1fr;
   }
 }

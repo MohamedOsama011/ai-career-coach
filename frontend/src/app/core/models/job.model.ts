@@ -10,3 +10,18 @@ export interface Job {
   logoInitials: string;
   saved?: boolean;
 }
+
+export interface JobRecommendation {
+  jobId: number;
+  title: string;
+  company: string;
+  description: string;
+  matchScore: number;
+  matchExplanation: string;
+}
+
+export interface JobRecommendationResult {
+  userId: string;
+  recommendations: JobRecommendation[];
+  generatedAt: string;
+}

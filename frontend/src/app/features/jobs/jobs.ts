@@ -104,8 +104,8 @@ export class Jobs implements OnInit {
   }
 
   matchBadgeClass(score: number): string {
-    if (score >= 60) return 'badge-high';
-    if (score >= 40) return 'badge-medium';
+    if (score >= 65) return 'badge-high';
+    if (score >= 60) return 'badge-medium';
     return 'badge-low';
   }
 

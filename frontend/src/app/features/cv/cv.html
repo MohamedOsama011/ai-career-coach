@@ -42,19 +42,152 @@
     <div class="error-message">{{ uploadError() }}</div>
   }
 
-  @if (loadingFeedback()) {
-    <div class="loading-message">Analyzing your CV...</div>
-  }
+  @if (loadingCVs()) {
+    <div class="sk-cv-grid">
+      <div class="sk-cv-left">
+        <div class="sk-cv-header">
+          <span class="skeleton sk-label"></span>
+          <div class="sk-score-row">
+            <span class="skeleton sk-score-circle"></span>
+            <span class="skeleton sk-score-total"></span>
+          </div>
+        </div>
+        <div class="sk-cv-metrics">
+          @for (_ of [1,2,3,4]; track $index) {
+            <div class="sk-metric-row">
+              <div class="sk-metric-header">
+                <span class="skeleton sk-metric-label"></span>
+                <span class="skeleton sk-metric-value"></span>
+              </div>
+              <span class="skeleton sk-progress-bar"></span>
+            </div>
+          }
+        </div>
+        <div class="sk-cv-section">
+          <span class="skeleton sk-section-title"></span>
+          @for (_ of [1,2,3]; track $index) {
+            <span class="skeleton sk-strength-line"></span>
+          }
+        </div>
+        <div class="sk-cv-section">
+          <span class="skeleton sk-section-title"></span>
+          <div class="sk-keywords-row">
+            @for (_ of [1,2,3,4]; track $index) {
+              <span class="skeleton sk-keyword-tag"></span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="sk-cv-right">
+        <div class="sk-cv-card">
+          <span class="skeleton sk-card-title"></span>
+          @for (_ of [1,2,3]; track $index) {
+            <span class="skeleton sk-summary-line"></span>
+          }
+        </div>
+        <div class="sk-cv-card">
+          <span class="skeleton sk-card-title"></span>
+          @for (_ of [1,2]; track $index) {
+            <div class="sk-suggestion-block">
+              <span class="skeleton sk-suggestion-badge"></span>
+              <span class="skeleton sk-suggestion-line"></span>
+              <span class="skeleton sk-suggestion-line"></span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>  <!-- /sk-cv-grid -->
+  } @else if (!hasCV()) {
+    <div class="empty-state">
+      <div
+        class="drop-zone"
+        [class.drag-over]="isDragOver()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+      >
+        <span class="material-icons drop-icon">cloud_upload</span>
+        <h2>Upload Your CV</h2>
+        <p>Drag &amp; drop your CV file here, or click to browse</p>
+        <span class="supported-formats">Supports PDF, DOC, DOCX</span>
+      </div>
+      <button class="upload-btn empty-upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+        @if (isUploading()) {
+          <span class="spinner"></span>
+          Uploading...
+        } @else {
+          <span class="material-icons">upload</span>
+          Upload CV
+        }
+      </button>
+    </div>
+  } @else {
+    @if (feedbackError()) {
+      <div class="error-message">{{ feedbackError() }}</div>
+    }
 
-  @if (hasCV() && feedbackError()) {
-    <div class="error-message">{{ feedbackError() }}</div>
-  }
+    @if (loadingFeedback() && !feedback()) {
+      <div class="sk-cv-grid">
+        <div class="sk-cv-left">
+          <div class="sk-cv-header">
+            <span class="skeleton sk-label"></span>
+            <div class="sk-score-row">
+              <span class="skeleton sk-score-circle"></span>
+              <span class="skeleton sk-score-total"></span>
+            </div>
+          </div>
+          <div class="sk-cv-metrics">
+            @for (_ of [1,2,3,4]; track $index) {
+              <div class="sk-metric-row">
+                <div class="sk-metric-header">
+                  <span class="skeleton sk-metric-label"></span>
+                  <span class="skeleton sk-metric-value"></span>
+                </div>
+                <span class="skeleton sk-progress-bar"></span>
+              </div>
+            }
+          </div>
+          <div class="sk-cv-section">
+            <span class="skeleton sk-section-title"></span>
+            @for (_ of [1,2,3]; track $index) {
+              <span class="skeleton sk-strength-line"></span>
+            }
+          </div>
+          <div class="sk-cv-section">
+            <span class="skeleton sk-section-title"></span>
+            <div class="sk-keywords-row">
+              @for (_ of [1,2,3,4]; track $index) {
+                <span class="skeleton sk-keyword-tag"></span>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="sk-cv-right">
+          <div class="sk-cv-card">
+            <span class="skeleton sk-card-title"></span>
+            @for (_ of [1,2,3]; track $index) {
+              <span class="skeleton sk-summary-line"></span>
+            }
+          </div>
+          <div class="sk-cv-card">
+            <span class="skeleton sk-card-title"></span>
+            @for (_ of [1,2]; track $index) {
+              <div class="sk-suggestion-block">
+                <span class="skeleton sk-suggestion-badge"></span>
+                <span class="skeleton sk-suggestion-line"></span>
+                <span class="skeleton sk-suggestion-line"></span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
 
-  @if (hasCV()) {
-    <div class="analysis-grid">
+    @if (feedback(); as fb) {
+      <div class="analysis-grid fade-in">
       <!-- LEFT: Score Card -->
       <div class="score-card">
-        @if (feedback(); as fb) {
           <span class="metric-label">OVERALL SCORE</span>
           <div class="score-wrapper">
             <span class="score">{{ displayedScore() }}</span>
@@ -125,12 +258,10 @@
               </div>
             </div>
           }
-        }
       </div>
 
       <!-- RIGHT -->
       <div class="right-section">
-        @if (feedback(); as fb) {
           <div class="card">
             <h3>Summary</h3>
             <p class="summary-text">{{ fb.overallSummary }}</p>
@@ -152,9 +283,8 @@
               </div>
             }
           </div>
-        }
 
-        @if (showCVs()) {
+          @if (showCVs()) {
           <div class="card">
             <h3>Uploaded CVs</h3>
             @for (cv of cvs(); track cv.cvId) {
@@ -185,30 +315,6 @@
         }
       </div>
     </div>
-  } @else {
-    <div class="empty-state">
-      <div
-        class="drop-zone"
-        [class.drag-over]="isDragOver()"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-        (click)="fileInput.click()"
-      >
-        <span class="material-icons drop-icon">cloud_upload</span>
-        <h2>Upload Your CV</h2>
-        <p>Drag &amp; drop your CV file here, or click to browse</p>
-        <span class="supported-formats">Supports PDF, DOC, DOCX</span>
-      </div>
-      <button class="upload-btn empty-upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
-        @if (isUploading()) {
-          <span class="spinner"></span>
-          Uploading...
-        } @else {
-          <span class="material-icons">upload</span>
-          Upload CV
-        }
-      </button>
-    </div>
+  }
   }
 </div>
