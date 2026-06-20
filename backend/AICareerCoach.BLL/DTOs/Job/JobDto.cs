@@ -16,5 +16,6 @@ namespace AICareerCoach.BLL.DTOs.Job
         public string Location { get; set; } = string.Empty;
         public decimal Salary { get; set; }
         public DateTime PostedAt { get; set; }
+        public string? CompanyLogoUrl { get; set; }
     }
 }

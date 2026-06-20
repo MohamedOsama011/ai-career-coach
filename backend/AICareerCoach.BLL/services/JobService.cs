@@ -43,6 +43,7 @@ namespace AICareerCoach.BLL.Services
                 RequiredSkills = JsonSerializer.Serialize(dto.RequiredSkills),
                 Location = dto.Location,
                 Salary = dto.Salary,
+                CompanyLogoUrl = dto.CompanyLogoUrl,
                 PostedAt = DateTime.UtcNow
             };
 
@@ -59,7 +60,8 @@ namespace AICareerCoach.BLL.Services
             RequiredSkills = JsonSerializer.Deserialize<List<string>>(job.RequiredSkills) ?? new(),
             Location = job.Location,
             Salary = job.Salary,
-            PostedAt = job.PostedAt
+            PostedAt = job.PostedAt,
+            CompanyLogoUrl = job.CompanyLogoUrl
         };
     }
 }

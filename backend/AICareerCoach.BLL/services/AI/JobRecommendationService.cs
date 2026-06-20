@@ -131,6 +131,7 @@ namespace AICareerCoach.BLL.Services.AI
                 Title = mj.JobEntity.Title,
                 Company = mj.JobEntity.Company,
                 Description = mj.JobEntity.Description,
+                CompanyLogoUrl = mj.JobEntity.CompanyLogoUrl,
                 MatchScore = mj.Percentage,
                 MatchExplanation = aiExplanations.TryGetValue(mj.JobEntity.Id, out var explanation)
                     ? explanation
