@@ -62,13 +62,18 @@
                     <div class="company-logo">{{ getInitials(job.company) }}</div>
                   </div>
                   <div class="recommendation-meta">
-                    <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">{{ job.matchScore }}% match</span>
+                    <div class="rec-header-row">
+                      <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">
+                        <span class="material-icons badge-star">auto_awesome</span>
+                        {{ job.matchScore }}% match
+                      </span>
+                      <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
+                        <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
+                      </button>
+                    </div>
                     <h3>{{ job.title }}</h3>
                     <p>{{ job.company }}</p>
                   </div>
-                  <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
-                    <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
-                  </button>
                 </div>
 
                 <p class="recommendation-description">{{ job.description }}</p>
