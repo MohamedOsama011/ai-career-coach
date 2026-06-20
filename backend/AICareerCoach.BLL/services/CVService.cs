@@ -35,23 +35,32 @@ namespace AICareerCoach.BLL.Services
             string fileName,
             string userId)
         {
-                var savedPath =
-                    await _fileStorage.SaveFileAsync(
-                        fileStream,
-                        fileName);
+            using var memoryStream = new MemoryStream();
+            await fileStream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
 
-                var cv = new CV
-                {
-                    UserId = userId,
-                    FilePath = savedPath,
-                    UploadedAt = DateTime.UtcNow
+            var fileHash = Convert.ToHexString(MD5.HashData(fileBytes));
 
-                };
+            var existing = await context.CVs
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.FileHash == fileHash);
 
-                _cvRepo.Add(cv);
+            if (existing != null)
+                return existing;
 
-                return cv;
- 
+            using var uploadStream = new MemoryStream(fileBytes);
+            var savedPath = await _fileStorage.SaveFileAsync(uploadStream, fileName);
+
+            var cv = new CV
+            {
+                UserId = userId,
+                FilePath = savedPath,
+                FileHash = fileHash,
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _cvRepo.Add(cv);
+
+            return cv;
         }
 
         public List<CV> GetUserCVs(string userId)

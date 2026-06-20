@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL.Interfaces
+namespace AICareerCoach.BLL.Interfaces.AI
 {
     public interface ICvFeedbackService
     {

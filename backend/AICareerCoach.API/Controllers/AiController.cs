@@ -1,4 +1,4 @@
-﻿using AICareerCoach.BLL.Interfaces;
+﻿using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

@@ -124,6 +124,61 @@ namespace AICareerCoach.DAL.Migrations
                     b.ToTable("Jobs");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.JobEmbedding", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.ToTable("JobEmbeddings");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.JobRecommendationCache", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CvHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecommendationsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("JobRecommendationCaches");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -488,6 +543,28 @@ namespace AICareerCoach.DAL.Migrations
                 {
                     b.HasOne("AICareerCoach.DAL.Models.User", "User")
                         .WithMany("CVs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.JobEmbedding", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Entities.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.JobRecommendationCache", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Models.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

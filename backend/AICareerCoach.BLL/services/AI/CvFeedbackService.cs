@@ -1,5 +1,4 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
-using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
@@ -13,8 +12,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using AICareerCoach.BLL.Interfaces.AI;
 
-namespace AICareerCoach.BLL.services
+namespace AICareerCoach.BLL.Services.AI
 {
     public class CvFeedbackService : ICvFeedbackService
     {
@@ -49,6 +49,9 @@ namespace AICareerCoach.BLL.services
             var fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "cvs", cv.FilePath);
             var cvText = _pdfExtractor.ExtractText(fullPath);
 
+            cv.ExtractedData = cvText;
+            await _context.SaveChangesAsync();
+
             var cvHash = ComputeHash(cvText);
 
             var cached = await _context.AiFeedbackCaches
@@ -79,7 +82,6 @@ namespace AICareerCoach.BLL.services
                     CreatedAt = DateTime.UtcNow
                 });
 
-                cv.ExtractedData = cvText;
                 await _context.SaveChangesAsync();
             }
 

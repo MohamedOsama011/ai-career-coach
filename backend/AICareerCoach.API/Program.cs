@@ -1,6 +1,7 @@
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.BLL.services;
+using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.BLL.Services;
+using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
@@ -49,6 +50,10 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
+
+            builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+            builder.Services.AddScoped<ILlmExplanationService, LlmExplanationService>();
+            builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
 
             builder.Services.AddAuthentication(options =>
             {

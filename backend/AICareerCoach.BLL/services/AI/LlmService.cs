@@ -1,5 +1,5 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
-using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL.services
+namespace AICareerCoach.BLL.Services.AI
 {
     public class LlmService : ILlmService
     {

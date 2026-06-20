@@ -2,6 +2,7 @@ using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace AICareerCoach.DAL.Data
 {
@@ -11,6 +12,17 @@ namespace AICareerCoach.DAL.Data
             DbContextOptions<AICareerCoachDbContext> options)
             : base(options)
         {
+        }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<JobEmbedding>()
+                .Property(e => e.Embedding)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
+                );
         }
 
         public DbSet<Roadmap> Roadmaps { get; set; }
@@ -25,5 +37,8 @@ namespace AICareerCoach.DAL.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public DbSet<AiFeedbackCache> AiFeedbackCaches { get; set; }
+
+        public DbSet<JobEmbedding> JobEmbeddings { get; set; }
+        public DbSet<JobRecommendationCache> JobRecommendationCaches { get; set; }
     }
 }
