@@ -78,11 +78,17 @@
                   </div>
                 </div>
 
-                <p class="recommendation-description">{{ job.description }}</p>
-                <div class="explanation-box">
+              <p class="recommendation-description">{{ job.description }}</p>
+              <div class="explanation-box" [class.expanded]="isExplanationExpanded(job.jobId)">
+                <button class="explanation-toggle" (click)="toggleExplanation(job.jobId)" type="button">
+                  <span class="material-icons">tips_and_updates</span>
                   <span class="explanation-label">Why this matches</span>
-                  <p>{{ job.matchExplanation }}</p>
-                </div>
+                  <span class="material-icons expand-icon">expand_more</span>
+                </button>
+                @if (isExplanationExpanded(job.jobId)) {
+                  <p class="explanation-text">{{ job.matchExplanation }}</p>
+                }
+              </div>
 
                 <div class="recommendation-actions">
                   <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>

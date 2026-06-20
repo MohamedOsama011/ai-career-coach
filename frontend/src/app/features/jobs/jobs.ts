@@ -104,12 +104,30 @@ export class Jobs implements OnInit {
   }
 
   matchBadgeClass(score: number): string {
-    if (score >= 80) return 'badge-high';
-    if (score >= 60) return 'badge-medium';
+    if (score >= 60) return 'badge-high';
+    if (score >= 40) return 'badge-medium';
     return 'badge-low';
   }
 
   getInitials(company: string): string {
     return company.substring(0, 2).toUpperCase();
+  }
+
+  expandedExplanations = signal<Set<number>>(new Set());
+
+  toggleExplanation(jobId: number): void {
+    this.expandedExplanations.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(jobId)) {
+        newSet.delete(jobId);
+      } else {
+        newSet.add(jobId);
+      }
+      return newSet;
+    });
+  }
+
+  isExplanationExpanded(jobId: number): boolean {
+    return this.expandedExplanations().has(jobId);
   }
 }
