@@ -58,21 +58,23 @@
             @for (job of recommendations(); track job.jobId) {
               <article class="recommendation-card" [style.--i]="$index">
                 <div class="recommendation-topline">
-                  <div class="logo-area">
-                    <div class="company-logo">{{ getInitials(job.company) }}</div>
+                  <div class="badge-row">
+                    <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">
+                      <span class="material-icons badge-star">auto_awesome</span>
+                      {{ job.matchScore }}% match
+                    </span>
+                    <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
+                      <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
+                    </button>
                   </div>
-                  <div class="recommendation-meta">
-                    <div class="rec-header-row">
-                      <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">
-                        <span class="material-icons badge-star">auto_awesome</span>
-                        {{ job.matchScore }}% match
-                      </span>
-                      <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
-                        <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
-                      </button>
+                  <div class="content-row">
+                    <div class="title-group">
+                      <h3>{{ job.title }}</h3>
+                      <p>{{ job.company }}</p>
                     </div>
-                    <h3>{{ job.title }}</h3>
-                    <p>{{ job.company }}</p>
+                    <div class="logo-area">
+                      <div class="company-logo">{{ getInitials(job.company) }}</div>
+                    </div>
                   </div>
                 </div>
 
