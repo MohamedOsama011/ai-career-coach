@@ -3,7 +3,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 }
 
 .jobs-header {
@@ -11,34 +11,37 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 24px;
+  flex-wrap: wrap;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
 .recommendations-label {
   font-size: 11px;
   font-weight: 700;
-  color: #9CA3AF;
-  letter-spacing: 1.5px;
+  color: #6b7280;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  margin-bottom: 6px;
 }
 
 .page-title {
   font-size: 32px;
   font-weight: 800;
   color: #111827;
-  margin: 0 0 8px 0;
+  margin: 0;
   letter-spacing: -0.5px;
 }
 
-.page-subtitle {
+.page-subtitle,
+.panel-subtitle {
   font-size: 15px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
 .header-right {
@@ -46,20 +49,22 @@
   align-items: center;
 }
 
+.view-tabs,
 .filter-pills {
   display: flex;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
 }
 
+.view-tab,
 .filter-pill {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: #6B7280;
+  color: #6b7280;
   border: none;
   background: transparent;
   border-radius: 8px;
@@ -67,67 +72,305 @@
   transition: all 0.2s ease;
 }
 
+.view-tab:hover,
 .filter-pill:hover {
   color: #374151;
-  background: #F9FAFB;
+  background: #f9fafb;
 }
 
+.view-tab.active,
 .filter-pill.active {
   background: #111827;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
-.jobs-list {
+.panel-shell {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.empty-state {
+.panel-header,
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 750;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.jobs-list,
+.recommendation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.view-panel {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.view-panel.is-rec {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.view-panel.is-all {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.recommendation-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardFadeIn 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 0.08s);
+}
+
+.recommendation-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.recommendation-topline {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.logo-area {
+  flex-shrink: 0;
+}
+
+.company-logo {
+  width: 52px;
+  height: 52px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  background: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.recommendation-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.recommendation-meta h3 {
+  margin: 8px 0 4px 0;
+  font-size: 20px;
+  font-weight: 750;
+  color: #111827;
+}
+
+.recommendation-meta p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.match-badge.badge-high {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.match-badge.badge-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.match-badge.badge-low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.recommendation-description {
+  margin: 0;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.explanation-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.explanation-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.explanation-box p {
+  margin: 0;
+  color: #111827;
+  line-height: 1.55;
+}
+
+.recommendation-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bookmark-btn {
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bookmark-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.bookmark-btn.is-saved {
+  color: #2563eb;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.apply-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.apply-btn:hover {
+  background: #1d4ed8;
+}
+
+.state-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 32px;
-  background: #FFFFFF;
-  border: 1px dashed #D1D5DB;
+  padding: 56px 32px;
+  background: #ffffff;
+  border: 1px dashed #d1d5db;
   border-radius: 16px;
   text-align: center;
+  gap: 10px;
+}
+
+.state-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.state-box p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.state-box.error {
+  border-color: #fecaca;
+  color: #991b1b;
+  background: #fff1f2;
 }
 
 .empty-icon {
   font-size: 48px;
-  color: #9CA3AF;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  font-size: 14px;
-  color: #6B7280;
-  margin: 0;
+  color: #9ca3af;
 }
 
 @media (max-width: 768px) {
-  .jobs-header {
+  .jobs-header,
+  .panel-header,
+  .filters-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
   }
-  .header-right {
-    width: 100%;
-  }
+
+  .header-right,
+  .view-tabs,
   .filter-pills {
     width: 100%;
   }
+
+  .view-tab,
   .filter-pill {
     flex: 1;
     text-align: center;
+  }
+
+  .recommendation-topline {
+    flex-wrap: wrap;
+  }
+
+  .logo-area {
+    display: none;
+  }
+
+  .recommendation-actions {
+    justify-content: stretch;
+  }
+
+  .apply-btn {
+    width: 100%;
   }
 }

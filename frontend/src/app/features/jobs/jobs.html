@@ -1,57 +1,150 @@
 <div class="jobs-page-container">
   <header class="jobs-header">
     <div class="header-left">
-      <span class="recommendations-label">RECOMMENDATIONS</span>
+      <span class="recommendations-label">JOB MATCHES</span>
       <h1 class="page-title">Job Matches</h1>
-      <p class="page-subtitle">Curated against your CV, roadmap goals, and target seniority.</p>
+      <p class="page-subtitle">Recommendations from your RAG pipeline and the full jobs catalog in one place.</p>
     </div>
+
     <div class="header-right">
-      <div class="filter-pills">
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'all'" 
-          (click)="setFilter('all')"
+      <div class="view-tabs" role="tablist" aria-label="Job views">
+        <button
+          class="view-tab"
+          [class.active]="activeView() === 'recommendations'"
+          (click)="setView('recommendations')"
+          type="button"
         >
-          All
+          Recommendations
         </button>
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'remote'" 
-          (click)="setFilter('remote')"
+        <button
+          class="view-tab"
+          [class.active]="activeView() === 'all'"
+          (click)="setView('all')"
+          type="button"
         >
-          Remote
-        </button>
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'saved'" 
-          (click)="setFilter('saved')"
-        >
-          Saved
+          All Jobs
         </button>
       </div>
     </div>
   </header>
 
-  <main class="jobs-list">
-    @for (job of filteredJobs(); track job.id) {
-      <app-job-card
-        [matchPercentage]="job.matchPercentage"
-        [title]="job.title"
-        [company]="job.company"
-        [location]="job.location"
-        [salary]="job.salary"
-        [skills]="job.requiredSkills"
-        [logoInitials]="job.logoInitials"
-        [saved]="isSaved(job.id)"
-        (saveToggled)="toggleSave(job.id)"
-        (applied)="onApply(job)"
-      />
-    } @empty {
-      <div class="empty-state">
-        <span class="material-icons empty-icon">work_outline</span>
-        <h3>No Job Matches</h3>
-        <p>No jobs are available for the selected filter: <strong>{{ activeFilter() }}</strong></p>
-      </div>
+  <div class="view-panel" [class.is-rec]="activeView() === 'recommendations'" [class.is-all]="activeView() === 'all'">
+    @if (activeView() === 'recommendations') {
+      <section class="panel-shell">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Top Recommendations</h2>
+            <p class="panel-subtitle">
+              Ranked against your CV and roadmap context.
+              @if (recommendationsGeneratedAt()) {
+                Last generated {{ recommendationsGeneratedAt() | date:'medium' }}
+              }
+            </p>
+          </div>
+        </div>
+
+        @if (recommendationsLoading()) {
+          <div class="state-box">Loading recommendations...</div>
+        } @else if (recommendationsError()) {
+          <div class="state-box error">{{ recommendationsError() }}</div>
+        } @else if (recommendations().length === 0) {
+          <div class="state-box">
+            <span class="material-icons empty-icon">travel_explore</span>
+            <h3>No recommendations yet</h3>
+            <p>Index jobs first, then generate recommendations for the signed-in user.</p>
+          </div>
+        } @else {
+          <div class="recommendation-list">
+            @for (job of recommendations(); track job.jobId) {
+              <article class="recommendation-card" [style.--i]="$index">
+                <div class="recommendation-topline">
+                  <div class="logo-area">
+                    <div class="company-logo">{{ getInitials(job.company) }}</div>
+                  </div>
+                  <div class="recommendation-meta">
+                    <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">{{ job.matchScore }}% match</span>
+                    <h3>{{ job.title }}</h3>
+                    <p>{{ job.company }}</p>
+                  </div>
+                  <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
+                    <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
+                  </button>
+                </div>
+
+                <p class="recommendation-description">{{ job.description }}</p>
+                <div class="explanation-box">
+                  <span class="explanation-label">Why this matches</span>
+                  <p>{{ job.matchExplanation }}</p>
+                </div>
+
+                <div class="recommendation-actions">
+                  <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="panel-shell">
+        <header class="filters-row">
+          <div class="filter-pills">
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'all'"
+              (click)="setFilter('all')"
+              type="button"
+            >
+              All
+            </button>
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'remote'"
+              (click)="setFilter('remote')"
+              type="button"
+            >
+              Remote
+            </button>
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'saved'"
+              (click)="setFilter('saved')"
+              type="button"
+            >
+              Saved
+            </button>
+          </div>
+        </header>
+
+        @if (jobsLoading()) {
+          <div class="state-box">Loading jobs...</div>
+        } @else if (jobsError()) {
+          <div class="state-box error">{{ jobsError() }}</div>
+        } @else {
+          <div class="jobs-list">
+            @for (job of filteredJobs(); track job.id) {
+              <app-job-card
+                [matchPercentage]="job.matchPercentage"
+                [title]="job.title"
+                [company]="job.company"
+                [location]="job.location"
+                [salary]="job.salary"
+                [skills]="job.requiredSkills"
+                [logoInitials]="job.logoInitials"
+                [saved]="isSaved(job.id)"
+                (saveToggled)="toggleSave(job.id)"
+                (applied)="onApply(job.title, job.company)"
+              />
+            } @empty {
+              <div class="state-box">
+                <span class="material-icons empty-icon">work_outline</span>
+                <h3>No Job Matches</h3>
+                <p>No jobs are available for the selected filter: <strong>{{ activeFilter() }}</strong></p>
+              </div>
+            }
+          </div>
+        }
+      </section>
     }
-  </main>
+  </div>
 </div>
