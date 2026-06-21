@@ -1,7 +1,9 @@
 ﻿using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -11,8 +13,13 @@ namespace AICareerCoach.API.Controllers
     public class RoadmapController : ControllerBase
     {
         private readonly IRoadmapService _roadmapService;
+        private readonly IUserRoadmapService _userRoadmapService;
 
-        public RoadmapController(IRoadmapService roadmapService) => _roadmapService = roadmapService;
+        public RoadmapController(IRoadmapService roadmapService, IUserRoadmapService userRoadmapService)
+        {
+            _roadmapService = roadmapService;
+            _userRoadmapService = userRoadmapService;
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<RoadmapDto>>> GetAll([FromQuery] string? track)
@@ -54,6 +61,51 @@ namespace AICareerCoach.API.Controllers
             {
                 return StatusCode(500, new { message = "An error occurred while indexing template embeddings.", error = ex.Message });
             }
+        }
+
+        [HttpPost("generate")]
+        //[Authorize]
+        public async Task<ActionResult<UserRoadmapDto>> Generate(GenerateRoadmapRequestDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _userRoadmapService.GenerateRoadmapAsync(userId, dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while generating roadmap.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("my-roadmap")]
+        //[Authorize]
+        public async Task<ActionResult<UserRoadmapDto>> GetMyRoadmap()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var result = await _userRoadmapService.GetMyRoadmapAsync(userId);
+
+            if (result is null)
+                return NotFound(new { message = "No roadmap found. Generate one first via POST /api/roadmap/generate." });
+
+            return Ok(result);
         }
     }
 }
