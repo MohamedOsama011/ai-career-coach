@@ -23,6 +23,8 @@ export class Jobs implements OnInit {
   jobsError = signal<string | null>(null);
   recommendationsError = signal<string | null>(null);
 
+  ringReady = signal(false);
+
   filteredJobs = computed(() => {
     const jobs = this.jobs();
     switch (this.activeFilter()) {
@@ -70,6 +72,7 @@ export class Jobs implements OnInit {
         this.recommendations.set(result?.recommendations ?? []);
         this.recommendationsGeneratedAt.set(result?.generatedAt ?? null);
         this.recommendationsLoading.set(false);
+        setTimeout(() => this.ringReady.set(true), 50);
       },
       error: (err) => {
         console.error('Failed to load recommendations', err);
@@ -81,6 +84,9 @@ export class Jobs implements OnInit {
 
   setView(view: 'recommendations' | 'all'): void {
     this.activeView.set(view);
+    if (view !== 'recommendations') {
+      this.ringReady.set(false);
+    }
   }
 
   setFilter(filter: 'all' | 'remote' | 'saved'): void {

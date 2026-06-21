@@ -87,7 +87,8 @@
                           <circle class="ring-track" cx="34" cy="34" r="28" />
                           <circle class="ring-arc" cx="34" cy="34" r="28"
                             stroke-dasharray="175.93"
-                            [style.stroke-dashoffset]="getRingOffset(job.matchScore)" />
+                            [style.transition-delay]="'calc(0.08s * ' + $index + ' + 0.4s)'"
+                            [style.stroke-dashoffset]="ringReady() ? getRingOffset(job.matchScore) : '175.93'" />
                         </svg>
                         @if (job.companyLogoUrl) {
                           <img [src]="job.companyLogoUrl" alt="" class="company-logo-img" width="44" height="44" />
