@@ -1,9 +1,11 @@
 ﻿using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AICareerCoach.API.Controllers
 {
+    // [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class RoadmapController : ControllerBase
@@ -38,6 +40,20 @@ namespace AICareerCoach.API.Controllers
         {
             var result = await _roadmapService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
+        [HttpPost("index-template-embeddings")]
+        public async Task<IActionResult> IndexTemplateEmbeddings()
+        {
+            try
+            {
+                await _roadmapService.IndexTemplateEmbeddingsAsync();
+                return Ok(new { message = "All roadmap templates have been embedded successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while indexing template embeddings.", error = ex.Message });
+            }
         }
     }
 }

@@ -281,6 +281,84 @@ namespace AICareerCoach.DAL.Migrations
                     b.ToTable("RoadmapSteps");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.RoadmapTemplateEmbedding", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoadmapId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoadmapId")
+                        .IsUnique();
+
+                    b.ToTable("RoadmapTemplateEmbeddings");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.UserRoadmap", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CvHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("GapAnalysisJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StepsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetRole")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int?>("TemplateRoadmapId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TemplateSnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TemplateTrack")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("UserRoadmaps");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.mockInterview", b =>
                 {
                     b.Property<int>("Id")
@@ -597,6 +675,17 @@ namespace AICareerCoach.DAL.Migrations
                 {
                     b.HasOne("AICareerCoach.DAL.Entities.Roadmap", "Roadmap")
                         .WithMany("Steps")
+                        .HasForeignKey("RoadmapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Roadmap");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.RoadmapTemplateEmbedding", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Entities.Roadmap", "Roadmap")
+                        .WithMany()
                         .HasForeignKey("RoadmapId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

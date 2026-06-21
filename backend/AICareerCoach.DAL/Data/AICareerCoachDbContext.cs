@@ -23,6 +23,26 @@ namespace AICareerCoach.DAL.Data
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
                 );
+
+            builder.Entity<RoadmapTemplateEmbedding>()
+                .Property(e => e.Embedding)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
+                );
+
+            builder.Entity<RoadmapTemplateEmbedding>()
+                .HasIndex(e => e.RoadmapId)
+                .IsUnique();
+
+            builder.Entity<UserRoadmap>(entity =>
+            {
+                entity.Property(r => r.UserId).HasMaxLength(450);
+                entity.Property(r => r.CvHash).HasMaxLength(64);
+                entity.Property(r => r.TargetRole).HasMaxLength(256);
+                entity.Property(r => r.TemplateTrack).HasMaxLength(128);
+                entity.HasIndex(r => new { r.UserId, r.CreatedAt });
+            });
         }
 
         public DbSet<Roadmap> Roadmaps { get; set; }
@@ -40,5 +60,7 @@ namespace AICareerCoach.DAL.Data
 
         public DbSet<JobEmbedding> JobEmbeddings { get; set; }
         public DbSet<JobRecommendationCache> JobRecommendationCaches { get; set; }
+        public DbSet<UserRoadmap> UserRoadmaps { get; set; }
+        public DbSet<RoadmapTemplateEmbedding> RoadmapTemplateEmbeddings { get; set; }
     }
 }
