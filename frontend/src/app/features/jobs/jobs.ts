@@ -86,6 +86,8 @@ export class Jobs implements OnInit {
     this.activeView.set(view);
     if (view !== 'recommendations') {
       this.ringReady.set(false);
+    } else {
+      setTimeout(() => this.ringReady.set(true), 50);
     }
   }
 
