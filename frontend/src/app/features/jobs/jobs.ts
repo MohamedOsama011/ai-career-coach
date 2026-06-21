@@ -110,7 +110,7 @@ export class Jobs implements OnInit {
   }
 
   getRingOffset(score: number): string {
-    const r = 26;
+    const r = 28;
     const c = 2 * Math.PI * r;
     return String(c * (1 - score / 100));
   }

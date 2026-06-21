@@ -230,13 +230,13 @@
 
 .logo-area {
   flex-shrink: 0;
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
 }
 
 .company-logo {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -249,14 +249,16 @@
 }
 
 .company-logo-img {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .progress-ring-wrapper {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,14 +275,14 @@
 .ring-track {
   fill: none;
   stroke: #e5e7eb;
-  stroke-width: 3;
+  stroke-width: 4;
 }
 
 .ring-arc {
   fill: none;
-  stroke-width: 3;
+  stroke-width: 4;
   stroke-linecap: round;
-  stroke-dasharray: 163.36;
+  stroke-dasharray: 175.93;
   transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
