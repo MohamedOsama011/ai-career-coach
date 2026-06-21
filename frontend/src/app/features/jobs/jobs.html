@@ -82,11 +82,19 @@
                   </div>
                   <div class="content-row">
                     <div class="logo-area">
-                      @if (job.companyLogoUrl) {
-                        <img [src]="job.companyLogoUrl" alt="" class="company-logo-img" width="48" height="48" />
-                      } @else {
-                        <div class="company-logo">{{ getInitials(job.company) }}</div>
-                      }
+                      <div class="progress-ring-wrapper {{ matchBadgeClass(job.matchScore) }}">
+                        <svg class="progress-ring" viewBox="0 0 64 64">
+                          <circle class="ring-track" cx="32" cy="32" r="26" />
+                          <circle class="ring-arc" cx="32" cy="32" r="26"
+                            stroke-dasharray="163.36"
+                            [style.stroke-dashoffset]="getRingOffset(job.matchScore)" />
+                        </svg>
+                        @if (job.companyLogoUrl) {
+                          <img [src]="job.companyLogoUrl" alt="" class="company-logo-img" width="48" height="48" />
+                        } @else {
+                          <div class="company-logo">{{ getInitials(job.company) }}</div>
+                        }
+                      </div>
                     </div>
                     <div class="title-group">
                       <div class="title-row">

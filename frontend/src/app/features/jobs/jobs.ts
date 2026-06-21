@@ -109,6 +109,12 @@ export class Jobs implements OnInit {
     return 'badge-low';
   }
 
+  getRingOffset(score: number): string {
+    const r = 26;
+    const c = 2 * Math.PI * r;
+    return String(c * (1 - score / 100));
+  }
+
   getInitials(company: string): string {
     return company.substring(0, 2).toUpperCase();
   }
