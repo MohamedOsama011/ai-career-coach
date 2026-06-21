@@ -205,6 +205,15 @@
   font-weight: 600;
   color: #111827;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.salary .meta-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .company-line {
