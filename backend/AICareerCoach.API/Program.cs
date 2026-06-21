@@ -54,6 +54,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
             builder.Services.AddScoped<ILlmExplanationService, LlmExplanationService>();
             builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
+            builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
 
             builder.Services.AddAuthentication(options =>
             {
