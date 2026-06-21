@@ -94,11 +94,34 @@
   margin: 0 0 4px 0;
 }
 
-.jobs-list,
-.recommendation-list {
+.jobs-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.recommendation-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 901px) {
+  .recommendation-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.is-rec .skeleton-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 901px) {
+  .is-rec .skeleton-list {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .view-panel {
@@ -477,11 +500,6 @@
   gap: 12px;
   animation: cardFadeIn 0.4s ease both;
   animation-delay: calc(var(--i, 0) * 0.08s);
-  margin-bottom: 16px;
-}
-
-.skeleton-card:last-child {
-  margin-bottom: 0;
 }
 
 .sk-badge-row {
