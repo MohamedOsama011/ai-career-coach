@@ -89,18 +89,11 @@
                       }
                     </div>
                     <div class="title-group">
-                      <h3>{{ job.title }}</h3>
-                      <p>{{ job.company }}</p>
-                      <div class="job-meta">
-                        <span class="meta-item">
-                          <span class="material-icons meta-icon">location_on</span>
-                          {{ job.location }}
-                        </span>
-                        <span class="meta-item">
-                          <span class="material-icons meta-icon">attach_money</span>
-                          {{ formatSalary(job.salary) }}
-                        </span>
+                      <div class="title-row">
+                        <h3>{{ job.title }}</h3>
+                        <span class="salary">{{ formatSalary(job.salary) }}</span>
                       </div>
+                      <p class="company-line">{{ job.company }} <span class="dot">&bull;</span> <span class="meta-item"><span class="material-icons meta-icon">location_on</span>{{ job.location }}</span></p>
                     </div>
                   </div>
                 </div>
@@ -185,7 +178,7 @@
         } @else {
           <div class="jobs-list">
             @for (job of filteredJobs(); track job.id) {
-              <app-job-card
+                <app-job-card
                 [style.--i]="$index"
                 [title]="job.title"
                 [company]="job.company"
@@ -193,6 +186,7 @@
                 [salary]="job.salary"
                 [skills]="job.requiredSkills"
                 [logoInitials]="job.logoInitials"
+                [companyLogoUrl]="job.companyLogoUrl ?? ''"
                 [saved]="isSaved(job.id)"
                 (saveToggled)="toggleSave(job.id)"
                 (applied)="onApply(job.title, job.company)"
