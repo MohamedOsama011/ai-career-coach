@@ -67,7 +67,8 @@ export class JobsService {
               salary: salaryStr,
               postedAt: item.postedAt,
               matchPercentage: match,
-              logoInitials: logo
+              logoInitials: logo,
+              companyLogoUrl: item.companyLogoUrl || undefined
             };
           });
         }

@@ -42,20 +42,20 @@ namespace AICareerCoach.BLL.Services.AI
 
             foreach (var job in jobs)
             {
+                var existingEmbedding = await _context.JobEmbeddings.FirstOrDefaultAsync(je => je.JobId == job.Id);
+
+                if (existingEmbedding != null)
+                {
+                    _logger.LogInformation($"Job {job.Id} already has an embedding. Skipping...");
+                    continue;
+                }
+                _logger.LogInformation($"Generating fresh embedding for Job {job.Id}...");
+
                 string cleanedSkills = CleanSkillsJson(job.RequiredSkills);
                 string combinedText = $"Title: {job.Title}\nCompany: {job.Company}\nDescription: {job.Description}\nSkills: {cleanedSkills}";
 
                 var embeddingVector = await _embeddingService.GenerateEmbeddingAsync(combinedText);
 
-                var existingEmbedding = await _context.JobEmbeddings.FirstOrDefaultAsync(je => je.JobId == job.Id);
-
-                if (existingEmbedding != null)
-                {
-                    existingEmbedding.Embedding = embeddingVector;
-                    existingEmbedding.ComputedAt = DateTime.UtcNow;
-                }
-                else
-                {
                     var newEmbedding = new JobEmbedding
                     {
                         JobId = job.Id,
@@ -63,7 +63,9 @@ namespace AICareerCoach.BLL.Services.AI
                         ComputedAt = DateTime.UtcNow
                     };
                     await _context.JobEmbeddings.AddAsync(newEmbedding);
-                }
+                
+
+                await Task.Delay(4500);
             }
 
             await _context.SaveChangesAsync();

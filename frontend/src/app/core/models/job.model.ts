@@ -9,6 +9,7 @@ export interface Job {
   matchPercentage: number;
   logoInitials: string;
   saved?: boolean;
+  companyLogoUrl?: string;
 }
 
 export interface JobRecommendation {

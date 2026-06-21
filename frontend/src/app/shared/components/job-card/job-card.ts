@@ -7,9 +7,13 @@ import { Card } from '../card/card';
   template: `
     <app-card class="job-card-container">
       <div class="logo-area">
-        <div class="company-logo">
-          {{ logoInitials() || 'JB' }}
-        </div>
+        @if (companyLogoUrl()) {
+          <img [src]="companyLogoUrl()" alt="" class="company-logo-img" width="48" height="48" />
+        } @else {
+          <div class="company-logo">
+            {{ logoInitials() || 'JB' }}
+          </div>
+        }
       </div>
       
       <div class="info-area">
@@ -85,6 +89,12 @@ import { Card } from '../card/card';
       color: #4B5563;
       background: #FFFFFF;
       letter-spacing: 0.5px;
+    }
+    .company-logo-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: contain;
     }
     .info-area {
       display: flex;
@@ -225,6 +235,7 @@ export class JobCard {
   salary = input<string>('');
   skills = input<string[]>([]);
   logoInitials = input<string>('');
+  companyLogoUrl = input<string | undefined>('');
   saved = input<boolean>(false);
   
   applied = output<void>();
