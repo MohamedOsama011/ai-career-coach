@@ -113,6 +113,11 @@ export class Jobs implements OnInit {
     return company.substring(0, 2).toUpperCase();
   }
 
+  formatSalary(salary: number): string {
+    if (salary >= 1000) return `${(salary / 1000).toFixed(0)}k`;
+    return salary.toString();
+  }
+
   expandedExplanations = signal<Set<number>>(new Set());
 
   toggleExplanation(jobId: number): void {

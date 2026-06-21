@@ -16,6 +16,9 @@ export interface JobRecommendation {
   title: string;
   company: string;
   description: string;
+  companyLogoUrl?: string;
+  salary: number;
+  location: string;
   matchScore: number;
   matchExplanation: string;
 }

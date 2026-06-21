@@ -82,11 +82,25 @@
                   </div>
                   <div class="content-row">
                     <div class="logo-area">
-                      <div class="company-logo">{{ getInitials(job.company) }}</div>
+                      @if (job.companyLogoUrl) {
+                        <img [src]="job.companyLogoUrl" alt="" class="company-logo-img" width="48" height="48" />
+                      } @else {
+                        <div class="company-logo">{{ getInitials(job.company) }}</div>
+                      }
                     </div>
                     <div class="title-group">
                       <h3>{{ job.title }}</h3>
                       <p>{{ job.company }}</p>
+                      <div class="job-meta">
+                        <span class="meta-item">
+                          <span class="material-icons meta-icon">location_on</span>
+                          {{ job.location }}
+                        </span>
+                        <span class="meta-item">
+                          <span class="material-icons meta-icon">attach_money</span>
+                          {{ formatSalary(job.salary) }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
