@@ -432,6 +432,14 @@
   flex-shrink: 0;
 }
 
+.suggestion .alert-icon.badge-high,
+.suggestion .alert-icon.badge-medium,
+.suggestion .alert-icon.badge-low {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+}
+
 .suggestion .alert-icon.badge-high { color: #991B1B; }
 .suggestion .alert-icon.badge-medium { color: #92400E; }
 .suggestion .alert-icon.badge-low { color: #166534; }
