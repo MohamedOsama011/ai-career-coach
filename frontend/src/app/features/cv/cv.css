@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .upload-btn:hover {
@@ -68,6 +68,22 @@
 .upload-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Header ghost button — secondary action, keeps focus on the analysis */
+.cv-header .upload-btn {
+  background: #FFFFFF;
+  color: #2563EB;
+  border: 1px solid #D1D5DB;
+}
+
+.cv-header .upload-btn:hover {
+  background: #F9FAFB;
+  border-color: #2563EB;
+}
+
+.cv-header .upload-btn:disabled {
+  opacity: 0.5;
 }
 
 .spinner {
@@ -440,9 +456,9 @@
   padding: 0;
 }
 
-.suggestion .alert-icon.badge-high { color: #991B1B; }
-.suggestion .alert-icon.badge-medium { color: #eb9b00; }
-.suggestion .alert-icon.badge-low { color: #166534; }
+.suggestion .alert-icon.badge-high { color: #995b5b; }
+.suggestion .alert-icon.badge-medium { color: #c18817; }
+.suggestion .alert-icon.badge-low { color: #3a8c59; }
 
 .suggestion-content {
   flex: 1;
