@@ -69,21 +69,28 @@ namespace AICareerCoach.BLL.Services.AI
             }
             """;
 
-            var systemPrompt = "You are an expert career coach. Given a candidate's CV, a target role, and a roadmap template, personalize the template steps and perform a detailed skills gap analysis.\n\n"
-                + "TARGET ROLE: " + targetRole + "\n\n"
-                + "TEMPLATE TRACK: " + template.Track + "\n"
-                + "TEMPLATE TITLE: " + template.Title + "\n"
-                + "TEMPLATE DESCRIPTION: " + template.Description + "\n"
-                + "TEMPLATE STEPS:\n" + templateStepsText + "\n\n"
-                + "You must return ONLY a valid JSON object matching this exact structure (no markdown, no ```json tags):\n"
-                + jsonStructure + "\n\n"
-                + "Rules:\n"
-                + "- Keep the same number of steps as the template (7 steps) but adapt titles, descriptions, resources, and duration to the candidate.\n"
-                + "- Gap analysis should identify 5-10 skill gaps across 2-3 categories.\n"
-                + "- currentLevel comes from the CV evidence; requiredLevel from what the target role demands.\n"
-                + "- Use \"None\" if the skill is absent from the CV entirely.\n"
-                + "- Be honest and constructive in the gap description.\n"
-                + "- All text must be in English.";
+            var systemPrompt = $"""
+                You are an expert technical mentor and career coach. Given a candidate's CV, a target role, and a reference roadmap template, your job is to personalize the template steps and perform a detailed skills gap analysis.
+
+                [INPUT DATA]
+                TARGET ROLE: {targetRole}
+                REFERENCE TEMPLATE TRACK: {template.Track}
+                REFERENCE TEMPLATE TITLE: {template.Title}
+                REFERENCE TEMPLATE STEPS:
+                {templateStepsText}
+
+                [CRITICAL INSTRUCTIONS]
+                1. TECH-STACK PRECEDENCE: The 'TARGET ROLE' takes absolute precedence over the 'REFERENCE TEMPLATE' tech-stack. If the user specifies a specific technology stack in the TARGET ROLE (e.g., MERN, React, Node.js) that differs from the template (e.g., .NET/Angular), you MUST dynamically override, replace, and pivot the languages, frameworks, and tools in the steps to match the requested target stack completely. Do NOT force .NET on a MERN request.
+                2. STEP COUNT: Keep exactly the same number of steps as the template (7 steps), but rewrite them to form a logical progression (Beginner -> Advanced) for the requested TARGET ROLE.
+                3. PERSONALIZATION: Tailor descriptions and resources to bridge the gap between the candidate's current CV and the target role.
+                4. GAP ANALYSIS: Identify 5-10 specific skill gaps categorized into 2-3 categories (e.g., Technical Skills, Tools & Technologies). Ensure 'categoryName' and 'skillName' fields match the JSON schema.
+                5. LEVEL ASSESSMENT: 'currentLevel' must be derived strictly from CV evidence (use "None" if completely missing). 'requiredLevel' is what the market demands for the TARGET ROLE.
+
+                You must return ONLY a valid JSON object matching this exact structure (no markdown, no ```json tags, no backticks):
+                {jsonStructure}
+
+                All text must be in English.
+                """;
 
             var userPrompt = $"CANDIDATE CV:\n{trimmedCv}";
 

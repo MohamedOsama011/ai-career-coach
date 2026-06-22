@@ -6,5 +6,6 @@ namespace AICareerCoach.BLL.DTOs.Roadmap
     {
         [Required] public string TargetRole { get; set; } = string.Empty;
         public string? TemplateTrack { get; set; }
+        public bool ForceRegenerate { get; set; }
     }
 }

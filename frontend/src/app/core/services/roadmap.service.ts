@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, timeout } from 'rxjs/operators';
-import { RoadmapStep } from '../models/roadmap.model';
+import { GenerateRoadmapRequestDto, RoadmapTemplateDto, UserRoadmapDto } from '../models/roadmap.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,33 +12,26 @@ export class RoadmapService {
 
   constructor(private http: HttpClient) {}
 
-  getRoadmapSteps(): Observable<RoadmapStep[]> {
-    return this.http.get<any[]>(this.apiUrl).pipe(
+  getTemplates(track?: string): Observable<RoadmapTemplateDto[]> {
+    const params = track ? `?track=${encodeURIComponent(track)}` : '';
+    return this.http.get<RoadmapTemplateDto[]>(`${this.apiUrl}${params}`).pipe(
       timeout(7000),
-      map(response => {
-        if (response && response.length > 0 && response[0].steps) {
-          return response[0].steps.map((step: any, idx: number) => {
-            const weekNum = (idx + 1) * 2 - 1;
-            const formattedWeek = `WEEK ${weekNum < 10 ? '0' + weekNum : weekNum}`;
+      catchError(() => of([]))
+    );
+  }
 
-            return {
-              id: step.id || idx,
-              roadmapId: step.roadmapId || response[0].id,
-              title: step.title,
-              description: step.description,
-              level: step.level || '',
-              resources: step.resources || [],
-              orderIndex: step.orderIndex || idx,
-              week: formattedWeek,
-              status: 'upcoming'
-            };
-          });
-        }
-        return [];
-      }),
+  generateRoadmap(req: GenerateRoadmapRequestDto): Observable<UserRoadmapDto> {
+    return this.http.post<UserRoadmapDto>(`${this.apiUrl}/generate`, req).pipe(
+      timeout(30000)
+    );
+  }
+
+  getMyRoadmap(): Observable<UserRoadmapDto | null> {
+    return this.http.get<UserRoadmapDto>(`${this.apiUrl}/my-roadmap`).pipe(
+      timeout(7000),
       catchError((err) => {
-        console.error('Failed to fetch roadmap from API', err);
-        return of([]);
+        if (err.status === 404) return of(null);
+        throw err;
       })
     );
   }

@@ -59,14 +59,17 @@ namespace AICareerCoach.BLL.Services.AI
 
             string cvHash = ComputeMd5Hash(cvText);
 
-            var existing = await _context.UserRoadmaps
-                .Where(r => r.UserId == userId && r.CvHash == cvHash && r.TargetRole == request.TargetRole)
-                .FirstOrDefaultAsync();
-
-            if (existing is not null)
+            if (!request.ForceRegenerate)
             {
-                _logger.LogInformation("Roadmap already exists for user {UserId} role {Role}, returning cached.", userId, request.TargetRole);
-                return MapToDto(existing);
+                var existing = await _context.UserRoadmaps
+                    .Where(r => r.UserId == userId && r.CvHash == cvHash && r.TargetRole == request.TargetRole)
+                    .FirstOrDefaultAsync();
+
+                if (existing is not null)
+                {
+                    _logger.LogInformation("Roadmap already exists for user {UserId} role {Role}, returning cached.", userId, request.TargetRole);
+                    return MapToDto(existing);
+                }
             }
 
             Roadmap? template;

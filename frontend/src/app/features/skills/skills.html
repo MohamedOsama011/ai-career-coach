@@ -1,9 +1,9 @@
 <div class="skills-page-container">
   <header class="skills-header">
     <div class="header-left">
-      <span class="track-label">DETECTED AGAINST SENIOR FRONTEND TRACK</span>
+      <span class="track-label">SKILLS GAP ANALYSIS</span>
       <h1 class="page-title">Skills Gap Analysis</h1>
-      <p class="page-subtitle">Your current proficiency vs the median requirement for your target role.</p>
+      <p class="page-subtitle">Your current proficiency vs the requirement for your target role, based on your CV.</p>
     </div>
   </header>
 
@@ -18,26 +18,66 @@
     </div>
   </div>
 
-  <div class="skills-grid">
-    @for (category of categories; track category.title) {
-      <div class="category-card">
-        <h2 class="category-title">{{ category.title }}</h2>
-        <div class="skills-list">
-          @for (skill of category.skills; track skill.name) {
-            <div class="skill-row">
-              <div class="skill-info">
-                <span class="skill-name">{{ skill.name }}</span>
-                <span class="skill-ratio">{{ skill.current }}/{{ skill.target }}</span>
+  @if (loading) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">sync</span>
+      <h2>Loading...</h2>
+      <p>Fetching your skills gap analysis.</p>
+    </div>
+  } @else if (hasServerError) {
+    <div class="empty-state error">
+      <span class="material-icons empty-icon">cloud_off</span>
+      <h2>Connection Error</h2>
+      <p>{{ errorMessage }}</p>
+    </div>
+  } @else if (noRoadmap) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">explore</span>
+      <h2>No Roadmap Yet</h2>
+      <p>You haven't generated a Career Roadmap yet. Go to the Roadmap page, enter a target role, and generate one to see your skills gap analysis here.</p>
+    </div>
+  } @else if (categories.length === 0) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">insights</span>
+      <h2>No Gap Data</h2>
+      <p>Your roadmap exists but doesn't contain skill gap data. Try regenerating the roadmap.</p>
+    </div>
+  } @else {
+    <div class="skills-container">
+      @for (category of categories; track category.category) {
+        <div class="category-section">
+          <div class="category-header">
+            <h2 class="category-title">{{ category.category }}</h2>
+          </div>
+          <div class="category-skills">
+            @for (skill of category.skills; track skill.skillName) {
+              <div class="skill-row">
+                <div class="skill-left">
+                  <div class="skill-info">
+                    <span class="skill-name">{{ skill.skillName }}</span>
+                    <span class="priority-badge" [class]="priorityClass(skill.priority)">{{ skill.priority }}</span>
+                  </div>
+                  <p class="skill-gap">{{ skill.gap }}</p>
+                </div>
+                <div class="skill-right">
+                  <div class="skill-levels">
+                    <span class="level-text current">{{ skill.currentLevel }}</span>
+                    <span class="level-arrow">→</span>
+                    <span class="level-text target">{{ skill.requiredLevel }}</span>
+                  </div>
+                  <div class="skill-bar-group">
+                    <div class="bar-container">
+                      <div class="bar-fill target" [style.width.%]="levelToPercent(skill.requiredLevel)"></div>
+                      <div class="bar-fill current" [style.width.%]="levelToPercent(skill.currentLevel)"></div>
+                    </div>
+                    <span class="bar-values">{{ levelToPercent(skill.currentLevel) }}% → {{ levelToPercent(skill.requiredLevel) }}%</span>
+                  </div>
+                </div>
               </div>
-              <div class="progress-container">
-                <div class="progress-track"></div>
-                <div class="progress-bar target" [style.width.%]="skill.target"></div>
-                <div class="progress-bar current" [style.width.%]="skill.current"></div>
-              </div>
-            </div>
-          }
+            }
+          </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </div>

@@ -1,13 +1,13 @@
-export interface Roadmap {
+export interface RoadmapTemplateDto {
   id: number;
   track: string;
   title: string;
   description: string;
   orderIndex: number;
-  steps: RoadmapStep[];
+  steps: RoadmapStepDto[];
 }
 
-export interface RoadmapStep {
+export interface RoadmapStepDto {
   id: number;
   roadmapId: number;
   title: string;
@@ -15,6 +15,41 @@ export interface RoadmapStep {
   level: string;
   resources: string[];
   orderIndex: number;
-  week: string;
-  status: 'complete' | 'in_progress' | 'upcoming';
+}
+
+export interface SkillGapItemDto {
+  skillName: string;
+  currentLevel: string;
+  requiredLevel: string;
+  gap: string;
+  priority: string;
+}
+
+export interface SkillsCategoryDto {
+  category: string;
+  skills: SkillGapItemDto[];
+}
+
+export interface RoadmapStepResultDto {
+  order: number;
+  title: string;
+  description: string;
+  level: string;
+  resources: string[];
+  duration: string | null;
+}
+
+export interface UserRoadmapDto {
+  id: number;
+  targetRole: string;
+  templateTrack: string;
+  steps: RoadmapStepResultDto[];
+  gapAnalysis: SkillsCategoryDto[];
+  createdAt: string;
+}
+
+export interface GenerateRoadmapRequestDto {
+  targetRole: string;
+  templateTrack?: string;
+  forceRegenerate?: boolean;
 }
