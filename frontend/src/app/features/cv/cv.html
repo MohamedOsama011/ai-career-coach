@@ -1,176 +1,160 @@
 <div class="cv-page-container">
-  <header class="cv-header">
-    <div class="header-left">
-      <span>Deep-Scan Engine</span>
-      <h1 class="page-title">CV Analysis</h1>
-      @if (hasCV()) {
-        <p class="page-subtitle">Benchmarked against 50,000+ successful hires and industry standards</p>
-      }
-    </div>
-    @if (hasCV()) {
-      <div class="header-right">
-        <button class="upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
-          @if (isUploading()) {
-            <span class="spinner"></span>
-            Uploading...
-          } @else {
-            <span class="material-icons">upload</span>
-            Reupload CV
-          }
-        </button>
-      </div>
-    }
-  </header>
-
-  <input
-    #fileInput
-    hidden
-    type="file"
-    accept=".pdf,.doc,.docx"
-    (change)="onFileSelected($event)"
-  >
-
-  @if (uploadSuccess()) {
-    <div class="success-message">CV uploaded successfully</div>
-  }
-
-  @if (deleteSuccess()) {
-    <div class="success-message">{{ deleteSuccess() }}</div>
-  }
-
-  @if (uploadError()) {
-    <div class="error-message">{{ uploadError() }}</div>
-  }
-
-  @if (loadingFeedback()) {
-    <div class="loading-message">Analyzing your CV...</div>
-  }
-
-  @if (hasCV() && feedbackError()) {
-    <div class="error-message">{{ feedbackError() }}</div>
-  }
-
-  @if (hasCV()) {
-    <div class="analysis-grid">
-      <!-- LEFT: Score Card -->
-      <div class="score-card">
-        @if (feedback(); as fb) {
-          <span class="metric-label">OVERALL SCORE</span>
-          <div class="score-wrapper">
-            <span class="score">{{ displayedScore() }}</span>
-            <span class="score-total">/100</span>
-          </div>
-
-          <div class="sub-scores">
-            <div class="metric" [style.--i]="0">
-              <div class="metric-header">
-                <span>Keyword Match</span>
-                <span>{{ fb.keywordMatch }}%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" [style.width.%]="fb.keywordMatch"></div>
-              </div>
-            </div>
-
-            <div class="metric" [style.--i]="1">
-              <div class="metric-header">
-                <span>Impact Statements</span>
-                <span>{{ fb.impactStatements }}%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" [style.width.%]="fb.impactStatements"></div>
-              </div>
-            </div>
-
-            <div class="metric" [style.--i]="2">
-              <div class="metric-header">
-                <span>Formatting</span>
-                <span>{{ fb.formatting }}%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" [style.width.%]="fb.formatting"></div>
-              </div>
-            </div>
-
-            <div class="metric" [style.--i]="3">
-              <div class="metric-header">
-                <span>Leadership Signals</span>
-                <span>{{ fb.leadershipSignals }}%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" [style.width.%]="fb.leadershipSignals"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overall-summary">
-            <h3>Key Strengths</h3>
-            <ul>
-              @for (item of fb.strengths; track $index) {
-                <li class="strength-item">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
-                  {{ item }}
-                </li>
-              }
-            </ul>
-          </div>
-
-          @if (fb.missingKeywords.length) {
-            <div class="keywords-section">
-              <h3>Missing Keywords</h3>
-              <div class="keywords-list">
-                @for (kw of fb.missingKeywords; track $index) {
-                  <span class="keyword-tag">{{ kw }}</span>
-                }
-              </div>
-            </div>
-          }
-        }
-      </div>
-
-      <!-- RIGHT -->
-      <div class="right-section">
-        @if (feedback(); as fb) {
-          <div class="card">
-            <h3>Summary</h3>
-            <p class="summary-text">{{ fb.overallSummary }}</p>
-          </div>
-
-          <div class="card">
-            <h3>Suggested Improvements</h3>
-            @for (suggestion of fb.suggestions; track $index) {
-              <div class="suggestion">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
-                <div class="suggestion-content">
-                  <div class="suggestion-header">
-                  <span class="suggestion-category">{{ suggestion.category }}</span>
-                  <span class="priority-badge {{ priorityClass(suggestion.priority) }}">{{ suggestion.priority }}</span>
-                </div>
-                <p class="suggestion-issue">{{ suggestion.issue }}</p>
-                <p class="suggestion-rec">{{ suggestion.recommendation }}</p>
-                </div>
-              </div>
+    <header class="cv-header">
+        <div class="header-left">
+            <span>Deep-Scan Engine</span>
+            <h1 class="page-title">CV Analysis</h1>
+            @if (hasCV()) {
+            <p class="page-subtitle">Benchmarked against 50,000+ successful hires and industry standards</p>
             }
-          </div>
-        }
+        </div>
+        @if (hasCV()) {
+        <div class="header-right">
 
-        @if (showCVs()) {
-          <div class="card">
-            <h3>Uploaded CVs</h3>
-            @for (cv of cvs(); track cv.cvId) {
-              <div class="cv-item">
-                <span class="material-icons file-icon">description</span>
-                <div class="cv-data">
-                  <h4>{{ getOriginalFileName(cv.fileName) }}</h4>
-                  <p>{{ formatDate(cv.uploadedAt) }}</p>
+            <button class="action-btn" (click)="downloadReport()">
+    Download Report
+  </button>
+
+            <button class="upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+    @if (isUploading()) {
+      <span class="spinner"></span>
+      Uploading...
+    } @else {
+      <span class="material-icons">upload</span>
+      Reupload CV
+    }
+  </button>
+
+        </div>
+        }
+    </header>
+
+    <input #fileInput hidden type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)"> @if (uploadSuccess()) {
+    <div class="success-message">CV uploaded successfully</div>
+    } @if (deleteSuccess()) {
+    <div class="success-message">{{ deleteSuccess() }}</div>
+    } @if (uploadError()) {
+    <div class="error-message">{{ uploadError() }}</div>
+    } @if (loadingFeedback()) {
+    <div class="loading-message">Analyzing your CV...</div>
+    } @if (hasCV() && feedbackError()) {
+    <div class="error-message">{{ feedbackError() }}</div>
+    } @if (hasCV()) {
+    <div class="analysis-grid">
+        <!-- LEFT: Score Card -->
+        <div class="score-card">
+            @if (feedback(); as fb) {
+            <span class="metric-label">OVERALL SCORE</span>
+            <div class="score-wrapper">
+                <span class="score">{{ displayedScore() }}</span>
+                <span class="score-total">/100</span>
+            </div>
+
+            <div class="sub-scores">
+                <div class="metric" [style.--i]="0">
+                    <div class="metric-header">
+                        <span>Keyword Match</span>
+                        <span>{{ fb.keywordMatch }}%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" [style.width.%]="fb.keywordMatch"></div>
+                    </div>
                 </div>
-                <div class="actions">
-                  <button class="action-btn" (click)="downloadCV(cv)">Download</button>
-                  <button
-                    class="delete-btn"
-                    (click)="deleteCV(cv.cvId)"
-                    [disabled]="deletingCvId() === cv.cvId"
-                  >
+
+                <div class="metric" [style.--i]="1">
+                    <div class="metric-header">
+                        <span>Impact Statements</span>
+                        <span>{{ fb.impactStatements }}%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" [style.width.%]="fb.impactStatements"></div>
+                    </div>
+                </div>
+
+                <div class="metric" [style.--i]="2">
+                    <div class="metric-header">
+                        <span>Formatting</span>
+                        <span>{{ fb.formatting }}%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" [style.width.%]="fb.formatting"></div>
+                    </div>
+                </div>
+
+                <div class="metric" [style.--i]="3">
+                    <div class="metric-header">
+                        <span>Leadership Signals</span>
+                        <span>{{ fb.leadershipSignals }}%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" [style.width.%]="fb.leadershipSignals"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overall-summary">
+                <h3>Key Strengths</h3>
+                <ul>
+                    @for (item of fb.strengths; track $index) {
+                    <li class="strength-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>                        {{ item }}
+                    </li>
+                    }
+                </ul>
+            </div>
+
+            @if (fb.missingKeywords.length) {
+            <div class="keywords-section">
+                <h3>Missing Keywords</h3>
+                <div class="keywords-list">
+                    @for (kw of fb.missingKeywords; track $index) {
+                    <span class="keyword-tag">{{ kw }}</span> }
+                </div>
+            </div>
+            } }
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-section">
+            @if (feedback(); as fb) {
+            <div class="card">
+                <div style="margin-bottom:15px">
+                    <button class="upload-btn" (click)="downloadReport()">
+    Download PDF Report
+  </button>
+                </div>
+                <h3>Summary</h3>
+                <p class="summary-text">{{ fb.overallSummary }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Suggested Improvements</h3>
+                @for (suggestion of fb.suggestions; track $index) {
+                <div class="suggestion">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                    <div class="suggestion-content">
+                        <div class="suggestion-header">
+                            <span class="suggestion-category">{{ suggestion.category }}</span>
+                            <span class="priority-badge {{ priorityClass(suggestion.priority) }}">{{ suggestion.priority }}</span>
+                        </div>
+                        <p class="suggestion-issue">{{ suggestion.issue }}</p>
+                        <p class="suggestion-rec">{{ suggestion.recommendation }}</p>
+                    </div>
+                </div>
+                }
+            </div>
+            } @if (showCVs()) {
+            <div class="card">
+                <h3>Uploaded CVs</h3>
+                @for (cv of cvs(); track cv.cvId) {
+                <div class="cv-item">
+                    <span class="material-icons file-icon">description</span>
+                    <div class="cv-data">
+                        <h4>{{ getOriginalFileName(cv.fileName) }}</h4>
+                        <p>{{ formatDate(cv.uploadedAt) }}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn" (click)="downloadCV(cv)">Download</button>
+                        <button class="delete-btn" (click)="deleteCV(cv.cvId)" [disabled]="deletingCvId() === cv.cvId">
                     @if (deletingCvId() === cv.cvId) {
                       <span class="delete-spinner"></span>
                       Deleting...
@@ -178,29 +162,22 @@
                       Delete
                     }
                   </button>
+                    </div>
                 </div>
-              </div>
+                }
+            </div>
             }
-          </div>
-        }
-      </div>
+        </div>
     </div>
-  } @else {
+    } @else {
     <div class="empty-state">
-      <div
-        class="drop-zone"
-        [class.drag-over]="isDragOver()"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-        (click)="fileInput.click()"
-      >
-        <span class="material-icons drop-icon">cloud_upload</span>
-        <h2>Upload Your CV</h2>
-        <p>Drag &amp; drop your CV file here, or click to browse</p>
-        <span class="supported-formats">Supports PDF, DOC, DOCX</span>
-      </div>
-      <button class="upload-btn empty-upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+        <div class="drop-zone" [class.drag-over]="isDragOver()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
+            <span class="material-icons drop-icon">cloud_upload</span>
+            <h2>Upload Your CV</h2>
+            <p>Drag &amp; drop your CV file here, or click to browse</p>
+            <span class="supported-formats">Supports PDF, DOC, DOCX</span>
+        </div>
+        <button class="upload-btn empty-upload-btn" (click)="fileInput.click()" [disabled]="isUploading()">
         @if (isUploading()) {
           <span class="spinner"></span>
           Uploading...
@@ -210,5 +187,7 @@
         }
       </button>
     </div>
-  }
+    }
+</div>
+</div>
 </div>

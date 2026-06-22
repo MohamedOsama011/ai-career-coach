@@ -47,5 +47,12 @@ getUserId(): string {
     'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
   ];
 }
-
+downloadCvReport() {
+  return this.http.get(
+    'https://localhost:7222/api/reports/cv',
+    {
+      responseType: 'blob'
+    }
+  );
+}
 }

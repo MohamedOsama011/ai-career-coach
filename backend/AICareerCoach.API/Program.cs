@@ -2,6 +2,7 @@ using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.BLL.Services.Pdf;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
@@ -9,8 +10,8 @@ using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using System.Text;
 
 namespace AICareerCoach.API
@@ -21,10 +22,14 @@ namespace AICareerCoach.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            // DB Context
             builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // Identity
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -36,20 +41,24 @@ namespace AICareerCoach.API
             .AddEntityFrameworkStores<AICareerCoachDbContext>()
             .AddDefaultTokenProviders();
 
+            // Repositories & Services
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
+
             builder.Services.AddScoped<IJobRepository, JobRepository>();
             builder.Services.AddScoped<IRoadmapRepository, RoadmapRepository>();
+
             builder.Services.AddScoped<ICVService, CVService>();
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
-            
             builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
+            // Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -70,6 +79,7 @@ namespace AICareerCoach.API
                 };
             });
 
+            // CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
@@ -84,28 +94,37 @@ namespace AICareerCoach.API
 
             var app = builder.Build();
 
+            // Middleware
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            
 
             app.UseHttpsRedirection();
+
             app.UseStaticFiles();
             app.UseRouting();
+
             app.UseCors("AllowAngular");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
-            using (var scope = app.Services.CreateScope())
+            try
             {
+                using var scope = app.Services.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                //await RoleSeeder.SeedAsync(roleManager);
-                await JobSeeder.SeedAsync(context);
-                await RoadmapSeeder.SeedAsync(context);
+                if (!context.Jobs.Any())
+                    await JobSeeder.SeedAsync(context);
+
+                if (!context.Roadmaps.Any())
+                    await RoadmapSeeder.SeedAsync(context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("SEEDING ERROR: " + ex.Message);
             }
 
             app.MapControllers();

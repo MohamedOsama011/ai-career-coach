@@ -10,13 +10,11 @@ namespace AICareerCoach.DAL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "ExtractedData",
-                table: "CVs",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+            migrationBuilder.AddColumn<string>(
+     name: "ExtractedData",
+     table: "CVs",
+     type: "nvarchar(max)",
+     nullable: true);
         }
 
         /// <inheritdoc />
