@@ -188,47 +188,79 @@
       <div class="analysis-grid fade-in">
       <!-- LEFT: Score Card -->
       <div class="score-card">
-          <span class="metric-label">OVERALL SCORE</span>
-          <div class="score-wrapper">
-            <span class="score">{{ displayedScore() }}</span>
-            <span class="score-total">/100</span>
+          <div class="score-card-head">
+            <span class="metric-label">Overall Score</span>
+            <span class="meta-chip">
+              <span class="material-icons meta-chip-icon">{{ feedbackChip(fb).icon }}</span>
+              {{ feedbackChip(fb).label }}
+            </span>
+          </div>
+
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 120 120" aria-hidden="true">
+              <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#2563EB" />
+                  <stop offset="100%" stop-color="#6366F1" />
+                </linearGradient>
+              </defs>
+              <circle class="gauge-track" cx="60" cy="60" r="52"></circle>
+              <circle
+                class="gauge-progress"
+                cx="60" cy="60" r="52"
+                stroke="url(#scoreGradient)"
+                [attr.stroke-dasharray]="ringCircumference"
+                [attr.stroke-dashoffset]="ringDashOffset(displayedScore())"
+              ></circle>
+            </svg>
+            <div class="gauge-center">
+              <span class="gauge-score">{{ displayedScore() }}</span>
+              <span class="gauge-total">/ 100</span>
+            </div>
+          </div>
+
+          <div class="verdict-block">
+            <span class="verdict" [style.color]="verdictColor(fb.overallScore)">{{ scoreVerdictLabel(fb.overallScore) }}</span>
+            @if (generatedDate(fb)) {
+              <span class="verdict-meta">{{ generatedDate(fb) }}</span>
+            }
           </div>
 
           <div class="sub-scores">
-            <div class="metric" [style.--i]="0">
+            <div class="metric {{ subBarTierClass(fb.keywordMatch) }}" [style.--i]="0">
               <div class="metric-header">
                 <span>Keyword Match</span>
-                <span>{{ fb.keywordMatch }}%</span>
+                <span class="metric-value">{{ fb.keywordMatch }}%</span>
               </div>
               <div class="progress-bar-track">
                 <div class="progress-bar-fill" [style.width.%]="fb.keywordMatch"></div>
               </div>
             </div>
 
-            <div class="metric" [style.--i]="1">
+            <div class="metric {{ subBarTierClass(fb.impactStatements) }}" [style.--i]="1">
               <div class="metric-header">
                 <span>Impact Statements</span>
-                <span>{{ fb.impactStatements }}%</span>
+                <span class="metric-value">{{ fb.impactStatements }}%</span>
               </div>
               <div class="progress-bar-track">
                 <div class="progress-bar-fill" [style.width.%]="fb.impactStatements"></div>
               </div>
             </div>
 
-            <div class="metric" [style.--i]="2">
+            <div class="metric {{ subBarTierClass(fb.formatting) }}" [style.--i]="2">
               <div class="metric-header">
                 <span>Formatting</span>
-                <span>{{ fb.formatting }}%</span>
+                <span class="metric-value">{{ fb.formatting }}%</span>
               </div>
               <div class="progress-bar-track">
                 <div class="progress-bar-fill" [style.width.%]="fb.formatting"></div>
               </div>
             </div>
 
-            <div class="metric" [style.--i]="3">
+            <div class="metric {{ subBarTierClass(fb.leadershipSignals) }}" [style.--i]="3">
               <div class="metric-header">
                 <span>Leadership Signals</span>
-                <span>{{ fb.leadershipSignals }}%</span>
+                <span class="metric-value">{{ fb.leadershipSignals }}%</span>
               </div>
               <div class="progress-bar-track">
                 <div class="progress-bar-fill" [style.width.%]="fb.leadershipSignals"></div>
@@ -271,7 +303,7 @@
             <h3>Suggested Improvements</h3>
             @for (suggestion of fb.suggestions; track $index) {
               <div class="suggestion">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="alert-icon {{ priorityClass(suggestion.priority) }}"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
                 <div class="suggestion-content">
                   <div class="suggestion-header">
                   <span class="suggestion-category">{{ suggestion.category }}</span>
