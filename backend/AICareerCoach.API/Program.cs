@@ -57,6 +57,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
 
             builder.Services.AddAuthentication(options =>

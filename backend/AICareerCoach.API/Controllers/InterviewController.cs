@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.Interfaces.AI;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -6,40 +10,114 @@ namespace AICareerCoach.API.Controllers
     [ApiController]
     public class InterviewController : ControllerBase
     {
-        [HttpGet("options")]
-        public IActionResult GetOptions()
+        private readonly IInterviewService _interviewService;
+
+        public InterviewController(IInterviewService interviewService)
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            _interviewService = interviewService;
+        }
+
+        [HttpGet("options")]
+        public async Task<ActionResult<InterviewOptionsDto>> GetOptions()
+        {
+            var result = await _interviewService.GetOptionsAsync();
+            return Ok(result);
         }
 
         [HttpPost("sessions")]
-        public IActionResult StartSession()
+        public async Task<ActionResult<InterviewSessionDto>> StartSession([FromBody] StartSessionRequestDto dto)
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _interviewService.StartSessionAsync(userId, dto);
+                return CreatedAtAction(nameof(GetActiveSession), null, result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("sessions/active")]
-        public IActionResult GetActiveSession()
+        public async Task<ActionResult<InterviewSessionDto>> GetActiveSession()
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var result = await _interviewService.GetActiveSessionAsync(userId);
+
+            if (result is null)
+                return NotFound(new { message = "No active interview session found." });
+
+            return Ok(result);
         }
 
         [HttpPost("sessions/{sessionId}/answers")]
-        public IActionResult SubmitAnswer(int sessionId)
+        public async Task<ActionResult<InterviewSessionDto>> SubmitAnswer(int sessionId, [FromBody] SubmitAnswerRequestDto dto)
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _interviewService.SubmitAnswerAsync(userId, sessionId, dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("sessions/{sessionId}/scorecard")]
-        public IActionResult GetScorecard(int sessionId)
+        public async Task<ActionResult<InterviewScorecardDto>> GetScorecard(int sessionId)
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _interviewService.GetScorecardAsync(userId, sessionId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("sessions")]
-        public IActionResult GetHistory()
+        public async Task<ActionResult<List<InterviewHistoryItemDto>>> GetHistory()
         {
-            return StatusCode(501, "Not implemented until Phase 3");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var result = await _interviewService.GetHistoryAsync(userId);
+            return Ok(result);
         }
     }
 }
