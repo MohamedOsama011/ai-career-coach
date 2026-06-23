@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 AGENTS.md
+
+/docs/mock-interview-implementation-plan.md

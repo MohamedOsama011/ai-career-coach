@@ -26,8 +26,4 @@ public class Job
     public DateTime PostedAt { get; set; }
 
     public string? CompanyLogoUrl { get; set; }
-
-    // Navigation
-
-    public ICollection<mockInterview> Interviews { get; set; } = new List<mockInterview>();
 }

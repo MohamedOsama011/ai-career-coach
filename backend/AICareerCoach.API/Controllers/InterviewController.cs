@@ -1,8 +1,4 @@
-﻿using AICareerCoach.DAL.Data;
-using AICareerCoach.DAL.Entities;
-using AICareerCoach.DAL.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -10,26 +6,40 @@ namespace AICareerCoach.API.Controllers
     [ApiController]
     public class InterviewController : ControllerBase
     {
-        private readonly AICareerCoachDbContext _context;
-
-        public InterviewController(AICareerCoachDbContext context)
+        [HttpGet("options")]
+        public IActionResult GetOptions()
         {
-            _context = context;
+            return StatusCode(501, "Not implemented until Phase 3");
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<mockInterview>>> GetAll()
+        [HttpPost("sessions")]
+        public IActionResult StartSession()
         {
-            return await _context.Interviews.ToListAsync();
+            return StatusCode(501, "Not implemented until Phase 3");
         }
 
-        [HttpPost]
-        public async Task<ActionResult<mockInterview>> Add(mockInterview interview)
+        [HttpGet("sessions/active")]
+        public IActionResult GetActiveSession()
         {
-            _context.Interviews.Add(interview);
-            await _context.SaveChangesAsync();
+            return StatusCode(501, "Not implemented until Phase 3");
+        }
 
-            return Ok(interview);
+        [HttpPost("sessions/{sessionId}/answers")]
+        public IActionResult SubmitAnswer(int sessionId)
+        {
+            return StatusCode(501, "Not implemented until Phase 3");
+        }
+
+        [HttpGet("sessions/{sessionId}/scorecard")]
+        public IActionResult GetScorecard(int sessionId)
+        {
+            return StatusCode(501, "Not implemented until Phase 3");
+        }
+
+        [HttpGet("sessions")]
+        public IActionResult GetHistory()
+        {
+            return StatusCode(501, "Not implemented until Phase 3");
         }
     }
 }
