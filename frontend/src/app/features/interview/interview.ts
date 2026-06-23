@@ -1,7 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InterviewService, ChatMessage, InterviewTrack } from '../../core/services/interview.service';
+import { InterviewService } from '../../core/services/interview.service';
+import {
+  InterviewOptionsDto,
+  InterviewSessionDto,
+  InterviewScorecardDto,
+  StartSessionRequestDto,
+  SubmitAnswerRequestDto
+} from '../../core/models/interview.model';
 
 @Component({
   selector: 'app-interview',
@@ -10,105 +17,126 @@ import { InterviewService, ChatMessage, InterviewTrack } from '../../core/servic
   styleUrl: './interview.css',
 })
 export class Interview implements OnInit {
-  tracks: InterviewTrack[] = [];
-  messages: ChatMessage[] = [];
-  activeTrackId: string = 'behavioral';
-  inputText: string = '';
-  isListening: boolean = true;
-  isBotTyping: boolean = false;
+  view = signal<'setup' | 'chat' | 'scorecard'>('setup');
+  options = signal<InterviewOptionsDto | null>(null);
+  session = signal<InterviewSessionDto | null>(null);
+  scorecard = signal<InterviewScorecardDto | null>(null);
+  selectedTrack = signal('');
+  selectedDifficulty = signal('');
+  targetRole = signal('');
+  inputText = signal('');
+  isBotTyping = signal(false);
+  loading = signal(false);
+  error = signal<string | null>(null);
 
-  lastScore = {
-    grade: 'B+',
-    track: 'Behavioral',
-    feedback: 'Strong situation setup. Add measurable outcomes to your answers.'
-  };
-
-  private scoresMap: Record<string, typeof this.lastScore> = {
-    behavioral: {
-      grade: 'B+',
-      track: 'Behavioral',
-      feedback: 'Strong situation setup. Add measurable outcomes to your answers.'
-    },
-    technical: {
-      grade: 'A-',
-      track: 'Technical Coding',
-      feedback: 'Excellent optimal complexity explanation. Keep optimizing boundary conditions.'
-    },
-    system: {
-      grade: 'B',
-      track: 'System Design',
-      feedback: 'Good database selection analysis. Detail the load balancing strategy more.'
-    }
-  };
+  messages = computed(() => this.session()?.messages ?? []);
+  isCompleted = computed(() => this.session()?.status === 'Completed');
 
   constructor(private interviewService: InterviewService) {}
 
   ngOnInit(): void {
-    this.loadTracks();
-    this.loadMessages();
+    this.loadOptions();
+    this.resumeActiveSession();
   }
 
-  loadTracks(): void {
-    this.interviewService.getTracks().subscribe(data => {
-      this.tracks = data;
+  private loadOptions(): void {
+    this.interviewService.getOptions().subscribe({
+      next: (data) => this.options.set(data)
     });
   }
 
-  loadMessages(): void {
-    this.messages = this.interviewService.getInitialMessages(this.activeTrackId);
-  }
-
-  selectTrack(trackId: string): void {
-    if (this.activeTrackId === trackId) return;
-    this.activeTrackId = trackId;
-    this.loadMessages();
-    this.lastScore = this.scoresMap[trackId] || this.scoresMap['behavioral'];
-    this.isListening = true;
-    this.isBotTyping = false;
-  }
-
-  sendMessage(): void {
-    const text = this.inputText.trim();
-    if (!text || this.isBotTyping) return;
-
-    // Append User Message
-    const userMsg: ChatMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: text,
-      timestamp: new Date()
-    };
-    this.messages.push(userMsg);
-    this.inputText = '';
-    this.isListening = false;
-    this.isBotTyping = true;
-
-    // Simulate AI response
-    this.interviewService.simulateBotReply(text).subscribe(replyText => {
-      const botMsg: ChatMessage = {
-        id: Date.now() + 1,
-        sender: 'bot',
-        text: replyText,
-        timestamp: new Date()
-      };
-      this.messages.push(botMsg);
-      this.isBotTyping = false;
-      this.isListening = true;
+  private resumeActiveSession(): void {
+    this.interviewService.getActiveSession().subscribe({
+      next: (session) => {
+        if (session) {
+          this.session.set(session);
+          this.view.set('chat');
+        }
+      }
     });
-  }
-
-  toggleListening(): void {
-    this.isListening = !this.isListening;
   }
 
   startSession(): void {
-    this.loadMessages();
-    this.isListening = true;
-    this.isBotTyping = false;
-    alert('Started a new mock interview session!');
+    if (!this.selectedTrack() || !this.selectedDifficulty() || !this.targetRole().trim()) return;
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const req: StartSessionRequestDto = {
+      track: this.selectedTrack(),
+      difficulty: this.selectedDifficulty(),
+      targetRole: this.targetRole().trim()
+    };
+
+    this.interviewService.startSession(req).subscribe({
+      next: (session) => {
+        this.session.set(session);
+        this.view.set('chat');
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(err.error?.message || 'Failed to start session. Please try again.');
+      }
+    });
   }
 
-  endSession(): void {
-    alert(`Session ended. Your temporary score is ${this.lastScore.grade}. Feedback: ${this.lastScore.feedback}`);
+  sendMessage(): void {
+    const text = this.inputText().trim();
+    if (!text || this.isBotTyping() || this.isCompleted()) return;
+
+    const sessionId = this.session()?.id;
+    if (!sessionId) return;
+
+    this.isBotTyping.set(true);
+    this.inputText.set('');
+
+    const req: SubmitAnswerRequestDto = { answer: text };
+
+    this.interviewService.submitAnswer(sessionId, req).subscribe({
+      next: (session) => {
+        this.session.set(session);
+        this.isBotTyping.set(false);
+      },
+      error: () => {
+        this.isBotTyping.set(false);
+        this.error.set('Failed to submit answer. Please try again.');
+      }
+    });
+  }
+
+  loadScorecard(): void {
+    const sessionId = this.session()?.id;
+    if (!sessionId) return;
+
+    this.loading.set(true);
+
+    this.interviewService.getScorecard(sessionId).subscribe({
+      next: (sc) => {
+        this.scorecard.set(sc);
+        this.view.set('scorecard');
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.error.set('Failed to load scorecard. Please try again.');
+      }
+    });
+  }
+
+  newSession(): void {
+    this.view.set('setup');
+    this.session.set(null);
+    this.scorecard.set(null);
+    this.selectedTrack.set('');
+    this.selectedDifficulty.set('');
+    this.targetRole.set('');
+    this.inputText.set('');
+    this.isBotTyping.set(false);
+    this.error.set(null);
+  }
+
+  messageSender(role: string): 'bot' | 'user' {
+    return role === 'Interviewer' ? 'bot' : 'user';
   }
 }
