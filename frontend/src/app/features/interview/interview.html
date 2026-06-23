@@ -170,41 +170,47 @@
 
     @if (scorecard(); as sc) {
       <div class="scorecard-section">
-        <div class="scorecard-summary">
+        <app-card class="scorecard-summary">
           <div class="summary-grade">
             <span class="grade-value">{{ sc.letterGrade }}</span>
             <span class="grade-score">{{ sc.overallScore }}/100</span>
           </div>
           <p class="summary-text">{{ sc.overallSummary }}</p>
+        </app-card>
+
+        <div class="stat-cards-row">
+          <app-stat-card label="Overall Score" [value]="sc.overallScore + '/100'" icon="score" />
+          <app-stat-card label="Grade" [value]="sc.letterGrade" icon="grade" color="var(--brand-success)" />
+          <app-stat-card label="Questions" [value]="sc.questionAnalysis.length + '/6'" icon="quiz" />
         </div>
 
         <div class="scorecard-lists">
-          <div class="list-card">
+          <app-card class="list-card">
             <h3 class="list-title">Strengths</h3>
             <ul class="list-items">
               @for (s of sc.strengths; track s) {
                 <li><span class="material-icons list-icon positive">check_circle</span> {{ s }}</li>
               }
             </ul>
-          </div>
+          </app-card>
 
-          <div class="list-card">
+          <app-card class="list-card">
             <h3 class="list-title">Areas for Improvement</h3>
             <ul class="list-items">
               @for (a of sc.areasForImprovement; track a) {
                 <li><span class="material-icons list-icon negative">arrow_upward</span> {{ a }}</li>
               }
             </ul>
-          </div>
+          </app-card>
         </div>
 
         <div class="question-analysis">
           <h2 class="analysis-title">Question Analysis</h2>
           @for (qa of sc.questionAnalysis; track qa; let i = $index) {
-            <div class="analysis-card">
+            <app-card class="analysis-card">
               <div class="analysis-header">
                 <span class="analysis-number">Q{{ i + 1 }}</span>
-                <span class="rating-badge" [class]="qa.rating.toLowerCase()">{{ qa.rating }}</span>
+                <app-badge [text]="qa.rating" [variant]="ratingVariant(qa.rating)" />
               </div>
               <div class="analysis-pair">
                 <div class="analysis-item">
@@ -224,7 +230,7 @@
                 <span class="analysis-label">Suggestion</span>
                 <p class="analysis-text suggestion">{{ qa.improvementSuggestion }}</p>
               </div>
-            </div>
+            </app-card>
           }
         </div>
       </div>

@@ -1,6 +1,9 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Card } from '../../shared/components/card/card';
+import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
+import { StatCard } from '../../shared/components/stat-card/stat-card';
 import { InterviewService } from '../../core/services/interview.service';
 import {
   InterviewOptionsDto,
@@ -12,7 +15,7 @@ import {
 
 @Component({
   selector: 'app-interview',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Card, Badge, StatCard],
   templateUrl: './interview.html',
   styleUrl: './interview.css',
 })
@@ -138,5 +141,12 @@ export class Interview implements OnInit {
 
   messageSender(role: string): 'bot' | 'user' {
     return role === 'Interviewer' ? 'bot' : 'user';
+  }
+
+  ratingVariant(rating: string): BadgeVariant {
+    if (rating === 'Strong') return 'success';
+    if (rating === 'Adequate') return 'warning';
+    if (rating === 'Weak') return 'danger';
+    return 'default';
   }
 }
