@@ -28,9 +28,6 @@
                 <strong style="color: var(--brand-primary);">{{ last.track }}</strong> 
               <strong style="color: var(--brand-text-secondary); font-weight: 500; margin-top: 0px;">{{ last.difficulty }}</strong>
               <strong>{{ last.targetRole }}</strong>
-              <!-- @if (last.letterGrade) {
-                &mdash; Grade: <strong>{{ last.letterGrade }}</strong>
-              } -->
               </span>
             </p>
             <div class="welcome-actions">
@@ -80,10 +77,6 @@
               <span class="last-score-label">LAST SCORE</span>
               <span class="last-score-grade">{{ last.letterGrade }}</span>
               <span class="last-score-meta">{{ last.track }} &middot; {{ last.difficulty }}</span>
-              <!-- <span class="last-score-value">{{ last.overallScore }}/100</span>
-              @if (last.overallSummary) {
-                <p class="last-score-summary">{{ last.overallSummary }}</p>
-              } -->
             </app-card>
           }
 

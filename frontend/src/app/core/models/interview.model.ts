@@ -69,17 +69,3 @@ export interface InterviewScorecardDto {
   areasForImprovement: string[];
   questionAnalysis: QuestionAnalysisItemDto[];
 }
-
-export interface ChatMessage {
-  id: number;
-  sender: 'bot' | 'user';
-  text: string;
-  timestamp: Date;
-}
-
-export interface InterviewTrack {
-  id: string;
-  title: string;
-  subtitle: string;
-  sessionsCount: number;
-}
