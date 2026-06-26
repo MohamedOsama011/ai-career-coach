@@ -131,6 +131,10 @@ namespace AICareerCoach.BLL.Services.AI
 
             var turnNumber = session.QuestionsAsked;
 
+            // 1) Persist the candidate's answer BEFORE any AI call so a later
+            //    LLM/transient failure can never lose user input (Phase 2, C2).
+            //    QuestionsAsked is intentionally NOT incremented here — only an
+            //    Interviewer question advances the turn (see StartSessionAsync).
             var answer = new InterviewMessage
             {
                 SessionId = session.Id,
@@ -141,43 +145,47 @@ namespace AICareerCoach.BLL.Services.AI
             };
 
             _context.InterviewMessages.Add(answer);
+            session.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
 
+            // 2) Final turn: complete the session. No LLM call needed.
             if (turnNumber >= session.MaxQuestions)
             {
                 session.Status = InterviewStatus.Completed;
                 session.CompletedAt = DateTime.UtcNow;
                 session.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
                 _logger.LogInformation("Session {SessionId} completed after {Questions} questions.", session.Id, turnNumber);
+                return await LoadSessionDtoAsync(session.Id);
             }
-            else
+
+            // 3) Intermediate turn: reload the full transcript from DB (now
+            //    includes the just-saved answer) and ask the LLM for the next
+            //    question. If this call fails, the answer is already durable;
+            //    the client may retry the submit and the LLM will be retried.
+            var transcript = await _context.InterviewMessages
+                .Where(m => m.SessionId == session.Id)
+                .OrderBy(m => m.CreatedAt)
+                .ToListAsync();
+
+            var nextTurn = turnNumber + 1;
+
+            var question = await _llmService.GenerateNextQuestionAsync(
+                session.Track, session.Difficulty, session.TargetRole,
+                session.SummaryContextJson ?? "{}", transcript, nextTurn);
+
+            var questionMsg = new InterviewMessage
             {
-                var transcript = await _context.InterviewMessages
-                    .Where(m => m.SessionId == session.Id)
-                    .OrderBy(m => m.CreatedAt)
-                    .ToListAsync();
+                SessionId = session.Id,
+                Role = MessageRole.Interviewer,
+                TurnNumber = nextTurn,
+                Content = question,
+                CreatedAt = DateTime.UtcNow
+            };
 
-                transcript.Add(answer);
-
-                var nextTurn = turnNumber + 1;
-
-                var question = await _llmService.GenerateNextQuestionAsync(
-                    session.Track, session.Difficulty, session.TargetRole,
-                    session.SummaryContextJson ?? "{}", transcript, nextTurn);
-
-                var questionMsg = new InterviewMessage
-                {
-                    SessionId = session.Id,
-                    Role = MessageRole.Interviewer,
-                    TurnNumber = nextTurn,
-                    Content = question,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _context.InterviewMessages.Add(questionMsg);
-                session.QuestionsAsked = nextTurn;
-                session.UpdatedAt = DateTime.UtcNow;
-            }
-
+            _context.InterviewMessages.Add(questionMsg);
+            session.QuestionsAsked = nextTurn;
+            session.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return await LoadSessionDtoAsync(session.Id);
@@ -245,6 +253,7 @@ namespace AICareerCoach.BLL.Services.AI
                     QuestionsAsked = s.QuestionsAsked,
                     OverallScore = s.Scorecard != null ? s.Scorecard.OverallScore : null,
                     LetterGrade = s.Scorecard != null ? s.Scorecard.LetterGrade : null,
+                    OverallSummary = s.Scorecard != null ? s.Scorecard.OverallSummary : null,
                     CreatedAt = s.CreatedAt,
                     CompletedAt = s.CompletedAt
                 })
@@ -256,7 +265,7 @@ namespace AICareerCoach.BLL.Services.AI
         private async Task<InterviewSessionDto> LoadSessionDtoAsync(int sessionId)
         {
             var session = await _context.InterviewSessions
-                .Include(s => s.Messages.OrderBy(m => m.CreatedAt))
+                .Include(s => s.Messages.OrderBy(m => m.CreatedAt).ThenBy(m => m.Id))
                 .FirstOrDefaultAsync(s => s.Id == sessionId)
                 ?? throw new KeyNotFoundException("Session not found.");
 

@@ -1,5 +1,107 @@
 <div class="interview-page-container">
 
+  <!-- ========== DASHBOARD VIEW ========== -->
+  @if (view() === 'dashboard') {
+    <header class="interview-header">
+      <div class="header-left">
+        <span class="lab-label">AI INTERVIEW LAB</span>
+        <h1 class="page-title">Mock Interview</h1>
+        <p class="page-subtitle">Welcome back! Ready for your next challenge?</p>
+      </div>
+    </header>
+
+    @if (hasActiveInProgress()) {
+      <div class="resume-banner">
+        <span class="material-icons">play_circle</span>
+        <span>You have an interview in progress.</span>
+        <button class="resume-btn" (click)="resumeActiveInterview()">Resume Interview</button>
+      </div>
+    }
+
+    @if (lastSession(); as last) {
+      <div class="dashboard-grid">
+        <div class="left-col">
+          <app-card class="welcome-card">
+            <p class="welcome-text">
+              Your last session was:
+              <span class="data">
+                <strong style="color: var(--brand-primary);">{{ last.track }}</strong> 
+              <strong style="color: var(--brand-text-secondary); font-weight: 500; margin-top: 0px;">{{ last.difficulty }}</strong>
+              <strong>{{ last.targetRole }}</strong>
+              <!-- @if (last.letterGrade) {
+                &mdash; Grade: <strong>{{ last.letterGrade }}</strong>
+              } -->
+              </span>
+            </p>
+            <div class="welcome-actions">
+              <button class="action-btn primary" (click)="viewLastScorecard()">
+                <span class="material-icons">assessment</span>
+                View Last Scorecard Report
+              </button>
+              <button class="action-btn secondary" (click)="setupNewInterview()">
+                <span class="material-icons">play_arrow</span>
+                Setup New Interview
+              </button>
+            </div>
+          </app-card>
+
+          <app-card class="history-card">
+            <div class="history-header">
+              <h3 class="history-title">Past Sessions</h3>
+              @if (selectedTrackFilter(); as filter) {
+                <span class="filter-label">
+                  {{ filter }}
+                  <button class="filter-clear" (click)="clearTrackFilter()">&times;</button>
+                </span>
+              }
+            </div>
+            @if (filteredHistory().length > 0) {
+              <ul class="history-list">
+                @for (item of filteredHistory(); track item.id) {
+                  <li class="history-item" (click)="loadScorecardById(item.id)" title="View scorecard">
+                    <span class="history-track">{{ item.track }}</span>
+                    <span class="history-difficulty">{{ item.difficulty }}</span>
+                    @if (item.letterGrade) {
+                      <span class="history-grade" [class]="gradeClass(item.letterGrade)">{{ item.letterGrade }}</span>
+                    }
+                    <span class="history-date">{{ item.createdAt | date:'shortDate' }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="history-empty">No sessions found for this track.</p>
+            }
+          </app-card>
+        </div>
+
+        <div class="right-col">
+          @if (last.overallScore != null && last.letterGrade) {
+            <app-card class="last-score-card">
+              <span class="last-score-label">LAST SCORE</span>
+              <span class="last-score-grade">{{ last.letterGrade }}</span>
+              <span class="last-score-meta">{{ last.track }} &middot; {{ last.difficulty }}</span>
+              <!-- <span class="last-score-value">{{ last.overallScore }}/100</span>
+              @if (last.overallSummary) {
+                <p class="last-score-summary">{{ last.overallSummary }}</p>
+              } -->
+            </app-card>
+          }
+
+          <div class="tracks-sidebar">
+            <span class="tracks-sidebar-label">TRACKS</span>
+            @for (t of tracks; track t.id) {
+              <app-card class="track-card" [class.selected]="selectedTrackFilter() === t.id" (click)="selectTrackFromDashboard(t.id)">
+                <h4 class="track-card-title">{{ t.title }}</h4>
+                <p class="track-card-subtitle">{{ t.subtitle }}</p>
+                <span class="track-card-count">{{ trackCount(t.id) }} {{ trackCount(t.id) > 1 ? 'sessions' : 'session' }}</span>
+              </app-card>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+
   <!-- ========== SETUP VIEW ========== -->
   @if (view() === 'setup') {
     <header class="interview-header">
@@ -87,6 +189,26 @@
       </div>
     </header>
 
+    <div class="step-indicator">
+      <div class="step-dots">
+        @for (step of stepArray(); track step) {
+          <div class="step-dot-wrapper">
+            <div class="step-dot" [class]="stepClass(step)"></div>
+            @if (step < maxQuestions()) {
+              <div class="step-line" [class.completed]="step < questionsAsked()"></div>
+            }
+          </div>
+        }
+      </div>
+      @if (isCompleted()) {
+        <span class="step-label">Completed · {{ maxQuestions() }} questions</span>
+      } @else {
+        <span class="step-label">
+          Question <strong class="step-current-number">{{ questionsAsked() }}</strong> of {{ maxQuestions() }}
+        </span>
+      }
+    </div>
+
     <div class="interview-grid">
       <main class="transcript-section">
         <div class="transcript-card">
@@ -119,6 +241,7 @@
                 </div>
               </div>
             }
+            <div #scrollAnchor></div>
 
             @if (isCompleted()) {
               <div class="completion-banner">
