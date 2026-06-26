@@ -67,36 +67,41 @@ namespace AICareerCoach.API.Controllers
         //}
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadCV(IFormFile file, [FromForm] string? userId = null)
+        public async Task<IActionResult> UploadCV(IFormFile file, [FromQuery] string? userId = null)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var effectiveUserId = user?.Id ?? userId;
-
-            if (string.IsNullOrEmpty(effectiveUserId))
-                return Unauthorized("User ID required. Either authenticate or provide userId in the form.");
-
-            if (file == null || file.Length == 0)
-                return BadRequest("File is required");
-            
-            var cv = await _cvService.UploadCVAsync(
-                file.OpenReadStream(),
-                file.FileName,
-                effectiveUserId);
-
-            var fileName = Path.GetFileName(cv.FilePath);
-            var baseUrl = _config["AppSettings:BaseUrl"];
-
-            return Ok(new CVResponseDto
+            try
             {
-                CVId = cv.CVId,
-                UserId = cv.UserId,
-                UploadedAt = cv.UploadedAt,
-                FileName = Path.GetFileName(cv.FilePath) ?? "Unknown.pdf",
+                var user = await _userManager.GetUserAsync(User);
+                var effectiveUserId = user?.Id ?? userId;
 
-                DownloadUrl = $"{baseUrl}/cvs/{fileName}"
-            });
+                if (string.IsNullOrEmpty(effectiveUserId))
+                    return Unauthorized("User ID required");
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("File is required");
+
+                var cv = await _cvService.UploadCVAsync(
+                    file.OpenReadStream(),
+                    file.FileName,
+                    effectiveUserId);
+
+                var fileName = Path.GetFileName(cv.FilePath);
+                var baseUrl = _config["AppSettings:BaseUrl"];
+
+                return Ok(new CVResponseDto
+                {
+                    CVId = cv.CVId,
+                    UserId = cv.UserId,
+                    UploadedAt = cv.UploadedAt,
+                    FileName = Path.GetFileName(cv.FilePath) ?? "Unknown.pdf",
+                    DownloadUrl = $"{baseUrl}/cvs/{fileName}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
         }
-
         [HttpGet("user/{userId}")]
         public IActionResult GetUserCVs(string userId)
         {

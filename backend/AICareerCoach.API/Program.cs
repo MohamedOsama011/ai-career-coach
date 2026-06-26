@@ -3,6 +3,7 @@ using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.BLL.Services.Pdf;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
@@ -13,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using QuestPDF.Infrastructure;
+
 
 namespace AICareerCoach.API
 {
@@ -21,7 +24,7 @@ namespace AICareerCoach.API
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            QuestPDF.Settings.License = LicenseType.Community;
             builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -36,7 +39,7 @@ namespace AICareerCoach.API
             })
             .AddEntityFrameworkStores<AICareerCoachDbContext>()
             .AddDefaultTokenProviders();
-
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
             builder.Services.AddScoped<IJobRepository, JobRepository>();
