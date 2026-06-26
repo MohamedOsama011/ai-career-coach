@@ -48,6 +48,7 @@ export interface InterviewHistoryItemDto {
   questionsAsked: number;
   overallScore: number | null;
   letterGrade: string | null;
+  overallSummary: string | null;
   createdAt: string;
   completedAt: string | null;
 }

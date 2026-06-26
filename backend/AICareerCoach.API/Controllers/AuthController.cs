@@ -29,6 +29,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             try
@@ -43,6 +44,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             try
@@ -72,6 +74,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("refreshtoken")]
+        [AllowAnonymous]
         public async Task<IActionResult> Refreshtoken([FromBody] Refreshtokendto refreshtokendto)
         {
             var result = await _authService.RefreshTocken(refreshtokendto);
@@ -93,6 +96,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPassword forgotPassword)
         {
             await _authService.ForgotPassword(forgotPassword);
@@ -100,6 +104,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("ResetPassword")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPassword resetPassword)
         {
             var result = await _authService.ResetPassword(resetPassword);

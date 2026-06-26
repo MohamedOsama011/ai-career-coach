@@ -30,6 +30,7 @@ import { Card } from '../card/card';
     .stat-header {
       display: flex;
       align-items: center;
+      margin-bottom: 8px;
       gap: 8px;
     }
     .stat-icon {

@@ -8,6 +8,7 @@ using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -78,6 +79,16 @@ namespace AICareerCoach.API
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                 };
+            });
+
+            // Fail-closed default: every endpoint requires an authenticated user
+            // unless it explicitly opts out via [AllowAnonymous]. Individual
+            // controllers may still add role requirements on top of this.
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
             });
 
             builder.Services.AddCors(options =>

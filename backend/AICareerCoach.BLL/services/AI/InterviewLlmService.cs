@@ -34,7 +34,7 @@ namespace AICareerCoach.BLL.Services.AI
             _chatClient = openAiClient.GetChatClient("gpt-4o-mini");
         }
 
-        public async Task<string> GenerateNextQuestionAsync(
+        public async Task<QuestionResult> GenerateNextQuestionAsync(
             InterviewTrack track,
             InterviewDifficulty difficulty,
             string targetRole,
@@ -60,7 +60,12 @@ namespace AICareerCoach.BLL.Services.AI
 
                     var text = response.Value.Content[0].Text?.Trim();
                     if (!string.IsNullOrEmpty(text))
-                        return text;
+                        return new QuestionResult(text, UsedFallback: false);
+                }
+                catch (Exception ex) when (IsFatal(ex))
+                {
+                    _logger.LogError(ex, "Fatal error in question-gen (attempt {Attempt}): {Error}. Throwing.", attempt, ex.Message);
+                    throw;
                 }
                 catch (Exception ex) when (attempt < MaxRetries)
                 {
@@ -73,7 +78,27 @@ namespace AICareerCoach.BLL.Services.AI
                 }
             }
 
-            return GetFallbackQuestion(track, targetRole);
+            return new QuestionResult(GetFallbackQuestion(track, targetRole), UsedFallback: true);
+        }
+
+        private static bool IsFatal(Exception ex)
+        {
+            if (ex is TaskCanceledException)
+                return false;
+
+            if (ex is ClientResultException cre)
+            {
+                // 4xx client errors except 429 (rate-limit) are fatal
+                return cre.Status is >= 400 and < 500 and not 429;
+            }
+
+            if (ex is HttpRequestException hre && hre.StatusCode.HasValue)
+            {
+                return hre.StatusCode.Value is >= System.Net.HttpStatusCode.BadRequest and < System.Net.HttpStatusCode.InternalServerError
+                       and not System.Net.HttpStatusCode.TooManyRequests;
+            }
+
+            return false;
         }
 
         public async Task<InterviewScorecardDto> GenerateScorecardAsync(
@@ -83,13 +108,18 @@ namespace AICareerCoach.BLL.Services.AI
             string targetRole)
         {
             var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole);
-            var messages = BuildTranscriptMessages(systemPrompt, transcript);
 
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
                 try
                 {
                     _logger.LogInformation("Generating scorecard — Attempt {Attempt}", attempt);
+
+                    var prompt = attempt > 1
+                        ? systemPrompt + "\n\nIMPORTANT CORRECTION: The previous scorecard validation failed. letterGrade must be exactly one of: A, A-, B+, B, C. Do NOT use A+, B-, or other values. rating must be exactly one of: Strong, Adequate, Weak. Do NOT use Excellent, Good, Poor, or other values."
+                        : systemPrompt;
+
+                    var messages = BuildTranscriptMessages(prompt, transcript);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutSeconds));
                     var response = await _chatClient.CompleteChatAsync(messages, new ChatCompletionOptions
@@ -104,13 +134,16 @@ namespace AICareerCoach.BLL.Services.AI
 
                     var result = ParseScorecardJson(rawJson);
 
-                    if (!ValidateScorecard(result, transcript))
-                    {
-                        _logger.LogWarning("Scorecard validation failed on attempt {Attempt}.", attempt);
-                        continue;
-                    }
+                    if (ValidateScorecard(result, transcript))
+                        return result;
 
-                    return result;
+                    _logger.LogWarning("Scorecard validation failed on attempt {Attempt}.", attempt);
+
+                    if (attempt < MaxRetries && TryNormalizeScorecard(result, transcript, out var normalized))
+                    {
+                        _logger.LogInformation("Scorecard normalized on retry.");
+                        return normalized;
+                    }
                 }
                 catch (Exception ex) when (attempt < MaxRetries)
                 {
@@ -258,6 +291,74 @@ namespace AICareerCoach.BLL.Services.AI
                 return false;
 
             return true;
+        }
+
+        private static bool TryNormalizeScorecard(InterviewScorecardDto dto, List<InterviewMessage> transcript, out InterviewScorecardDto normalized)
+        {
+            normalized = dto;
+
+            var questionCount = transcript.Count(m => m.Role == MessageRole.Interviewer);
+            if (dto.QuestionAnalysis.Count != questionCount)
+                return false;
+
+            dto.LetterGrade = NormalizeGrade(dto.LetterGrade);
+            if (dto.LetterGrade == null)
+                return false;
+
+            foreach (var qa in dto.QuestionAnalysis)
+            {
+                qa.Rating = NormalizeRating(qa.Rating);
+                if (qa.Rating == null)
+                    return false;
+            }
+
+            normalized = dto;
+            return true;
+        }
+
+        private static string? NormalizeGrade(string grade)
+        {
+            var gradeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["A+"] = "A",
+                ["A"] = "A",
+                ["A-"] = "A-",
+                ["B+"] = "B+",
+                ["B"] = "B",
+                ["B-"] = "B",
+                ["C+"] = "C",
+                ["C"] = "C",
+                ["C-"] = "C",
+                ["D"] = "C",
+                ["D+"] = "C",
+                ["D-"] = "C",
+                ["F"] = "C",
+            };
+
+            return gradeMap.TryGetValue(grade.Trim(), out var normalized) ? normalized : null;
+        }
+
+        private static string? NormalizeRating(string rating)
+        {
+            var ratingMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Excellent"] = "Strong",
+                ["Exceptional"] = "Strong",
+                ["Outstanding"] = "Strong",
+                ["Strong"] = "Strong",
+                ["Good"] = "Adequate",
+                ["Average"] = "Adequate",
+                ["Fair"] = "Adequate",
+                ["Satisfactory"] = "Adequate",
+                ["Adequate"] = "Adequate",
+                ["Poor"] = "Weak",
+                ["Weak"] = "Weak",
+                ["Bad"] = "Weak",
+                ["Insufficient"] = "Weak",
+                ["Needs Improvement"] = "Weak",
+            };
+
+            return ratingMap.TryGetValue(rating.Trim(), out var normalized) ? normalized : null;
         }
 
         private static string GetFallbackQuestion(InterviewTrack track, string targetRole)

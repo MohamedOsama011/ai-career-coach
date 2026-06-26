@@ -10,6 +10,7 @@ namespace AICareerCoach.BLL.DTOs.Interview
         public int QuestionsAsked { get; set; }
         public int? OverallScore { get; set; }
         public string? LetterGrade { get; set; }
+        public string? OverallSummary { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
     }

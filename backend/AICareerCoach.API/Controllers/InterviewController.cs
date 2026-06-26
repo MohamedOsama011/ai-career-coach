@@ -1,4 +1,5 @@
 ﻿using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ namespace AICareerCoach.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class InterviewController : ControllerBase
     {
         private readonly IInterviewService _interviewService;
@@ -76,6 +78,10 @@ namespace AICareerCoach.API.Controllers
             {
                 var result = await _interviewService.SubmitAnswerAsync(userId, sessionId, dto);
                 return Ok(result);
+            }
+            catch (ConflictException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
