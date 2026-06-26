@@ -65,6 +65,8 @@ namespace AICareerCoach.DAL.Data
                 e.Property(s => s.Difficulty).HasConversion<string>().HasMaxLength(32);
                 e.Property(s => s.Status).HasConversion<string>().HasMaxLength(32);
 
+                e.Property(s => s.RowVersion).IsRowVersion();
+
                 e.HasOne(s => s.User)
                     .WithMany()
                     .HasForeignKey(s => s.UserId)

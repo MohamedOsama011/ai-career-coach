@@ -1,4 +1,5 @@
 using AICareerCoach.DAL.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace AICareerCoach.DAL.Entities
 {
@@ -32,11 +33,18 @@ namespace AICareerCoach.DAL.Entities
         /// </summary>
         public string? SummaryContextJson { get; set; }
 
+        public bool UsedFallback { get; set; }
+
+        public int FallbackCount { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? CompletedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = [];
 
         // Navigation
         public List<InterviewMessage> Messages { get; set; } = new();

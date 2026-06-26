@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, delay, timeout } from 'rxjs/operators';
+import { catchError, delay, timeout, map } from 'rxjs/operators';
 import {
   ChatMessage,
   InterviewTrack,
@@ -131,6 +131,10 @@ export class InterviewService {
     return this.http.post<InterviewSessionDto>(`${this.apiUrl}/sessions/${sessionId}/answers`, req).pipe(
       timeout(30000)
     );
+  }
+
+  reloadActiveSession(): Observable<InterviewSessionDto | null> {
+    return this.getActiveSession();
   }
 
   getScorecard(sessionId: number): Observable<InterviewScorecardDto> {

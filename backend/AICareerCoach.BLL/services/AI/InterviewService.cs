@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
@@ -86,16 +87,20 @@ namespace AICareerCoach.BLL.Services.AI
             _context.InterviewSessions.Add(session);
             await _context.SaveChangesAsync();
 
-            var question = await _llmService.GenerateNextQuestionAsync(
+            var questionResult = await _llmService.GenerateNextQuestionAsync(
                 track, difficulty, request.TargetRole, summaryContextJson,
                 new List<InterviewMessage>(), nextTurnNumber: 1);
+
+            session.UsedFallback = questionResult.UsedFallback;
+            if (questionResult.UsedFallback)
+                session.FallbackCount = 1;
 
             var message = new InterviewMessage
             {
                 SessionId = session.Id,
                 Role = MessageRole.Interviewer,
                 TurnNumber = 1,
-                Content = question,
+                Content = questionResult.Question,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -122,73 +127,103 @@ namespace AICareerCoach.BLL.Services.AI
 
         public async Task<InterviewSessionDto> SubmitAnswerAsync(string userId, int sessionId, SubmitAnswerRequestDto request)
         {
-            var session = await _context.InterviewSessions
-                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
-                ?? throw new KeyNotFoundException("Session not found.");
+            var strategy = _context.Database.CreateExecutionStrategy();
 
-            if (session.Status != InterviewStatus.Active)
-                throw new InvalidOperationException("Session is not active.");
-
-            var turnNumber = session.QuestionsAsked;
-
-            // 1) Persist the candidate's answer BEFORE any AI call so a later
-            //    LLM/transient failure can never lose user input (Phase 2, C2).
-            //    QuestionsAsked is intentionally NOT incremented here — only an
-            //    Interviewer question advances the turn (see StartSessionAsync).
-            var answer = new InterviewMessage
+            return await strategy.ExecuteAsync(async () =>
             {
-                SessionId = session.Id,
-                Role = MessageRole.Candidate,
-                TurnNumber = turnNumber,
-                Content = request.Answer,
-                CreatedAt = DateTime.UtcNow
-            };
+                using var tx = await _context.Database.BeginTransactionAsync();
 
-            _context.InterviewMessages.Add(answer);
-            session.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+                var session = await _context.InterviewSessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
+                    ?? throw new KeyNotFoundException("Session not found.");
 
-            // 2) Final turn: complete the session. No LLM call needed.
-            if (turnNumber >= session.MaxQuestions)
-            {
-                session.Status = InterviewStatus.Completed;
-                session.CompletedAt = DateTime.UtcNow;
+                if (session.Status != InterviewStatus.Active)
+                    throw new InvalidOperationException("Session is not active.");
+
+                // Concurrency guard: re-check that no concurrent request
+                // already advanced the turn (RowVersion would also catch this,
+                // but the in-memory guard gives a cleaner 409 vs DbConcurrency).
+                var currentDbState = await _context.InterviewSessions
+                    .Where(s => s.Id == sessionId)
+                    .Select(s => new { s.QuestionsAsked, s.Status })
+                    .FirstAsync();
+
+                if (currentDbState.Status != InterviewStatus.Active
+                    || currentDbState.QuestionsAsked != session.QuestionsAsked)
+                {
+                    throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
+                }
+
+                var turnNumber = session.QuestionsAsked;
+
+                // 1) Persist the candidate's answer BEFORE any AI call so a later
+                //    LLM/transient failure can never lose user input (Phase 2, C2).
+                //    QuestionsAsked is intentionally NOT incremented here — only an
+                //    Interviewer question advances the turn (see StartSessionAsync).
+                var answer = new InterviewMessage
+                {
+                    SessionId = session.Id,
+                    Role = MessageRole.Candidate,
+                    TurnNumber = turnNumber,
+                    Content = request.Answer,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.InterviewMessages.Add(answer);
                 session.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Session {SessionId} completed after {Questions} questions.", session.Id, turnNumber);
+
+                // 2) Final turn: complete the session. No LLM call needed.
+                if (turnNumber >= session.MaxQuestions)
+                {
+                    session.Status = InterviewStatus.Completed;
+                    session.CompletedAt = DateTime.UtcNow;
+                    session.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    _logger.LogInformation("Session {SessionId} completed after {Questions} questions.", session.Id, turnNumber);
+                    return await LoadSessionDtoAsync(session.Id);
+                }
+
+                // 3) Intermediate turn: reload the full transcript from DB (now
+                //    includes the just-saved answer) and ask the LLM for the next
+                //    question. If this call fails, the answer is already durable;
+                //    the client may retry the submit and the LLM will be retried.
+                var transcript = await _context.InterviewMessages
+                    .Where(m => m.SessionId == session.Id)
+                    .OrderBy(m => m.CreatedAt)
+                    .ToListAsync();
+
+                var nextTurn = turnNumber + 1;
+
+                var questionResult = await _llmService.GenerateNextQuestionAsync(
+                    session.Track, session.Difficulty, session.TargetRole,
+                    session.SummaryContextJson ?? "{}", transcript, nextTurn);
+
+                if (questionResult.UsedFallback)
+                {
+                    session.UsedFallback = true;
+                    session.FallbackCount++;
+                }
+
+                var questionMsg = new InterviewMessage
+                {
+                    SessionId = session.Id,
+                    Role = MessageRole.Interviewer,
+                    TurnNumber = nextTurn,
+                    Content = questionResult.Question,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.InterviewMessages.Add(questionMsg);
+                session.QuestionsAsked = nextTurn;
+                session.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+
                 return await LoadSessionDtoAsync(session.Id);
-            }
-
-            // 3) Intermediate turn: reload the full transcript from DB (now
-            //    includes the just-saved answer) and ask the LLM for the next
-            //    question. If this call fails, the answer is already durable;
-            //    the client may retry the submit and the LLM will be retried.
-            var transcript = await _context.InterviewMessages
-                .Where(m => m.SessionId == session.Id)
-                .OrderBy(m => m.CreatedAt)
-                .ToListAsync();
-
-            var nextTurn = turnNumber + 1;
-
-            var question = await _llmService.GenerateNextQuestionAsync(
-                session.Track, session.Difficulty, session.TargetRole,
-                session.SummaryContextJson ?? "{}", transcript, nextTurn);
-
-            var questionMsg = new InterviewMessage
-            {
-                SessionId = session.Id,
-                Role = MessageRole.Interviewer,
-                TurnNumber = nextTurn,
-                Content = question,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.InterviewMessages.Add(questionMsg);
-            session.QuestionsAsked = nextTurn;
-            session.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return await LoadSessionDtoAsync(session.Id);
+            });
         }
 
         public async Task<InterviewScorecardDto> GetScorecardAsync(string userId, int sessionId)

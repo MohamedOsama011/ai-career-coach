@@ -191,9 +191,20 @@ export class Interview implements OnInit {
         this.cdr.detectChanges();
         this.isBotTyping.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.isBotTyping.set(false);
-        this.error.set('Failed to submit answer. Please try again.');
+        if (err.status === 409) {
+          this.interviewService.reloadActiveSession().subscribe({
+            next: (updated) => {
+              if (updated) {
+                this.session.set(updated);
+                this.cdr.detectChanges();
+              }
+            }
+          });
+        } else {
+          this.error.set('Failed to submit answer. Please try again.');
+        }
       }
     });
   }

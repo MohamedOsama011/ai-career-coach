@@ -5,7 +5,7 @@ namespace AICareerCoach.BLL.Interfaces.AI
 {
     public interface IInterviewLlmService
     {
-        Task<string> GenerateNextQuestionAsync(
+        Task<QuestionResult> GenerateNextQuestionAsync(
             InterviewTrack track,
             InterviewDifficulty difficulty,
             string targetRole,

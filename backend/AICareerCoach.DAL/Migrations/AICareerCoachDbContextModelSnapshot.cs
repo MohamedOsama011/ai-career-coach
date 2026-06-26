@@ -189,11 +189,20 @@ namespace AICareerCoach.DAL.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<int>("FallbackCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("MaxQuestions")
                         .HasColumnType("int");
 
                     b.Property<int>("QuestionsAsked")
                         .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -216,6 +225,9 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("UsedFallback")
+                        .HasColumnType("bit");
 
                     b.Property<string>("UserId")
                         .IsRequired()
