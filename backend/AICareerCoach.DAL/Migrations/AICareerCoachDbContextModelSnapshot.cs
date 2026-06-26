@@ -49,7 +49,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AiFeedbackCaches");
+                    b.ToTable("AiFeedbackCaches", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.CV", b =>
@@ -82,7 +82,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CVs");
+                    b.ToTable("CVs", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Job", b =>
@@ -95,9 +95,6 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.Property<string>("Company")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyLogoUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -124,7 +121,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.JobEmbedding", b =>
@@ -149,7 +146,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("JobId");
 
-                    b.ToTable("JobEmbeddings");
+                    b.ToTable("JobEmbeddings", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.JobRecommendationCache", b =>
@@ -179,7 +176,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("JobRecommendationCaches");
+                    b.ToTable("JobRecommendationCaches", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
@@ -208,7 +205,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("Userid");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.Roadmap", b =>
@@ -241,7 +238,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("CVId");
 
-                    b.ToTable("Roadmaps");
+                    b.ToTable("Roadmaps", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RoadmapStep", b =>
@@ -278,7 +275,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("RoadmapId");
 
-                    b.ToTable("RoadmapSteps");
+                    b.ToTable("RoadmapSteps", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RoadmapTemplateEmbedding", b =>
@@ -396,7 +393,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Interviews");
+                    b.ToTable("Interviews", (string)null);
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Models.User", b =>

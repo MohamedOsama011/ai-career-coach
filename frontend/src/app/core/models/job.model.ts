@@ -1,4 +1,5 @@
 export interface Job {
+companyLogoUrl: string|undefined;
   id: number;
   title: string;
   company: string;
@@ -9,7 +10,7 @@ export interface Job {
   matchPercentage: number;
   logoInitials: string;
   saved?: boolean;
-  companyLogoUrl?: string;
+
 }
 
 export interface JobRecommendation {

@@ -1,196 +1,222 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { finalize } from 'rxjs/operators';
-import { CvService } from '../../core/services/cv.service';
-import { AiService } from '../../core/services/ai.service';
-import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.model';
+  import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+  import { CommonModule } from '@angular/common';
+  import { finalize } from 'rxjs/operators';
+  import { CvService } from '../../core/services/cv.service';
+  import { AiService } from '../../core/services/ai.service';
+  import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.model';
 
-@Component({
-  selector: 'app-cv',
-  imports: [CommonModule],
-  templateUrl: './cv.html',
-  styleUrl: './cv.css'
-})
-export class Cv implements OnInit, OnDestroy {
-  showCVs = signal(false);
-  isUploading = signal(false);
-  uploadSuccess = signal(false);
-  uploadError = signal('');
-  cvs = signal<any[]>([]);
-  loadingCVs = signal(true);
+  @Component({
+    selector: 'app-cv',
+    imports: [CommonModule],
+    templateUrl: './cv.html',
+    styleUrl: './cv.css'
+  })
+  export class Cv implements OnInit, OnDestroy {
 
-  feedback = signal<CvFeedback | null>(null);
-  loadingFeedback = signal(false);
-  feedbackError = signal('');
-  displayedScore = signal(0);
-  deletingCvId = signal<number | null>(null);
-  deleteSuccess = signal('');
-  private animationTimer: number | null = null;
+    showCVs = signal(false);
+    isUploading = signal(false);
+    uploadSuccess = signal(false);
+    uploadError = signal('');
+    cvs = signal<any[]>([]);
+    loadingCVs = signal(true);
 
-  hasCV = computed(() => this.cvs().length > 0);
-  fileName = signal('No CV Uploaded');
-  lastScanned = signal('-');
+    feedback = signal<CvFeedback | null>(null);
+    loadingFeedback = signal(false);
+    feedbackError = signal('');
+    displayedScore = signal(0);
+    deletingCvId = signal<number | null>(null);
+    deleteSuccess = signal('');
+    private animationTimer: number | null = null;
 
-  private userId = '';
-  isDragOver = signal(false);
+    hasCV = computed(() => this.cvs().length > 0);
+    fileName = signal('No CV Uploaded');
+    lastScanned = signal('-');
 
-  constructor(
-    private cvService: CvService,
-    private aiService: AiService
-  ) {}
+    private userId = '';
+    isDragOver = signal(false);
 
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver.set(true);
-  }
+    constructor(
+      private cvService: CvService,
+      private aiService: AiService
+    ) {}
 
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver.set(false);
-  }
+    onDragOver(event: DragEvent): void {
+      event.preventDefault();
+      this.isDragOver.set(true);
+    }
 
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver.set(false);
-    const file = event.dataTransfer?.files[0];
-    if (file && (file.name.endsWith('.pdf') || file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
+    onDragLeave(event: DragEvent): void {
+      event.preventDefault();
+      this.isDragOver.set(false);
+    }
+
+    onDrop(event: DragEvent): void {
+      event.preventDefault();
+      this.isDragOver.set(false);
+      const file = event.dataTransfer?.files[0];
+      if (file && (file.name.endsWith('.pdf') || file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
+        this.uploadFile(file);
+      }
+    }
+
+    onFileSelected(event: Event): void {
+      this.uploadSuccess.set(false);
+      this.uploadError.set('');
+
+      const input = event.target as HTMLInputElement;
+
+      if (!input.files || input.files.length === 0) {
+        return;
+      }
+
+      const file = input.files[0];
       this.uploadFile(file);
-    }
-  }
-
-  onFileSelected(event: Event): void {
-    this.uploadSuccess.set(false);
-    this.uploadError.set('');
-
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
+      input.value = '';
     }
 
-    const file = input.files[0];
-    this.uploadFile(file);
-    input.value = '';
-  }
+    private uploadFile(file: File): void {
+      this.isUploading.set(true);
 
-  private uploadFile(file: File): void {
-    this.isUploading.set(true);
-
-    this.cvService.uploadCV(file, this.userId).pipe(
-      finalize(() => this.isUploading.set(false))
-    ).subscribe({
-      next: () => {
-        this.uploadSuccess.set(true);
-        this.fileName.set(file.name);
-        this.lastScanned.set(new Date().toLocaleString());
-        this.loadCVs();
-        this.loadFeedback();
-        setTimeout(() => this.uploadSuccess.set(false), 3000);
-      },
-      error: () => {
-        this.uploadError.set('Upload failed');
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    this.userId = this.getUserIdFromToken();
-    this.loadCVs();
-  }
-
-  loadCVs(): void {
-    if (!this.userId) return;
-    this.loadingCVs.set(true);
-    this.cvService.getUserCVs(this.userId).subscribe({
-      next: (response) => {
-        this.cvs.set(response);
-        this.showCVs.set(true);
-        this.loadingCVs.set(false);
-        if (response.length > 0) {
+      this.cvService.uploadCV(file, this.userId).pipe(
+        finalize(() => this.isUploading.set(false))
+      ).subscribe({
+        next: () => {
+          this.uploadSuccess.set(true);
+          this.fileName.set(file.name);
+          this.lastScanned.set(new Date().toLocaleString());
+          this.loadCVs();
           this.loadFeedback();
+          setTimeout(() => this.uploadSuccess.set(false), 3000);
+        },
+        error: (err) => {
+          console.log(err);
+          this.uploadError.set(
+            err?.console.error?.message ||'upload failed'
+          ) ;
+            
+          
         }
-      },
-      error: (error) => {
-        console.error(error);
-        this.loadingCVs.set(false);
-      }
-    });
-  }
+      });
+    }
 
-  loadFeedback(): void {
-    if (!this.userId) return;
-    this.loadingFeedback.set(true);
-    this.feedbackError.set('');
+    ngOnInit(): void {
+      this.userId = this.getUserIdFromToken();
+      this.loadCVs();
+    }
 
-    this.aiService.getCvFeedback(this.userId).pipe(
-      finalize(() => this.loadingFeedback.set(false))
-    ).subscribe({
-      next: (result) => {
-        this.feedback.set(result);
-        this.startScoreAnimation(result.overallScore);
-      },
-      error: () => this.feedbackError.set('Could not load CV analysis. Upload a CV first.')
-    });
-  }
-
-  deleteCV(cvId: number): void {
-    if (!confirm('Are you sure you want to delete this CV?')) return;
-
-    this.deletingCvId.set(cvId);
-    this.deleteSuccess.set('');
-
-    this.cvService.deleteCV(cvId).pipe(
-      finalize(() => this.deletingCvId.set(null))
-    ).subscribe({
-      next: () => {
-        const remaining = this.cvs().filter(x => x.cvId !== cvId);
-        this.cvs.set(remaining);
-        this.deleteSuccess.set('CV deleted successfully');
-        setTimeout(() => this.deleteSuccess.set(''), 3000);
-
-        if (remaining.length === 0) {
-          this.feedback.set(null);
-          this.displayedScore.set(0);
-          this.fileName.set('No CV Uploaded');
-          this.lastScanned.set('-');
-        } else {
-          this.loadFeedback();
+    loadCVs(): void {
+      if (!this.userId) return;
+      this.loadingCVs.set(true);
+      this.cvService.getUserCVs(this.userId).subscribe({
+        next: (response) => {
+          this.cvs.set(response);
+          this.showCVs.set(true);
+          this.loadingCVs.set(false);
+          if (response.length > 0) {
+            this.loadFeedback();
+          }
+        },
+        error: (error) => {
+          console.error(error);
+          this.loadingCVs.set(false);
         }
-      },
-      error: () => {
-        this.deleteSuccess.set('');
-        this.uploadError.set('Failed to delete CV');
-        setTimeout(() => this.uploadError.set(''), 3000);
-      }
-    });
-  }
+      });
+    }
 
-  downloadCV(cv: any): void {
-    if (!cv?.downloadUrl) return;
-    window.open(cv.downloadUrl, '_blank');
-  }
+    loadFeedback(): void {
+      if (!this.userId) return;
+      this.loadingFeedback.set(true);
+      this.feedbackError.set('');
 
-  downloadReport(): void {
-    const cvs = this.cvs();
-    if (!cvs.length) return;
+      this.aiService.getCvFeedback(this.userId).pipe(
+        finalize(() => this.loadingFeedback.set(false))
+      ).subscribe({
+        next: (result) => {
+          this.feedback.set(result);
+          this.startScoreAnimation(result.overallScore);
+        },
+        error: () => this.feedbackError.set('Could not load CV analysis. Upload a CV first.')
+      });
+    }
 
-    const latestCV = cvs.reduce((latest, current) =>
-      new Date(current.uploadedAt) > new Date(latest.uploadedAt) ? current : latest
-    );
+    deleteCV(cvId: number): void {
+      if (!confirm('Are you sure you want to delete this CV?')) return;
 
-    this.downloadCV(latestCV);
-  }
+      this.deletingCvId.set(cvId);
+      this.deleteSuccess.set('');
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const cairoTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-    return cairoTime.toLocaleString();
-  }
+      this.cvService.deleteCV(cvId).pipe(
+        finalize(() => this.deletingCvId.set(null))
+      ).subscribe({
+        next: () => {
+          const remaining = this.cvs().filter(x => x.cvId !== cvId);
+          this.cvs.set(remaining);
+          this.deleteSuccess.set('CV deleted successfully');
+          setTimeout(() => this.deleteSuccess.set(''), 3000);
 
-  getOriginalFileName(fileName: string): string {
-    const index = fileName.indexOf('_');
-    return index > -1 ? fileName.substring(index + 1) : fileName;
-  }
+          if (remaining.length === 0) {
+            this.feedback.set(null);
+            this.displayedScore.set(0);
+            this.fileName.set('No CV Uploaded');
+            this.lastScanned.set('-');
+          } else {
+            this.loadFeedback();
+          }
+        },
+        error: () => {
+          this.deleteSuccess.set('');
+          this.uploadError.set('Failed to delete CV');
+          setTimeout(() => this.uploadError.set(''), 3000);
+        }
+      });
+    }
+
+    downloadCV(cv: any): void {
+      if (!cv?.downloadUrl) return;
+      window.open(cv.downloadUrl, '_blank');
+    }
+
+   downloadReport(): void {
+
+  this.aiService.downloadCvAnalysisReport(this.userId).subscribe({
+
+    next: (blob) => {
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+
+      a.href = url;
+
+      a.download = 'CV_Analysis_Report.pdf';
+
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    },
+
+    error: (err) => {
+
+      console.error(err);
+
+      alert('Failed to download report');
+
+    }
+
+  });
+
+}
+    formatDate(dateString: string): string {
+      const date = new Date(dateString);
+      const cairoTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+      return cairoTime.toLocaleString();
+    }
+
+    getOriginalFileName(fileName: string): string {
+      const index = fileName.indexOf('_');
+      return index > -1 ? fileName.substring(index + 1) : fileName;
+    }
 
   priorityClass(priority: string): string {
     const map: Record<string, string> = {
@@ -201,93 +227,46 @@ export class Cv implements OnInit, OnDestroy {
     return map[priority] || 'badge-low';
   }
 
-  /** Ring geometry: circumference for radius r=52 → 2πr ≈ 326.726. */
-  readonly ringCircumference = 2 * Math.PI * 52;
-
-  /** Brand palette: blue/slate for strong, amber-only warning for weak. */
-  private readonly AMBER = '#D97706';
-
-  /** Verdict text color: deep slate-blue when strong, amber only when weak. */
-  verdictColor(score: number): string {
-    return score >= 65 ? '#1E3A8A' : this.AMBER;
-  }
-
-  /** Verdict label text for the overall score. */
-  scoreVerdictLabel(score: number): string {
-    if (score >= 85) return 'Excellent';
-    if (score >= 65) return 'Strong profile';
-    if (score >= 40) return 'Good progress';
-    return 'Needs work';
-  }
-
-  /** SVG stroke-dashoffset for a given score (0–100) on the ring. */
-  ringDashOffset(score: number): number {
-    const clamped = Math.max(0, Math.min(100, score));
-    return this.ringCircumference * (1 - clamped / 100);
-  }
-
-  /** Sub-score bar tier: blue for strong (≥65), amber-only warning below. */
-  subBarTierClass(value: number): string {
-    return value >= 65 ? 'bar--strong' : 'bar--warn';
-  }
-
-  /** Cached vs AI-generated chip (surfaces previously unused fromCache field). */
-  feedbackChip(fb: CvFeedback): { label: string; icon: string } {
-    return fb.fromCache
-      ? { label: 'Cached', icon: 'bolt' }
-      : { label: 'AI-generated', icon: 'auto_awesome' };
-  }
-
-  /** Human-readable generation date from the previously unused generatedAt field. */
-  generatedDate(fb: CvFeedback): string {
-    if (!fb?.generatedAt) return '';
-    const d = new Date(fb.generatedAt);
-    if (isNaN(d.getTime())) return '';
-    return 'Generated ' + d.toLocaleDateString(undefined, {
-      month: 'short', day: 'numeric', year: 'numeric'
-    });
-  }
-
-  startScoreAnimation(target: number): void {
-    this.displayedScore.set(0);
-    if (this.animationTimer !== null) {
-      clearInterval(this.animationTimer);
-      this.animationTimer = null;
+    startScoreAnimation(target: number): void {
+      this.displayedScore.set(0);
+      if (this.animationTimer !== null) {
+        clearInterval(this.animationTimer);
+        this.animationTimer = null;
+      }
+      const duration = 800;
+      const step = Math.max(1, Math.ceil(target / (duration / 16)));
+      const id = setInterval(() => {
+        this.displayedScore.update(prev => {
+          const next = prev + step;
+          if (next >= target) {
+            clearInterval(id);
+            this.animationTimer = null;
+            return target;
+          }
+          return next;
+        });
+      }, 16);
+      this.animationTimer = id;
     }
-    const duration = 800;
-    const step = Math.max(1, Math.ceil(target / (duration / 16)));
-    const id = setInterval(() => {
-      this.displayedScore.update(prev => {
-        const next = prev + step;
-        if (next >= target) {
-          clearInterval(id);
-          this.animationTimer = null;
-          return target;
-        }
-        return next;
-      });
-    }, 16);
-    this.animationTimer = id;
-  }
 
-  ngOnDestroy(): void {
-    if (this.animationTimer) {
-      clearInterval(this.animationTimer);
-      this.animationTimer = null;
+    ngOnDestroy(): void {
+      if (this.animationTimer) {
+        clearInterval(this.animationTimer);
+        this.animationTimer = null;
+      }
+    }
+
+    private getUserIdFromToken(): string {
+      const token = localStorage.getItem('authToken');
+      if (!token) return '';
+
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+        ] || payload['nameid'] || '';
+      } catch {
+        return '';
+      }
     }
   }
-
-  private getUserIdFromToken(): string {
-    const token = localStorage.getItem('authToken');
-    if (!token) return '';
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload[
-        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
-      ] || payload['nameid'] || '';
-    } catch {
-      return '';
-    }
-  }
-}

@@ -3,8 +3,11 @@ import { Observable } from "rxjs";
 import { CvFeedback } from "../models/cv-feedback.model";
 import { Injectable } from "@angular/core";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AiService {
+
   private api = 'https://localhost:7222/api/ai';
 
   constructor(private http: HttpClient) {}
@@ -12,4 +15,13 @@ export class AiService {
   getCvFeedback(userId: string): Observable<CvFeedback> {
     return this.http.get<CvFeedback>(`${this.api}/cv-feedback?userId=${userId}`);
   }
+
+ downloadCvAnalysisReport(userId: string) {
+  return this.http.get(
+    `${this.api}/cv-feedback-report?userId=${userId}`,
+    {
+      responseType: 'blob'
+    }
+  );
+}
 }
