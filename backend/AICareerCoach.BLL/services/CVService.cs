@@ -3,6 +3,7 @@ using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,16 +19,19 @@ namespace AICareerCoach.BLL.Services
         private readonly IFileStorageService _fileStorage;
 
         private readonly AICareerCoachDbContext context;
+        private readonly ILogger<CVService> _logger;
 
 
         public CVService(
             IBaserepo<CV> cvRepo,
             IFileStorageService fileStorage,
-            AICareerCoachDbContext _context)
+            AICareerCoachDbContext _context,
+            ILogger<CVService> logger)
         {
             _cvRepo = cvRepo;
             _fileStorage = fileStorage;
             context= _context;
+            _logger = logger;
         }
 
         public async Task<CV> UploadCVAsync(
@@ -58,7 +62,28 @@ namespace AICareerCoach.BLL.Services
                 UploadedAt = DateTime.UtcNow
             };
 
-            _cvRepo.Add(cv);
+            var strategy = context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await context.Database.BeginTransactionAsync();
+
+                context.CVs.Add(cv);
+                await context.SaveChangesAsync();
+
+                int jobsDeleted = await context.JobRecommendationCaches
+                    .Where(j => j.UserId == userId)
+                    .ExecuteDeleteAsync();
+
+                int roadmapsDeleted = await context.UserRoadmaps
+                    .Where(r => r.UserId == userId)
+                    .ExecuteDeleteAsync();
+
+                await tx.CommitAsync();
+
+                _logger.LogWarning(
+                    "New CV uploaded by {UserId} — invalidated {Jobs} job-rec cache rows and {Roadmaps} roadmap rows.",
+                    userId, jobsDeleted, roadmapsDeleted);
+            });
 
             return cv;
         }
