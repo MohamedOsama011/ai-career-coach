@@ -43,7 +43,7 @@ namespace AICareerCoach.BLL.Services
             _env = env;
         }
 
-        public async Task<CV> UploadCVAsync(
+        public async Task<UploadCVResult> UploadCVAsync(
             Stream fileStream,
             string fileName,
             string userId)
@@ -58,7 +58,7 @@ namespace AICareerCoach.BLL.Services
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.FileHash == fileHash);
 
             if (existing != null)
-                return existing;
+                return new UploadCVResult(existing, IsNew: false);
 
             using var uploadStream = new MemoryStream(fileBytes);
             var savedPath = await _fileStorage.SaveFileAsync(uploadStream, fileName);
@@ -112,7 +112,7 @@ namespace AICareerCoach.BLL.Services
                     userId, jobsDeleted, roadmapsDeleted);
             });
 
-            return cv;
+            return new UploadCVResult(cv, IsNew: true);
         }
 
         public List<CV> GetUserCVs(string userId)

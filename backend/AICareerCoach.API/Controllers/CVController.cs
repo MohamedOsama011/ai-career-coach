@@ -78,22 +78,23 @@ namespace AICareerCoach.API.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
             
-            var cv = await _cvService.UploadCVAsync(
+            var result = await _cvService.UploadCVAsync(
                 file.OpenReadStream(),
                 file.FileName,
                 effectiveUserId);
 
-            var fileName = Path.GetFileName(cv.FilePath);
+            var fileName = Path.GetFileName(result.Cv.FilePath);
             var baseUrl = _config["AppSettings:BaseUrl"];
 
             return Ok(new CVResponseDto
             {
-                CVId = cv.CVId,
-                UserId = cv.UserId,
-                UploadedAt = cv.UploadedAt,
-                FileName = Path.GetFileName(cv.FilePath) ?? "Unknown.pdf",
+                CVId = result.Cv.CVId,
+                UserId = result.Cv.UserId,
+                UploadedAt = result.Cv.UploadedAt,
+                FileName = Path.GetFileName(result.Cv.FilePath) ?? "Unknown.pdf",
 
-                DownloadUrl = $"{baseUrl}/cvs/{fileName}"
+                DownloadUrl = $"{baseUrl}/cvs/{fileName}",
+                IsNew = result.IsNew
             });
         }
 
@@ -109,7 +110,8 @@ namespace AICareerCoach.API.Controllers
                 UploadedAt = cv.UploadedAt,
                 UserId = cv.UserId,
                 FileName = Path.GetFileName(cv.FilePath),
-                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}"
+                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}",
+                IsNew = false
             });
 
             return Ok(result);
