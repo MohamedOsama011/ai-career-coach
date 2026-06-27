@@ -18,6 +18,7 @@ namespace AICareerCoach.BLL.DTOs
         public string cartitems_name { get; set; }
         public decimal cartitems_price { get; set; }
         public int cartitems_quantity { get; set; }
+        public string payment_method_id { get; set; }
 
         public string invoice { get; set; }
     }

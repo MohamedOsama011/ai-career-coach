@@ -76,4 +76,4 @@ namespace AICareerCoach.BLL.services
         }
     }
 }
-}
+

@@ -13,7 +13,7 @@ namespace AICareerCoach.BLL.Interfaces
         Task<FawaterakcreatelinkpaymentResponseDTO> createfawaterakpayment(FawaterakDto fawaterakDto);
 
         Task<GetPaymentMethodsResponseDTO> getallpaymentmethods();
-        Task<excutepaymentgeneralResponseDTO> Excutepayment(FawaterakDto fawaterakDto,string methodid);
+        Task<excutepaymentgeneralResponseDTO> Excutepayment(FawaterakDto fawaterakDto);
 
 
     }
