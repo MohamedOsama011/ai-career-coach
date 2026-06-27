@@ -9,7 +9,7 @@ export class AiService {
 
   constructor(private http: HttpClient) {}
 
-  getCvFeedback(userId: string): Observable<CvFeedback> {
-    return this.http.get<CvFeedback>(`${this.api}/cv-feedback?userId=${userId}`);
+  getCvFeedback(): Observable<CvFeedback> {
+    return this.http.get<CvFeedback>(`${this.api}/cv-feedback`);
   }
 }

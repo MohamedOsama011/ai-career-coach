@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
 import { AiService } from '../../core/services/ai.service';
+import { CareerProfileStore } from '../../core/store/career-profile-store';
+import { CVResponseDto } from '../../core/models/cv.model';
 import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.model';
 
 @Component({
@@ -36,7 +38,8 @@ export class Cv implements OnInit, OnDestroy {
 
   constructor(
     private cvService: CvService,
-    private aiService: AiService
+    private aiService: AiService,
+    private careerProfileStore: CareerProfileStore
   ) {}
 
   onDragOver(event: DragEvent): void {
@@ -79,12 +82,13 @@ export class Cv implements OnInit, OnDestroy {
     this.cvService.uploadCV(file, this.userId).pipe(
       finalize(() => this.isUploading.set(false))
     ).subscribe({
-      next: () => {
+      next: (response) => {
         this.uploadSuccess.set(true);
         this.fileName.set(file.name);
         this.lastScanned.set(new Date().toLocaleString());
         this.loadCVs();
         this.loadFeedback();
+        this.careerProfileStore.onCvUploaded((response as CVResponseDto).isNew);
         setTimeout(() => this.uploadSuccess.set(false), 3000);
       },
       error: () => {
@@ -122,7 +126,7 @@ export class Cv implements OnInit, OnDestroy {
     this.loadingFeedback.set(true);
     this.feedbackError.set('');
 
-    this.aiService.getCvFeedback(this.userId).pipe(
+    this.aiService.getCvFeedback().pipe(
       finalize(() => this.loadingFeedback.set(false))
     ).subscribe({
       next: (result) => {
