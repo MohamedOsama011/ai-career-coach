@@ -1,5 +1,6 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
+using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.Interfaces;
@@ -57,6 +58,10 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+
+            builder.Services.AddScoped<Ipayment,PaymentService>();
+            builder.Services.AddScoped<ISubsription,SubscriptionService>();
+
 
             builder.Services.AddAuthentication(options =>
             {
