@@ -105,9 +105,12 @@ namespace AICareerCoach.BLL.Services.AI
             List<InterviewMessage> transcript,
             InterviewTrack track,
             InterviewDifficulty difficulty,
-            string targetRole)
+            string targetRole,
+            string cvExcerpt)
         {
-            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole);
+            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole, cvExcerpt);
+            var interviewerQuestionCount = transcript.Count(m => m.Role == MessageRole.Interviewer);
+            string? lastFailureReason = null;
 
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
@@ -116,7 +119,7 @@ namespace AICareerCoach.BLL.Services.AI
                     _logger.LogInformation("Generating scorecard — Attempt {Attempt}", attempt);
 
                     var prompt = attempt > 1
-                        ? systemPrompt + "\n\nIMPORTANT CORRECTION: The previous scorecard validation failed. letterGrade must be exactly one of: A, A-, B+, B, C. Do NOT use A+, B-, or other values. rating must be exactly one of: Strong, Adequate, Weak. Do NOT use Excellent, Good, Poor, or other values."
+                        ? systemPrompt + BuildScorecardRetryCorrection(lastFailureReason, interviewerQuestionCount)
                         : systemPrompt;
 
                     var messages = BuildTranscriptMessages(prompt, transcript);
@@ -134,10 +137,11 @@ namespace AICareerCoach.BLL.Services.AI
 
                     var result = ParseScorecardJson(rawJson);
 
-                    if (ValidateScorecard(result, transcript))
+                    lastFailureReason = ValidateScorecard(result, transcript);
+                    if (lastFailureReason is null)
                         return result;
 
-                    _logger.LogWarning("Scorecard validation failed on attempt {Attempt}.", attempt);
+                    _logger.LogWarning("Scorecard validation failed on attempt {Attempt} — reason: {Reason}.", attempt, lastFailureReason);
 
                     if (attempt < MaxRetries && TryNormalizeScorecard(result, transcript, out var normalized))
                     {
@@ -158,6 +162,23 @@ namespace AICareerCoach.BLL.Services.AI
             }
 
             throw new InvalidOperationException("Scorecard generation failed after validation retries.");
+        }
+
+        /// <summary>
+        /// Builds a targeted correction clause for the scorecard retry prompt
+        /// based on the previous attempt's failure reason (Phase 7, M3).
+        /// </summary>
+        private static string BuildScorecardRetryCorrection(string? failureReason, int expectedQuestionCount)
+        {
+            return failureReason switch
+            {
+                "count" => $"\n\nIMPORTANT CORRECTION: The previous scorecard had the wrong number of questionAnalysis items. The transcript has exactly {expectedQuestionCount} question-answer pair(s). You MUST emit exactly {expectedQuestionCount} questionAnalysis items, one per pair, in transcript order.",
+                "grade" => "\n\nIMPORTANT CORRECTION: letterGrade must be exactly one of: A, A-, B+, B, C. Do NOT use A+, B-, or other values.",
+                "rating" => "\n\nIMPORTANT CORRECTION: rating must be exactly one of: Strong, Adequate, Weak. Do NOT use Excellent, Good, Poor, or other values.",
+                "score" => "\n\nIMPORTANT CORRECTION: overallScore must be an integer between 0 and 100.",
+                "content" => "\n\nIMPORTANT CORRECTION: Each questionAnalysis[].question and questionAnalysis[].answer must closely match the corresponding question and answer text from the transcript. Do NOT paraphrase, summarize, or fabricate.",
+                _ => "\n\nIMPORTANT CORRECTION: The previous scorecard validation failed. letterGrade must be exactly one of: A, A-, B+, B, C. rating must be exactly one of: Strong, Adequate, Weak."
+            };
         }
 
         private static string BuildQuestionSystemPrompt(
@@ -212,8 +233,16 @@ namespace AICareerCoach.BLL.Services.AI
         }
 
         private static string BuildScorecardSystemPrompt(
-            InterviewTrack track, InterviewDifficulty difficulty, string targetRole)
+            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string cvExcerpt)
         {
+            var cvSection = string.IsNullOrWhiteSpace(cvExcerpt)
+                ? ""
+                : $"""
+
+                   CANDIDATE CV EXCERPT (for reference — assess whether the candidate accurately represented their stated experience):
+                   {cvExcerpt}
+                   """;
+
             return $$"""
                 You are an expert interview evaluator. Score the candidate's performance in this {{track}} mock interview for a {{targetRole}} position at {{difficulty}} level.
 
@@ -244,7 +273,7 @@ namespace AICareerCoach.BLL.Services.AI
                 - B (70-79): Good — adequate but needs improvement in several areas
                 - C (<70): Needs significant improvement
 
-                Ensure questionAnalysis has exactly the same number of items as question-answer pairs in the transcript.
+                Ensure questionAnalysis has exactly the same number of items as question-answer pairs in the transcript.{{cvSection}}
                 """;
         }
 
@@ -273,24 +302,75 @@ namespace AICareerCoach.BLL.Services.AI
                 ?? throw new JsonException("Scorecard deserialized to null.");
         }
 
-        private static bool ValidateScorecard(InterviewScorecardDto dto, List<InterviewMessage> transcript)
+        /// <summary>
+        /// Validates a scorecard against the transcript. Returns null on success
+        /// or a short failure-reason code ("score"|"grade"|"rating"|"count"|"content")
+        /// used to build a targeted retry correction clause (Phase 7, M2/M3).
+        /// </summary>
+        private static string? ValidateScorecard(InterviewScorecardDto dto, List<InterviewMessage> transcript)
         {
             if (dto.OverallScore < 0 || dto.OverallScore > 100)
-                return false;
+                return "score";
 
             var validGrades = new[] { "A", "A-", "B+", "B", "C" };
             if (!validGrades.Contains(dto.LetterGrade))
-                return false;
+                return "grade";
 
             var validRatings = new[] { "Strong", "Adequate", "Weak" };
             if (dto.QuestionAnalysis.Any(q => !validRatings.Contains(q.Rating)))
-                return false;
+                return "rating";
 
-            var questionCount = transcript.Count(m => m.Role == MessageRole.Interviewer);
-            if (dto.QuestionAnalysis.Count != questionCount)
-                return false;
+            var interviewerQuestions = transcript
+                .Where(m => m.Role == MessageRole.Interviewer)
+                .Select(m => m.Content)
+                .ToList();
+            if (dto.QuestionAnalysis.Count != interviewerQuestions.Count)
+                return "count";
 
-            return true;
+            // M2: content validation — each analysis item's Question (and Answer)
+            // must overlap the stored transcript text (Jaccard ≥ 0.5 on lowercased
+            // word tokens). Rejects fabricated questions/answers while tolerating
+            // minor LLM rephrasing.
+            var candidateAnswers = transcript
+                .Where(m => m.Role == MessageRole.Candidate)
+                .Select(m => m.Content)
+                .ToList();
+
+            for (int i = 0; i < dto.QuestionAnalysis.Count; i++)
+            {
+                var qa = dto.QuestionAnalysis[i];
+                if (TokenJaccard(qa.Question, interviewerQuestions[i]) < 0.5)
+                    return "content";
+                if (i < candidateAnswers.Count && TokenJaccard(qa.Answer, candidateAnswers[i]) < 0.5)
+                    return "content";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Jaccard similarity on lowercased whitespace-delimited word-token sets.
+        /// 1.0 = identical vocab, 0.0 = no shared words. Used by ValidateScorecard
+        /// for content-matching (Phase 7, M2).
+        /// </summary>
+        private static double TokenJaccard(string a, string b)
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
+                return 0.0;
+
+            var setA = new HashSet<string>(a.ToLowerInvariant().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+            var setB = new HashSet<string>(b.ToLowerInvariant().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+            if (setA.Count == 0 || setB.Count == 0)
+                return 0.0;
+
+            int intersection = 0;
+            foreach (var token in setA)
+                if (setB.Contains(token))
+                    intersection++;
+
+            int union = setA.Count + setB.Count - intersection;
+            return union == 0 ? 0.0 : (double)intersection / union;
         }
 
         private static bool TryNormalizeScorecard(InterviewScorecardDto dto, List<InterviewMessage> transcript, out InterviewScorecardDto normalized)

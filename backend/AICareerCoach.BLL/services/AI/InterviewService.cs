@@ -54,11 +54,19 @@ namespace AICareerCoach.BLL.Services.AI
             var cv = await _context.CVs
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.UploadedAt)
-                .FirstOrDefaultAsync()
-                ?? throw new KeyNotFoundException("Please upload your CV first to start a mock interview.");
+                .FirstOrDefaultAsync();
+
+            if (cv is null)
+            {
+                _logger.LogWarning("StartSession blocked: no CV found for user {UserId}.", userId);
+                throw new KeyNotFoundException("Please upload your CV first to start a mock interview.");
+            }
 
             if (string.IsNullOrEmpty(cv.ExtractedData))
+            {
+                _logger.LogWarning("StartSession blocked: CV {CvId} has no ExtractedData for user {UserId}.", cv.CVId, userId);
                 throw new InvalidOperationException("CV text not extracted yet. Please request CV feedback first.");
+            }
 
             var track = ParseEnum<InterviewTrack>(request.Track);
             var difficulty = ParseEnum<InterviewDifficulty>(request.Difficulty);
@@ -97,8 +105,7 @@ namespace AICareerCoach.BLL.Services.AI
                     SummaryContextJson = summaryContextJson,
                     UsedFallback = questionResult.UsedFallback,
                     FallbackCount = questionResult.UsedFallback ? 1 : 0,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.InterviewSessions.Add(session);
@@ -121,7 +128,7 @@ namespace AICareerCoach.BLL.Services.AI
                 return session.Id;
             });
 
-            _logger.LogInformation("Started interview session {SessionId} for user {UserId}", sessionId, userId);
+            _logger.LogInformation("Started interview session {SessionId} for user {UserId} — track {Track}, difficulty {Difficulty}", sessionId, userId, track, difficulty);
 
             return await LoadSessionDtoAsync(sessionId);
         }
@@ -153,7 +160,10 @@ namespace AICareerCoach.BLL.Services.AI
                         ?? throw new KeyNotFoundException("Session not found.");
 
                     if (session.Status != InterviewStatus.Active)
+                    {
+                        _logger.LogWarning("SubmitAnswer blocked: session {SessionId} status is {Status}, not Active.", session.Id, session.Status);
                         throw new InvalidOperationException("Session is not active.");
+                    }
 
                     // Concurrency guard: re-check that no concurrent request
                     // already advanced the turn (RowVersion would also catch this,
@@ -185,7 +195,6 @@ namespace AICareerCoach.BLL.Services.AI
                     };
 
                     _context.InterviewMessages.Add(answer);
-                    session.UpdatedAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
 
                     // 2) Final turn: complete the session. No LLM call needed.
@@ -193,7 +202,6 @@ namespace AICareerCoach.BLL.Services.AI
                     {
                         session.Status = InterviewStatus.Completed;
                         session.CompletedAt = DateTime.UtcNow;
-                        session.UpdatedAt = DateTime.UtcNow;
                         await _context.SaveChangesAsync();
                         await tx.CommitAsync();
                         _logger.LogInformation("Session {SessionId} completed after {Questions} questions.", session.Id, turnNumber);
@@ -232,10 +240,11 @@ namespace AICareerCoach.BLL.Services.AI
 
                     _context.InterviewMessages.Add(questionMsg);
                     session.QuestionsAsked = nextTurn;
-                    session.UpdatedAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
 
                     await tx.CommitAsync();
+
+                    _logger.LogInformation("Session {SessionId} advanced to turn {Turn}.", session.Id, nextTurn);
 
                     return await LoadSessionDtoAsync(session.Id);
                 });
@@ -259,7 +268,10 @@ namespace AICareerCoach.BLL.Services.AI
                 ?? throw new KeyNotFoundException("Session not found.");
 
             if (session.Status != InterviewStatus.Completed)
+            {
+                _logger.LogWarning("GetScorecard blocked: session {SessionId} status is {Status}, not Completed.", sessionId, session.Status);
                 throw new InvalidOperationException("Session is not yet completed. Answer all questions first.");
+            }
 
             if (session.Scorecard is not null)
             {
@@ -275,9 +287,14 @@ namespace AICareerCoach.BLL.Services.AI
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync();
 
+            // M5: pass a bounded (~1000-char) CV excerpt from the session's
+            // SummaryContextJson snapshot so the evaluator can assess whether
+            // the candidate accurately represented their experience.
+            var cvExcerpt = ExtractCvExcerpt(session.SummaryContextJson);
+
             // LLM call outside any transaction to avoid long-held locks (Phase 4, H3).
             var dto = await _llmService.GenerateScorecardAsync(
-                transcript, session.Track, session.Difficulty, session.TargetRole);
+                transcript, session.Track, session.Difficulty, session.TargetRole, cvExcerpt);
 
             // Atomic write: re-check inside the TX so a concurrent request that
             // already inserted short-circuits; the unique index on SessionId is the
@@ -417,6 +434,33 @@ namespace AICareerCoach.BLL.Services.AI
         private static bool IsUniqueViolation(DbUpdateException ex)
         {
             return ex.InnerException is SqlException sql && sql.Number is 2627 or 2601;
+        }
+
+        /// <summary>
+        /// Extracts the <c>cvExcerpt</c> field from the session's
+        /// <see cref="InterviewSession.SummaryContextJson"/> snapshot (stored at
+        /// session start as <c>{ cvExcerpt, targetRole }</c>) and truncates it to
+        /// 1000 chars to bound the scorecard prompt token budget (Phase 7, M5).
+        /// Returns empty string on any parse failure so the prompt degrades
+        /// gracefully (no CV context section).
+        /// </summary>
+        private static string ExtractCvExcerpt(string? summaryContextJson)
+        {
+            if (string.IsNullOrWhiteSpace(summaryContextJson))
+                return string.Empty;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(summaryContextJson);
+                var excerpt = doc.RootElement.TryGetProperty("cvExcerpt", out var el) && el.ValueKind == JsonValueKind.String
+                    ? el.GetString() ?? string.Empty
+                    : string.Empty;
+                return excerpt.Length > 1000 ? excerpt[..1000] : excerpt;
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
         }
     }
 }

@@ -21,6 +21,8 @@ namespace AICareerCoach.DAL.Entities
     {
         Active,
         Completed,
+        /// <summary>Reserved for a future background reaper that marks stale
+        /// Active sessions abandoned. Not assigned by any current code path.</summary>
         Abandoned
     }
 

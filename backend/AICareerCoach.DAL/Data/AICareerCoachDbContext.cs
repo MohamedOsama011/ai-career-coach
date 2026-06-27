@@ -13,6 +13,34 @@ namespace AICareerCoach.DAL.Data
             : base(options)
         {
         }
+
+        /// <summary>
+        /// Auto-touches <see cref="InterviewSession.UpdatedAt"/> on any Modified
+        /// InterviewSession entry so status transitions are always timestamped
+        /// even if a call site forgets to set it (Phase 6, M4). Added entries
+        /// rely on the entity's field initializer.
+        /// </summary>
+        public override int SaveChanges()
+        {
+            TouchUpdatedAt();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            TouchUpdatedAt();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void TouchUpdatedAt()
+        {
+            foreach (var entry in ChangeTracker.Entries<InterviewSession>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

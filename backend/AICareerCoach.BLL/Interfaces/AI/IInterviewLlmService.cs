@@ -17,6 +17,7 @@ namespace AICareerCoach.BLL.Interfaces.AI
             List<InterviewMessage> transcript,
             InterviewTrack track,
             InterviewDifficulty difficulty,
-            string targetRole);
+            string targetRole,
+            string cvExcerpt);
     }
 }
