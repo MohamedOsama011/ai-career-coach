@@ -12,16 +12,24 @@ namespace AICareerCoach.DAL.Entities
         [Key]
         public string Id { get; set; }
         public string Status { get; set; }
-        public string Usersubscriptionid { get; set; }
+        public string? Usersubscriptionid { get; set; }
         public decimal Amount { get; set; }
-        public string InternalTransactionid { get; set; }
-        public string GatewayTransactionid { get; set; } = null;
-        public string Invoiceid { get; set; } = null;
-        public string Paymentprovider { get; set; }
-        public string InvoiceKey { get; set; }
-        public string PaymentMethod { get; set; }
-
         
+        public string? invoicenumber { get; set; }//=usersubscriotionid
+        public string? Invoiceid { get; set; } = null;
+        public string? InvoiceKey { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string referenceNumber { get; set; }
+        public string transactionid { get; set; }
+        public string transactionkey { get; set; }
+
+
+
+
+        //public string InternalTransactionid { get; set; }
+        //public string GatewayTransactionid { get; set; } = null;
+
+
 
 
         public virtual UserSubscription? UserSubscription { get; set; }
