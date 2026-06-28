@@ -51,7 +51,7 @@ namespace AICareerCoach.API.Controllers
 
         [HttpPost("successwebhook")]
 
-        public async Task<IActionResult> Successwebhook(dynamic dto)
+        public async Task<IActionResult> Successwebhook(webhookSuccessDto dto)
         {
             var result = await ifawaterak.Successwebhook(dto);
             return Ok(result);
@@ -59,14 +59,14 @@ namespace AICareerCoach.API.Controllers
 
 
         [HttpPost("failedwebhook")]
-        public async Task<IActionResult> failedwebhook(dynamic dto)
+        public async Task<IActionResult> failedwebhook(FailedwebhookDTO dto)
         {
             var result=await ifawaterak.failedwebhook(dto);
             return BadRequest(result);
         }
 
         [HttpPost("Cancelwebhook")]
-        public async Task<IActionResult> Cancelwebhook(dynamic dto)
+        public async Task<IActionResult> Cancelwebhook(CancelwebhookDTO dto)
         {
             var res = await ifawaterak.Cancelwebhook(dto);
             return Ok(res);

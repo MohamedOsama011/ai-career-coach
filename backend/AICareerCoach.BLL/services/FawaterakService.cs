@@ -267,10 +267,10 @@ namespace AICareerCoach.BLL.services
 
 
 
-        public async Task<Generalresponse> Successwebhook(dynamic response)
+        public async Task<Generalresponse> Successwebhook(webhookSuccessDto dto)
         {
 
-            webhookSuccessDto dto=JsonSerializer.Deserialize<webhookSuccessDto>(response);
+            
             if (!VerifyWebhookHash(dto))
             {
                 return new Generalresponse
@@ -320,9 +320,9 @@ namespace AICareerCoach.BLL.services
             };
         }
 
-        public async Task<Generalresponse> failedwebhook(dynamic res)
+        public async Task<Generalresponse> failedwebhook(FailedwebhookDTO dto)
         {
-            FailedwebhookDTO dto = JsonSerializer.Deserialize<FailedwebhookDTO>(res);
+            
             //if(!failedwebhookHash(dto))
             //{
             //    return new Generalresponse
@@ -356,10 +356,10 @@ namespace AICareerCoach.BLL.services
            
         }
 
-        public async Task<Generalresponse> Cancelwebhook(dynamic res)
+        public async Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto)
         {
             
-            CancelwebhookDTO dto = JsonSerializer.Deserialize<CancelwebhookDTO>(res);
+            
 
             var response = new Generalresponse();
             if (!cancelWebhookHash(dto))
