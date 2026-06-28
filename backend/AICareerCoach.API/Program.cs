@@ -1,3 +1,4 @@
+using AICareerCoach.API.Controllers;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.BLL.services;
@@ -59,8 +60,10 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
 
-            builder.Services.AddScoped<Ipayment,PaymentService>();
+            
             builder.Services.AddScoped<ISubsription,SubscriptionService>();
+            builder.Services.AddHttpClient<Ifawaterak,FawaterakService>();
+            builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
 
 
             builder.Services.AddAuthentication(options =>
