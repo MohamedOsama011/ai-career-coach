@@ -13,9 +13,14 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public string paymentMethod { get; set; }
         public string referenceId { get; set; }
         public string status { get; set; }
-        public string pay_load { get; set; }
+        public Payload? pay_load { get; set; }
         public string transactionKey { get; set; }
         public int transactionId { get; set; }
 
+    }
+    public class Payload
+    {
+        public string merchant_reference { get; set; }
+        public string trasaction_data { get; set; }
     }
 }

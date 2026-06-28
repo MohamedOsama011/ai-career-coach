@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AICareerCoach.BLL.DTOs.Fawaterak;
+using AICareerCoach.BLL.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AICareerCoach.BLL.services
 {
-    internal class FawaterakTokenService: IFawaterakTokenService
+    public class FawaterakTokenService: IFawaterakTokenService
     {
         
     

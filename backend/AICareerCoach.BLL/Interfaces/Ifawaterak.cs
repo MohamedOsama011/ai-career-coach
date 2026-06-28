@@ -10,10 +10,16 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface Ifawaterak
     {
-        Task<FawaterakcreatelinkpaymentResponseDTO> createfawaterakpayment(FawaterakDto fawaterakDto);
 
+        Task<Generalresponse> createpayment(string planid, string userid);
+        Task<object> Envoicecalling(string methodid, string usersubscriptionid);
+        Task<Generalresponse> Successwebhook(dynamic dto);    
+        Task<Generalresponse> failedwebhook(dynamic dto);
+        Task<Generalresponse> Cancelwebhook(dynamic dto);
         Task<GetPaymentMethodsResponseDTO> getallpaymentmethods();
         Task<excutepaymentgeneralResponseDTO> Excutepayment(FawaterakDto fawaterakDto);
+        Task<FawaterakcreatelinkpaymentResponseDTO> createfawaterakpayment(FawaterakDto fawaterakDto);
+
 
 
     }
