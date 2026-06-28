@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AICareerCoach.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class v01 : Migration
+    public partial class update10 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -65,11 +65,47 @@ namespace AICareerCoach.DAL.Migrations
                     RequiredSkills = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Salary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PostedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    PostedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CompanyLogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Jobs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Subscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserRoadmaps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    CvHash = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    TargetRole = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    TemplateRoadmapId = table.Column<int>(type: "int", nullable: true),
+                    TemplateTrack = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    TemplateSnapshotJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StepsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GapAnalysisJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRoadmaps", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,6 +125,28 @@ namespace AICareerCoach.DAL.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AiFeedbackCaches",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CvHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FeedbackJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AiFeedbackCaches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AiFeedbackCaches_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -186,13 +244,37 @@ namespace AICareerCoach.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FilePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FileHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExtractedData = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CVs", x => x.CVId);
                     table.ForeignKey(
                         name: "FK_CVs_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobRecommendationCaches",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CvHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecommendationsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobRecommendationCaches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobRecommendationCaches_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -217,6 +299,58 @@ namespace AICareerCoach.DAL.Migrations
                         name: "FK_RefreshTokens_AspNetUsers_Userid",
                         column: x => x.Userid,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobEmbeddings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobId = table.Column<int>(type: "int", nullable: false),
+                    Embedding = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ComputedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobEmbeddings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobEmbeddings_Jobs_JobId",
+                        column: x => x.JobId,
+                        principalTable: "Jobs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserSubscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Userid = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Subscriptionid = table.Column<int>(type: "int", nullable: false),
+                    Isactive = table.Column<bool>(type: "bit", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Enddate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSubscriptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserSubscriptions_AspNetUsers_Userid",
+                        column: x => x.Userid,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserSubscriptions_Subscriptions_Subscriptionid",
+                        column: x => x.Subscriptionid,
+                        principalTable: "Subscriptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -278,6 +412,33 @@ namespace AICareerCoach.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Usersubscriptionid = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    invoicenumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Invoiceid = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    referenceNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    transactionid = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    transactionkey = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payments_UserSubscriptions_Usersubscriptionid",
+                        column: x => x.Usersubscriptionid,
+                        principalTable: "UserSubscriptions",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RoadmapSteps",
                 columns: table => new
                 {
@@ -300,6 +461,32 @@ namespace AICareerCoach.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "RoadmapTemplateEmbeddings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoadmapId = table.Column<int>(type: "int", nullable: false),
+                    Embedding = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ComputedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoadmapTemplateEmbeddings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RoadmapTemplateEmbeddings_Roadmaps_RoadmapId",
+                        column: x => x.RoadmapId,
+                        principalTable: "Roadmaps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AiFeedbackCaches_UserId",
+                table: "AiFeedbackCaches",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -361,6 +548,21 @@ namespace AICareerCoach.DAL.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobEmbeddings_JobId",
+                table: "JobEmbeddings",
+                column: "JobId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobRecommendationCaches_UserId",
+                table: "JobRecommendationCaches",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_Usersubscriptionid",
+                table: "Payments",
+                column: "Usersubscriptionid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Userid",
                 table: "RefreshTokens",
                 column: "Userid");
@@ -374,11 +576,35 @@ namespace AICareerCoach.DAL.Migrations
                 name: "IX_RoadmapSteps_RoadmapId",
                 table: "RoadmapSteps",
                 column: "RoadmapId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoadmapTemplateEmbeddings_RoadmapId",
+                table: "RoadmapTemplateEmbeddings",
+                column: "RoadmapId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoadmaps_UserId_CreatedAt",
+                table: "UserRoadmaps",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSubscriptions_Subscriptionid",
+                table: "UserSubscriptions",
+                column: "Subscriptionid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSubscriptions_Userid",
+                table: "UserSubscriptions",
+                column: "Userid");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AiFeedbackCaches");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -398,10 +624,25 @@ namespace AICareerCoach.DAL.Migrations
                 name: "Interviews");
 
             migrationBuilder.DropTable(
+                name: "JobEmbeddings");
+
+            migrationBuilder.DropTable(
+                name: "JobRecommendationCaches");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
+
+            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "RoadmapSteps");
+
+            migrationBuilder.DropTable(
+                name: "RoadmapTemplateEmbeddings");
+
+            migrationBuilder.DropTable(
+                name: "UserRoadmaps");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -410,7 +651,13 @@ namespace AICareerCoach.DAL.Migrations
                 name: "Jobs");
 
             migrationBuilder.DropTable(
+                name: "UserSubscriptions");
+
+            migrationBuilder.DropTable(
                 name: "Roadmaps");
+
+            migrationBuilder.DropTable(
+                name: "Subscriptions");
 
             migrationBuilder.DropTable(
                 name: "CVs");

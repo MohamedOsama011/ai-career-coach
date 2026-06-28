@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AICareerCoach.BLL.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface Iusersubscription
     {
-        Task<GenericUriParser> getallbyuserid(string userid);
+        Task<Generalresponse> getallbyuserid(string userid);
     }
 }

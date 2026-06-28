@@ -10,9 +10,9 @@ namespace AICareerCoach.DAL.Entities
     public class Payment
     {
         [Key]
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Status { get; set; }
-        public string? Usersubscriptionid { get; set; }
+        public int? Usersubscriptionid { get; set; }
         public decimal Amount { get; set; }
         
         public string? invoicenumber { get; set; }//=usersubscriotionid

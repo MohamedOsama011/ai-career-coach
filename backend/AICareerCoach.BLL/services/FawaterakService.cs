@@ -27,12 +27,12 @@ namespace AICareerCoach.BLL.services
             configuration = _configuration;
             context = _context; 
         }
-        public async Task<Generalresponse> createpayment(string planid, string userid)
+        public async Task<Generalresponse> createpayment(datasendedwhenclickonsubscriptionDTO dto)
         {
             var url = "";
             var response = new Generalresponse();
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userid);
-            var plan = await context.Subscriptions.FirstOrDefaultAsync(x => x.Id == planid);
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == dto.userid);
+            var plan = await context.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == dto.planid);
             if (plan == null)
             {
                 response.Success = false;
@@ -47,11 +47,11 @@ namespace AICareerCoach.BLL.services
             {
                 var usersubscription = new UserSubscription
                 {
-                    Userid = userid,
-                    Subscriptionid = planid,
+                    Userid = dto.userid,
+                    Subscriptionid = int.Parse(dto.planid),
                     Isactive = false,
                     Status = "pending",
-                    Quantity = 1,//want to be updated
+                    
 
                 };
                 await context.AddAsync(usersubscription);
@@ -61,7 +61,7 @@ namespace AICareerCoach.BLL.services
                     Usersubscriptionid = usersubscription.Id,
                     Status = "pending",
                     Amount = plan.Price,
-                    invoicenumber = usersubscription.Id,
+                    invoicenumber = usersubscription.Id.ToString(),
                 };
                 await context.AddAsync(payment);
                 await context.SaveChangesAsync();
@@ -72,7 +72,7 @@ namespace AICareerCoach.BLL.services
                 if (res != null)
                 {
                     response.Success = true;
-                    response.Data = res + usersubscription.Id;
+                    response.Data = res + usersubscription.Id.ToString();
                 }
             }
                 return response;
@@ -122,7 +122,7 @@ namespace AICareerCoach.BLL.services
         public async Task<object> Envoicecalling(string methodid, string usersubscriptionid)
         {
             var data = await context.UserSubscriptions.Include(u => u.Payments).Include(u => u.Subscription)
-    .Include(u => u.User).FirstOrDefaultAsync(x => x.Id == usersubscriptionid);
+    .Include(u => u.User).FirstOrDefaultAsync(x => x.Id.ToString() == usersubscriptionid);
 
             var dto = new FawaterakDto();
                 dto.first_name = data.User.UserName;
@@ -134,7 +134,7 @@ namespace AICareerCoach.BLL.services
                 dto.cartitems_name = data.Subscription.Name;
                 dto.cartitems_price = data.Subscription.Price;
                 dto.cartitems_quantity = 1;
-                 dto.invoice = data.Payments.FirstOrDefault(p => p.Usersubscriptionid == usersubscriptionid).invoicenumber;
+                 dto.invoice = data.Payments.FirstOrDefault(p => p.Usersubscriptionid.ToString() == usersubscriptionid).invoicenumber;
                  dto.payment_method_id = methodid;
  
             var pay = await Excutepayment(dto);

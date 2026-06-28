@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AICareerCoach.BLL
+namespace AICareerCoach.BLL.services
 {
     public class UsersubscriptionService : Iusersubscription
     {
@@ -24,7 +24,7 @@ namespace AICareerCoach.BLL
             userManager = _usermanager;
         }
 
-        public async Task<GenericUriParser> getallbyuserid(string userid)
+        public async Task<Generalresponse> getallbyuserid(string userid)
         {
             var response = new Generalresponse();
             var user=await userManager.FindByIdAsync(userid);
@@ -48,8 +48,7 @@ namespace AICareerCoach.BLL
                     response.Data = x;
                 }
             }
-
-            throw new NotImplementedException();
+ return response;
         }
     }
 }

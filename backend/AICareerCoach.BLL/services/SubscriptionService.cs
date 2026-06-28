@@ -64,24 +64,30 @@ namespace AICareerCoach.BLL.services
             var newsub=new Subscription();
             newsub.Name = subscription.Name;
             newsub.Price= subscription.Price;
-            baserepo.Add(newsub);   
+            baserepo.Add(newsub);
+            aICareerCoachDbContext.SaveChanges();
+
         }
 
         public void DeleteSubscription(Subscription subscription)
         {
             baserepo.Delete(subscription);
+            aICareerCoachDbContext.SaveChanges();
+
         }
-        public async void UpdateSubscription(SubscriptionDTO subscription,string id)
+        public async void Update(SubscriptionDTO subscription,string id)
         {
-            var sub=await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x=>x.Id==id);
+            var sub=await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x=>x.Id.ToString()==id);
                 sub.Price= subscription.Price;
                 sub.Name= subscription.Name;
-            baserepo.Update(sub);  
+            baserepo.Update(sub);
+            aICareerCoachDbContext.SaveChanges();
+
         }
         public async Task<Generalresponse> UpdateSubscription( string id)
         { 
             var response = new Generalresponse();
-            var sub = await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x => x.Id == id);
+            var sub = await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == id);
             if (sub == null)
             {
                 response.Success = false;
@@ -92,7 +98,7 @@ namespace AICareerCoach.BLL.services
                 var newsub=new SubscriptionDTO();
                 newsub.Price= sub.Price;
                 newsub.Name= sub.Name;
-                UpdateSubscription(newsub,id);
+                Update(newsub,id);
                 response.Success = true;
                 response.Data = "updated asuccessfuly";
             }

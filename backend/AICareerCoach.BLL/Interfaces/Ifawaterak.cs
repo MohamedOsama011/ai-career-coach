@@ -11,7 +11,7 @@ namespace AICareerCoach.BLL.Interfaces
     public interface Ifawaterak
     {
 
-        Task<Generalresponse> createpayment(string planid, string userid);
+        Task<Generalresponse> createpayment(datasendedwhenclickonsubscriptionDTO dto);
         Task<object> Envoicecalling(string methodid, string usersubscriptionid);
         Task<Generalresponse> Successwebhook(dynamic dto);    
         Task<Generalresponse> failedwebhook(dynamic dto);

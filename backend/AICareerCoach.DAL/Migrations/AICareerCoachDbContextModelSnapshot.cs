@@ -182,6 +182,55 @@ namespace AICareerCoach.DAL.Migrations
                     b.ToTable("JobRecommendationCaches");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InvoiceKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Invoiceid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Usersubscriptionid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("invoicenumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("referenceNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("transactionid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("transactionkey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Usersubscriptionid");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -307,6 +356,26 @@ namespace AICareerCoach.DAL.Migrations
                     b.ToTable("RoadmapTemplateEmbeddings");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Subscriptions");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.UserRoadmap", b =>
                 {
                     b.Property<int>("Id")
@@ -357,6 +426,46 @@ namespace AICareerCoach.DAL.Migrations
                     b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("UserRoadmaps");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.UserSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Enddate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Isactive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Subscriptionid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Userid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Subscriptionid");
+
+                    b.HasIndex("Userid");
+
+                    b.ToTable("UserSubscriptions");
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.mockInterview", b =>
@@ -653,6 +762,15 @@ namespace AICareerCoach.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.Payment", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Entities.UserSubscription", "UserSubscription")
+                        .WithMany("Payments")
+                        .HasForeignKey("Usersubscriptionid");
+
+                    b.Navigation("UserSubscription");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Entities.RefreshToken", b =>
                 {
                     b.HasOne("AICareerCoach.DAL.Models.User", "User")
@@ -691,6 +809,25 @@ namespace AICareerCoach.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Roadmap");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.UserSubscription", b =>
+                {
+                    b.HasOne("AICareerCoach.DAL.Entities.Subscription", "Subscription")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("Subscriptionid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AICareerCoach.DAL.Models.User", "User")
+                        .WithMany("UserSubscriptions")
+                        .HasForeignKey("Userid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AICareerCoach.DAL.Entities.mockInterview", b =>
@@ -780,6 +917,16 @@ namespace AICareerCoach.DAL.Migrations
                     b.Navigation("Steps");
                 });
 
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.Subscription", b =>
+                {
+                    b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("AICareerCoach.DAL.Entities.UserSubscription", b =>
+                {
+                    b.Navigation("Payments");
+                });
+
             modelBuilder.Entity("AICareerCoach.DAL.Models.User", b =>
                 {
                     b.Navigation("CVs");
@@ -787,6 +934,8 @@ namespace AICareerCoach.DAL.Migrations
                     b.Navigation("Interviews");
 
                     b.Navigation("RefreshTokens");
+
+                    b.Navigation("UserSubscriptions");
                 });
 #pragma warning restore 612, 618
         }
