@@ -7,6 +7,8 @@ using AICareerCoach.DAL.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace AICareerCoach.BLL.Services.AI
@@ -264,6 +266,202 @@ namespace AICareerCoach.BLL.Services.AI
                 // (Phase 3 Gap A close, folded into Phase 4).
                 throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
             }
+        }
+
+        public async IAsyncEnumerable<StreamTokenDto> SubmitAnswerStreamAsync(
+            string userId,
+            int sessionId,
+            SubmitAnswerRequestDto request,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            InterviewMessage? nextQuestion = null;
+            string? cvExcerpt = null;
+            InterviewTrack track = default;
+            InterviewDifficulty difficulty = default;
+            string targetRole = string.Empty;
+            List<InterviewMessage> fullTranscript = new();
+            bool isFinalTurn = false;
+            int nextTurn = 0;
+            int sessionIdLocal = 0;
+            bool usedFallback = false;
+            var fullContent = new StringBuilder();
+            var tokensEmitted = false;
+            Exception? lastStreamError = null;
+
+            try
+            {
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+                    var session = await _context.InterviewSessions
+                        .Include(s => s.Messages)
+                        .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId, cancellationToken)
+                        ?? throw new KeyNotFoundException("Session not found.");
+
+                    if (session.Status != InterviewStatus.Active)
+                    {
+                        _logger.LogWarning("SubmitAnswerStream blocked: session {SessionId} status is {Status}, not Active.", sessionId, session.Status);
+                        throw new InvalidOperationException("Session is not active.");
+                    }
+
+                    var currentDbState = await _context.InterviewSessions
+                        .Where(s => s.Id == sessionId)
+                        .Select(s => new { s.QuestionsAsked, s.Status })
+                        .FirstAsync(cancellationToken);
+
+                    if (currentDbState.Status != InterviewStatus.Active
+                        || currentDbState.QuestionsAsked != session.QuestionsAsked)
+                    {
+                        throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
+                    }
+
+                    var turnNumber = session.QuestionsAsked;
+
+                    var answer = new InterviewMessage
+                    {
+                        SessionId = session.Id,
+                        Role = MessageRole.Candidate,
+                        TurnNumber = turnNumber,
+                        Content = request.Answer,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.InterviewMessages.Add(answer);
+                    await _context.SaveChangesAsync(cancellationToken);
+
+                    if (turnNumber >= session.MaxQuestions)
+                    {
+                        session.Status = InterviewStatus.Completed;
+                        session.CompletedAt = DateTime.UtcNow;
+                        await _context.SaveChangesAsync(cancellationToken);
+                        await tx.CommitAsync(cancellationToken);
+                        _logger.LogInformation("Session {SessionId} completed after {Questions} questions (stream).", session.Id, turnNumber);
+                        isFinalTurn = true;
+                    }
+                    else
+                    {
+                        fullTranscript = await _context.InterviewMessages
+                            .Where(m => m.SessionId == session.Id)
+                            .OrderBy(m => m.CreatedAt)
+                            .ToListAsync(cancellationToken);
+
+                        cvExcerpt = session.SummaryContextJson ?? "{}";
+                        track = session.Track;
+                        difficulty = session.Difficulty;
+                        targetRole = session.TargetRole;
+                        nextTurn = turnNumber + 1;
+                        sessionIdLocal = session.Id;
+
+                        await tx.CommitAsync(cancellationToken);
+                    }
+                });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
+            }
+
+            if (isFinalTurn)
+            {
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            _logger.LogInformation("Streaming question for session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+
+            await foreach (var token in _llmService.GenerateNextQuestionStreamAsync(
+                track, difficulty, targetRole, cvExcerpt ?? "{}", fullTranscript, nextTurn, cancellationToken))
+            {
+                if (token.Type == "token" && token.Content is not null)
+                {
+                    tokensEmitted = true;
+                    fullContent.Append(token.Content);
+                }
+                if (token.Type == "error" && token.Code == "fallback")
+                {
+                    usedFallback = true;
+                }
+                lastStreamError = token.Type == "error" ? new Exception(token.Message ?? "Stream error") : lastStreamError;
+                yield return token;
+            }
+
+            if (!tokensEmitted)
+            {
+                _logger.LogError(lastStreamError, "Stream completed without any tokens for session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+                yield return new StreamTokenDto { Type = "error", Code = "fatal", Message = "AI returned no content." };
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            var streamConflict = false;
+            try
+            {
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+                    var session = await _context.InterviewSessions
+                        .FirstOrDefaultAsync(s => s.Id == sessionIdLocal, cancellationToken)
+                        ?? throw new KeyNotFoundException("Session disappeared mid-stream.");
+
+                    var question = new InterviewMessage
+                    {
+                        SessionId = sessionIdLocal,
+                        Role = MessageRole.Interviewer,
+                        TurnNumber = nextTurn,
+                        Content = fullContent.ToString(),
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.InterviewMessages.Add(question);
+                    session.QuestionsAsked = nextTurn;
+                    if (usedFallback)
+                    {
+                        session.UsedFallback = true;
+                        session.FallbackCount++;
+                    }
+                    await _context.SaveChangesAsync(cancellationToken);
+                    await tx.CommitAsync(cancellationToken);
+                });
+            }
+            catch (DbUpdateConcurrencyException concurrencyEx)
+            {
+                _logger.LogWarning(concurrencyEx, "Stream question save hit RowVersion conflict on session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+                streamConflict = true;
+            }
+
+            if (streamConflict)
+            {
+                yield return new StreamTokenDto { Type = "error", Code = "fallback", Message = "Session was advanced by another request. Reload to continue." };
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            _logger.LogInformation(
+                "Streamed question for session {SessionId}, turn {Turn}, usedFallback={UsedFallback}.",
+                sessionIdLocal, nextTurn, usedFallback);
+        }
+
+        public async Task DeleteSessionAsync(string userId, int sessionId)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await _context.Database.BeginTransactionAsync();
+
+                var session = await _context.InterviewSessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
+                    ?? throw new KeyNotFoundException($"Session {sessionId} not found.");
+
+                _context.InterviewSessions.Remove(session);
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+            });
+
+            _logger.LogInformation("Deleted interview session {SessionId} for user {UserId}.", sessionId, userId);
         }
 
         public async Task<InterviewScorecardDto> GetScorecardAsync(string userId, int sessionId)

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Logging;
 using OpenAI;
 using OpenAI.Chat;
 using System.ClientModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace AICareerCoach.BLL.Services.AI
 {
@@ -79,6 +81,153 @@ namespace AICareerCoach.BLL.Services.AI
             }
 
             return new QuestionResult(GetFallbackQuestion(track, targetRole), UsedFallback: true);
+        }
+
+        public async IAsyncEnumerable<StreamTokenDto> GenerateNextQuestionStreamAsync(
+            InterviewTrack track,
+            InterviewDifficulty difficulty,
+            string targetRole,
+            string summaryContextJson,
+            List<InterviewMessage> transcript,
+            int nextTurnNumber,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            // The LLM streaming happens inside `ProduceStreamAsync` which has
+            // full try/catch and retry logic. We bridge it to the IAsyncEnumerable
+            // via an unbounded Channel so tokens reach the consumer AS THEY ARRIVE
+            // (the previous buffered-list approach waited for the whole stream
+            // to complete before yielding anything, which made the UI show
+            // "AI is thinking" for the full generation time).
+            var channel = Channel.CreateUnbounded<StreamTokenDto>(
+                new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+
+            var producer = Task.Run(async () =>
+            {
+                try
+                {
+                    await ProduceStreamAsync(
+                        track, difficulty, targetRole, summaryContextJson, transcript, nextTurnNumber,
+                        channel.Writer, cancellationToken);
+                }
+                finally
+                {
+                    channel.Writer.Complete();
+                }
+            }, cancellationToken);
+
+            try
+            {
+                await foreach (var token in channel.Reader.ReadAllAsync(cancellationToken))
+                {
+                    yield return token;
+                }
+            }
+            finally
+            {
+                try { await producer; } catch { /* producer exceptions are surfaced via the channel */ }
+            }
+        }
+
+        private async Task ProduceStreamAsync(
+            InterviewTrack track,
+            InterviewDifficulty difficulty,
+            string targetRole,
+            string summaryContextJson,
+            List<InterviewMessage> transcript,
+            int nextTurnNumber,
+            ChannelWriter<StreamTokenDto> writer,
+            CancellationToken cancellationToken)
+        {
+            var systemPrompt = BuildQuestionSystemPrompt(track, difficulty, targetRole, summaryContextJson);
+            var messages = BuildTranscriptMessages(systemPrompt, transcript);
+
+            Exception? lastError = null;
+            Exception? attemptError = null;
+
+            for (int attempt = 1; attempt <= MaxRetries + 1; attempt++)
+            {
+                var tokensEmittedThisAttempt = false;
+
+                try
+                {
+                    _logger.LogInformation("Streaming question {Turn} — Attempt {Attempt}", nextTurnNumber, attempt);
+
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    cts.CancelAfter(TimeSpan.FromSeconds(TimeoutSeconds));
+
+                    await foreach (var update in _chatClient.CompleteChatStreamingAsync(
+                        messages,
+                        new ChatCompletionOptions
+                        {
+                            Temperature = 0.5f,
+                            MaxOutputTokenCount = 500
+                        },
+                        cts.Token))
+                    {
+                        if (update.ContentUpdate is { Count: > 0 })
+                        {
+                            var token = string.Concat(update.ContentUpdate.Select(p => p.Text));
+                            if (!string.IsNullOrEmpty(token))
+                            {
+                                tokensEmittedThisAttempt = true;
+                                await writer.WriteAsync(
+                                    new StreamTokenDto { Type = "token", Content = token },
+                                    cancellationToken);
+                            }
+                        }
+                    }
+
+                    await writer.WriteAsync(new StreamTokenDto { Type = "done" }, cancellationToken);
+                    return;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex) when (IsFatal(ex))
+                {
+                    _logger.LogError(ex, "Fatal error in streaming question-gen (attempt {Attempt}): {Error}.", attempt, ex.Message);
+                    attemptError = ex;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    attemptError = ex;
+
+                    if (tokensEmittedThisAttempt)
+                    {
+                        _logger.LogWarning(ex, "Stream failed after some tokens on attempt {Attempt}; not retrying to avoid double-content.", attempt);
+                        break;
+                    }
+
+                    _logger.LogWarning("Stream attempt {Attempt} failed before any tokens: {Error}. Retrying...", attempt, ex.Message);
+                    lastError = ex;
+                    try { await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken); } catch { break; }
+                }
+            }
+
+            if (lastError is not null)
+                _logger.LogError(lastError, "Streaming question-gen failed after {MaxRetries} attempts; streaming fallback.", MaxRetries);
+            else if (attemptError is not null)
+                _logger.LogWarning("Streaming question-gen aborted on attempt; streaming fallback.");
+
+            var fallback = GetFallbackQuestion(track, targetRole);
+            await writer.WriteAsync(new StreamTokenDto { Type = "token", Content = fallback }, cancellationToken);
+            await writer.WriteAsync(
+                new StreamTokenDto { Type = "error", Code = "fallback", Message = "AI is temporarily unavailable; using a generic question." },
+                cancellationToken);
+            await writer.WriteAsync(new StreamTokenDto { Type = "done" }, cancellationToken);
+        }
+
+        private static string GetFallbackQuestion(InterviewTrack track, string targetRole)
+        {
+            return track switch
+            {
+                InterviewTrack.Behavioral => $"Tell me about a time you faced a challenging situation working with a teammate. How did you handle it?",
+                InterviewTrack.TechnicalCoding => $"Can you explain the difference between an array and a linked list, and when you would use each?",
+                InterviewTrack.SystemDesign => $"How would you design a URL shortening service like TinyURL? Walk through the key components and trade-offs.",
+                _ => $"Tell me about your experience with {targetRole} and why you're interested in this role."
+            };
         }
 
         private static bool IsFatal(Exception ex)
@@ -439,17 +588,6 @@ namespace AICareerCoach.BLL.Services.AI
             };
 
             return ratingMap.TryGetValue(rating.Trim(), out var normalized) ? normalized : null;
-        }
-
-        private static string GetFallbackQuestion(InterviewTrack track, string targetRole)
-        {
-            return track switch
-            {
-                InterviewTrack.Behavioral => $"Tell me about a time you faced a challenging situation working with a teammate. How did you handle it?",
-                InterviewTrack.TechnicalCoding => $"Can you explain the difference between an array and a linked list, and when you would use each?",
-                InterviewTrack.SystemDesign => $"How would you design a URL shortening service like TinyURL? Walk through the key components and trade-offs.",
-                _ => $"Tell me about your experience with {targetRole} and why you're interested in this role."
-            };
         }
     }
 }

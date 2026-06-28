@@ -1,0 +1,133 @@
+<header class="interview-header">
+  <div class="header-left">
+    <span class="lab-label">AI INTERVIEW LAB</span>
+    <h1 class="page-title">Mock Interview</h1>
+    <p class="page-subtitle">{{ session()?.track }} · {{ session()?.difficulty }} · {{ session()?.targetRole }}</p>
+  </div>
+  <div class="header-right">
+    <button class="end-btn" (click)="onExit()" aria-label="Exit interview, return to dashboard">Exit</button>
+  </div>
+</header>
+
+<div class="step-indicator">
+  <div class="step-dots" role="list" aria-label="Interview progress">
+    @for (step of stepArray(); track step) {
+      <div class="step-dot-wrapper">
+        <div class="step-dot"
+             [class]="stepClass(step)"
+             [attr.aria-current]="step === questionsAsked() ? 'step' : null"
+             [attr.aria-label]="'Question ' + step + ' of ' + maxQuestions() + ', ' + stepClass(step)">
+        </div>
+        @if (step < maxQuestions()) {
+          <div class="step-line" [class.completed]="step < questionsAsked()"></div>
+        }
+      </div>
+    }
+  </div>
+  @if (isCompleted()) {
+    <span class="step-label">Completed · {{ maxQuestions() }} questions</span>
+  } @else {
+    <span class="step-label">
+      Question <strong class="step-current-number">{{ questionsAsked() }}</strong> of {{ maxQuestions() }}
+    </span>
+  }
+</div>
+
+<div class="interview-grid">
+  <main class="transcript-section">
+    <div class="transcript-card">
+      <div class="card-header">
+        <span class="transcript-title">
+          Session #{{ session()?.id }}
+          @if (isCompleted()) {
+            <span class="completed-badge">COMPLETED</span>
+          }
+        </span>
+        @if (isBotTyping()) {
+          <div class="typing-indicator" role="status" aria-live="polite">
+            <span class="typing-dots">
+              <span></span><span></span><span></span>
+            </span>
+            <span class="typing-text">AI is thinking</span>
+          </div>
+        }
+        @else if (showStreamingBubble()) {
+          <div class="typing-indicator" role="status" aria-live="polite">
+            <span class="typing-dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </span>
+            <span class="typing-text">Streaming response…</span>
+          </div>
+        }
+      </div>
+
+      <div class="transcript-dialogue" role="log" aria-live="polite" aria-label="Interview transcript">
+        @for (msg of messages(); track msg.id) {
+          <div class="message-wrapper" [class]="messageSender(msg.role)">
+            <div class="avatar" [class]="messageSender(msg.role)">
+              @if (messageSender(msg.role) === 'bot') {
+                <span class="material-icons robot-icon" aria-hidden="true">smart_toy</span>
+              } @else {
+                <span class="material-icons user-icon" aria-hidden="true">person</span>
+              }
+            </div>
+            <div class="bubble" [class]="messageSender(msg.role)">
+              {{ msg.content }}
+            </div>
+          </div>
+        }
+        @if (streamingBubble(); as bubble) {
+          <div class="message-wrapper bot streaming">
+            <div class="avatar bot">
+              <span class="material-icons robot-icon" aria-hidden="true">smart_toy</span>
+            </div>
+            <div class="bubble bot">
+              {{ bubble.text }}<span class="streaming-cursor" aria-hidden="true">▍</span>
+              @if (bubble.usedFallback) {
+                <span class="fallback-badge" title="AI is temporarily unavailable; using a generic question">fallback</span>
+              }
+            </div>
+          </div>
+        }
+        <div #scrollAnchor></div>
+
+        @if (isCompleted()) {
+          <div class="completion-banner" role="status" aria-live="assertive">
+            <span class="material-icons" aria-hidden="true">check_circle</span>
+            <span>Session complete! You answered all {{ session()?.maxQuestions }} questions.</span>
+            <button class="view-scorecard-btn" (click)="onLoadScorecard()" [disabled]="false" aria-label="View scorecard report">
+              View Scorecard Report
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="error-box chat-error">
+          <span class="error-text">{{ error() }}</span>
+          <button class="error-retry-btn" (click)="onRetryLastAnswer()" [disabled]="isBotTyping()">
+            Retry
+          </button>
+        </div>
+      }
+
+      <div class="input-area">
+        <button class="mic-btn" title="Voice input (coming soon)" aria-label="Voice input, coming soon" aria-disabled="true">
+          <span class="material-icons" aria-hidden="true">mic</span>
+        </button>
+        <input
+          type="text"
+          placeholder="Type your answer..."
+          aria-label="Your answer"
+          [ngModel]="inputText()"
+          (ngModelChange)="onInputTextChange($event)"
+          (keydown.enter)="onEnterKey($event)"
+          [disabled]="isBotTyping() || isCompleted()"
+        />
+        <button class="send-btn" (click)="onSendMessage()" [disabled]="!inputText().trim() || isBotTyping() || isCompleted()" aria-label="Send answer">
+          <span class="material-icons" aria-hidden="true">send</span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,80 @@
+<header class="interview-header">
+  <div class="header-left">
+    <span class="lab-label">AI INTERVIEW LAB</span>
+    <h1 class="page-title">Mock Interview</h1>
+    <p class="page-subtitle">Choose a track, difficulty, and target role to begin.</p>
+  </div>
+</header>
+
+<div class="setup-section">
+  <div class="setup-group">
+    <label class="setup-label" id="setup-track-label">Track</label>
+    <div class="option-cards" role="radiogroup" aria-labelledby="setup-track-label">
+      @for (t of tracks(); track t.value) {
+        <div
+          class="option-card"
+          role="radio"
+          tabindex="0"
+          [class.selected]="selectedTrack() === t.value"
+          [attr.aria-checked]="selectedTrack() === t.value"
+          (click)="onSelectTrack(t.value)"
+          (keydown.enter)="onSelectTrack(t.value)"
+          (keydown.space)="onSelectTrack(t.value); $event.preventDefault()"
+        >
+          <span class="option-card-title">{{ t.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="setup-group">
+    <label class="setup-label" id="setup-difficulty-label">Difficulty</label>
+    <div class="option-cards" role="radiogroup" aria-labelledby="setup-difficulty-label">
+      @for (d of difficulties(); track d.value) {
+        <div
+          class="option-card"
+          role="radio"
+          tabindex="0"
+          [class.selected]="selectedDifficulty() === d.value"
+          [attr.aria-checked]="selectedDifficulty() === d.value"
+          (click)="onSelectDifficulty(d.value)"
+          (keydown.enter)="onSelectDifficulty(d.value)"
+          (keydown.space)="onSelectDifficulty(d.value); $event.preventDefault()"
+        >
+          <span class="option-card-title">{{ d.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="setup-group">
+    <label class="setup-label" for="targetRoleInput">Target Role</label>
+    <input
+      id="targetRoleInput"
+      class="role-input"
+      type="text"
+      placeholder="e.g. Full Stack .NET Developer"
+      [ngModel]="targetRole()"
+      (ngModelChange)="onTargetRoleChange($event)"
+      (keydown.enter)="onEnterKey($event)"
+    />
+  </div>
+
+  <button
+    class="start-session-btn"
+    (click)="onStartSession()"
+    [disabled]="loading() || !canStart()"
+  >
+    @if (loading()) {
+      <span class="spinner"></span>
+      Starting...
+    } @else {
+      <span class="material-icons" aria-hidden="true">play_arrow</span>
+      Start Session
+    }
+  </button>
+
+  @if (error()) {
+    <div class="error-box">{{ error() }}</div>
+  }
+</div>

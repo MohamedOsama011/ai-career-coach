@@ -61,7 +61,7 @@
       </div>
       <div class="interview-tags" *ngIf="interviewTopics().length > 0">
         @for (topic of interviewTopics(); track topic) {
-          <span class="topic-tag">{{ topic.toUpperCase() }}</span>
+          <span class="topic-tag">{{ trackLabel(topic) }}</span>
         }
       </div>
     </div>

@@ -35,6 +35,16 @@ function levelToPercent(level: string): number {
   }
 }
 
+const TRACK_LABELS: Record<string, string> = {
+  Behavioral: 'Behavioral',
+  TechnicalCoding: 'Technical Coding',
+  SystemDesign: 'System Design'
+};
+
+function trackLabel(value: string): string {
+  return TRACK_LABELS[value] ?? value;
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule],
@@ -65,6 +75,8 @@ export class Dashboard implements OnInit {
   interviewTopics = computed(() =>
     Array.from(new Set(this.store.interviewHistory().map(h => h.track)))
   );
+
+  trackLabel = trackLabel;
 
   skills = computed<DashboardSkill[]>(() => {
     const flat = this.store.skillsGap().flatMap(cat => cat.skills);

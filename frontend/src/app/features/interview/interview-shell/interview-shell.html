@@ -1,0 +1,74 @@
+<div class="interview-page-container">
+  @if (view() === 'dashboard') {
+    <app-interview-dashboard
+      [history]="history()"
+      [lastSession]="history()[0]"
+      [hasActiveInProgress]="hasActiveInProgress()"
+      [selectedTrackFilter]="selectedTrackFilter()"
+      [trackOptions]="trackOptions()"
+      [trackCounts]="trackCounts()"
+      (setupNew)="setupNewInterview()"
+      (viewLastScorecard)="viewLastScorecard()"
+      (resumeActiveInterview)="resumeActiveInterview()"
+      (selectTrackFilter)="selectTrackFromDashboard($event)"
+      (clearTrackFilter)="clearTrackFilter()"
+      (loadScorecardById)="loadScorecardById($event)"
+      (requestDeleteSession)="requestDeleteSession($event)">
+    </app-interview-dashboard>
+  }
+
+  @if (view() === 'setup') {
+    <app-interview-setup
+      [options]="options()"
+      [selectedTrack]="selectedTrack()"
+      [selectedDifficulty]="selectedDifficulty()"
+      [targetRole]="targetRole()"
+      [loading]="loading()"
+      [error]="error()"
+      (selectedTrackChange)="setSelectedTrack($event)"
+      (selectedDifficultyChange)="setSelectedDifficulty($event)"
+      (targetRoleChange)="setTargetRole($event)"
+      (startSession)="startSession()">
+    </app-interview-setup>
+  }
+
+  @if (view() === 'chat') {
+    <app-interview-chat
+      [session]="session()"
+      [inputText]="inputText()"
+      [isBotTyping]="isBotTyping()"
+      [error]="error()"
+      [lastSubmittedAnswer]="lastSubmittedAnswer()"
+      [streamingBubble]="streamingBubble()"
+      (inputTextChange)="setInputText($event)"
+      (sendMessage)="sendMessage()"
+      (retryLastAnswer)="retryLastAnswer()"
+      (exit)="newSession()"
+      (loadScorecard)="loadScorecard()">
+    </app-interview-chat>
+  }
+
+  @if (view() === 'scorecard') {
+    <app-interview-scorecard
+      [scorecard]="scorecard()!"
+      [session]="session()"
+      [viewedScorecardMeta]="viewedScorecardMeta()"
+      [converting]="converting()"
+      [convertError]="convertError()"
+      (newSession)="newSession()"
+      (convertToRoadmap)="convertToRoadmap()"
+      (printScorecard)="printScorecard()">
+    </app-interview-scorecard>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="pendingDeleteId() !== null"
+  [title]="'Delete this session?'"
+  [message]="'The transcript and scorecard will be permanently removed. This action cannot be undone.'"
+  [confirmText]="'Delete'"
+  [cancelText]="'Cancel'"
+  [variant]="'danger'"
+  (confirm)="confirmDeleteSession()"
+  (cancel)="cancelDelete()"
+/>

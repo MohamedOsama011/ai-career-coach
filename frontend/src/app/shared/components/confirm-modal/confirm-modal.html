@@ -1,0 +1,16 @@
+<div class="confirm-modal-overlay" (click)="cancel.emit()" *ngIf="open">
+  <div class="confirm-modal" role="alertdialog" aria-modal="true" [attr.aria-labelledby]="'confirm-modal-title'" (click)="$event.stopPropagation()">
+    <h3 id="confirm-modal-title" class="confirm-modal-title">{{ title }}</h3>
+    @if (message) {
+      <p class="confirm-modal-message">{{ message }}</p>
+    }
+    <div class="confirm-modal-actions">
+      <button class="confirm-modal-btn cancel" (click)="cancel.emit()" type="button">
+        {{ cancelText }}
+      </button>
+      <button class="confirm-modal-btn confirm" [class.danger]="variant === 'danger'" (click)="confirm.emit()" type="button">
+        {{ confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

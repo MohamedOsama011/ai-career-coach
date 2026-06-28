@@ -69,3 +69,15 @@ export interface InterviewScorecardDto {
   areasForImprovement: string[];
   questionAnalysis: QuestionAnalysisItemDto[];
 }
+
+export type InterviewStreamEvent =
+  | { type: 'token'; content: string }
+  | { type: 'done' }
+  | { type: 'error'; code: 'fatal' | 'fallback' | 'rate_limit'; message: string };
+
+export interface InterviewStreamCallbacks {
+  onToken: (content: string) => void;
+  onDone: (usedFallback: boolean) => void;
+  onError: (code: string, message: string) => void;
+  onFatal: (message: string) => void;
+}

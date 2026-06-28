@@ -1,0 +1,160 @@
+.interview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.lab-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brand-text);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  font-size: 15px;
+  color: var(--brand-text-secondary);
+  margin: 0;
+}
+
+.setup-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setup-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-text);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.option-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.option-card {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  background: var(--brand-card);
+}
+
+.option-card:hover {
+  border-color: var(--brand-text-secondary);
+  background: var(--brand-bg);
+}
+
+.option-card:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.option-card.selected {
+  border-color: var(--brand-primary);
+  background: #EFF6FF;
+}
+
+.option-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-text);
+}
+
+.role-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.role-input:focus {
+  border-color: var(--brand-primary);
+}
+
+.start-session-btn {
+  background: var(--brand-primary);
+  color: var(--brand-card);
+  border: none;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+  align-self: flex-start;
+}
+
+.start-session-btn:hover:not(:disabled) {
+  background: #1D4ED8;
+}
+
+.start-session-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--brand-card);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-box {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .option-cards {
+    grid-template-columns: 1fr;
+  }
+}

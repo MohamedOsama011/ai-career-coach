@@ -31,7 +31,7 @@ export const routes: Routes = [
       { path: 'cv', loadComponent: () => import('./features/cv/cv').then(m => m.Cv) },
       { path: 'jobs', canActivate: [cvGuard], loadComponent: () => import('./features/jobs/jobs').then(m => m.Jobs) },
       { path: 'roadmap', canActivate: [cvGuard], loadComponent: () => import('./features/roadmap/roadmap').then(m => m.Roadmap) },
-      { path: 'interview', canActivate: [cvGuard], loadComponent: () => import('./features/interview/interview').then(m => m.Interview) },
+      { path: 'interview', canActivate: [cvGuard], loadComponent: () => import('./features/interview').then(m => m.InterviewShell) },
       { path: 'skills', canActivate: [cvGuard], loadComponent: () => import('./features/skills/skills').then(m => m.Skills) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
     ],
