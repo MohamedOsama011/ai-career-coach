@@ -40,7 +40,7 @@ namespace AICareerCoach.API.Controllers
         public async Task Delete(string id)
         {
 
-            var sub= context.Subscriptions.FirstOrDefault(x=>x.Id==id);
+            var sub= context.Subscriptions.FirstOrDefault(x=>x.Id.ToString()==id);
              subsription.DeleteSubscription(sub);
         }
 

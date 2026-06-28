@@ -59,8 +59,9 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<Iusersubscription, UsersubscriptionService>();
 
-            
+
             builder.Services.AddScoped<ISubsription,SubscriptionService>();
             builder.Services.AddHttpClient<Ifawaterak,FawaterakService>();
             builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();

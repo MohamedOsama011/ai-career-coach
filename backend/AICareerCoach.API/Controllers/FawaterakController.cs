@@ -25,8 +25,18 @@ namespace AICareerCoach.API.Controllers
         
         public async Task<IActionResult> createpayment(string planid)
         {
-            var user=await userManager.GetUserAsync(User);
-            var result= await ifawaterak.createpayment(planid,user.Id);
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+
+            var dto = new datasendedwhenclickonsubscriptionDTO
+            {
+                planid = planid,
+                userid = user.Id.ToString() // Re
+            };
+            var result= await ifawaterak.createpayment( dto);
             return Ok(result);
         }
 
