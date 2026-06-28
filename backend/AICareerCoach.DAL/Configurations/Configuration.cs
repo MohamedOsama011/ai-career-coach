@@ -20,10 +20,6 @@ namespace AICareerCoach.DAL.Configurations
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
-                builder.HasMany(u => u.Interviews).WithOne(c => c.User)
-                    .HasForeignKey(i => i.UserId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
             }
         }
     }

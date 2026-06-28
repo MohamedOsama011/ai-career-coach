@@ -201,6 +201,53 @@ export class Cv implements OnInit, OnDestroy {
     return map[priority] || 'badge-low';
   }
 
+  /** Ring geometry: circumference for radius r=52 → 2πr ≈ 326.726. */
+  readonly ringCircumference = 2 * Math.PI * 52;
+
+  /** Brand palette: blue/slate for strong, amber-only warning for weak. */
+  private readonly AMBER = '#D97706';
+
+  /** Verdict text color: deep slate-blue when strong, amber only when weak. */
+  verdictColor(score: number): string {
+    return score >= 65 ? '#1E3A8A' : this.AMBER;
+  }
+
+  /** Verdict label text for the overall score. */
+  scoreVerdictLabel(score: number): string {
+    if (score >= 85) return 'Excellent';
+    if (score >= 65) return 'Strong profile';
+    if (score >= 40) return 'Good progress';
+    return 'Needs work';
+  }
+
+  /** SVG stroke-dashoffset for a given score (0–100) on the ring. */
+  ringDashOffset(score: number): number {
+    const clamped = Math.max(0, Math.min(100, score));
+    return this.ringCircumference * (1 - clamped / 100);
+  }
+
+  /** Sub-score bar tier: blue for strong (≥65), amber-only warning below. */
+  subBarTierClass(value: number): string {
+    return value >= 65 ? 'bar--strong' : 'bar--warn';
+  }
+
+  /** Cached vs AI-generated chip (surfaces previously unused fromCache field). */
+  feedbackChip(fb: CvFeedback): { label: string; icon: string } {
+    return fb.fromCache
+      ? { label: 'Cached', icon: 'bolt' }
+      : { label: 'AI-generated', icon: 'auto_awesome' };
+  }
+
+  /** Human-readable generation date from the previously unused generatedAt field. */
+  generatedDate(fb: CvFeedback): string {
+    if (!fb?.generatedAt) return '';
+    const d = new Date(fb.generatedAt);
+    if (isNaN(d.getTime())) return '';
+    return 'Generated ' + d.toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+  }
+
   startScoreAnimation(target: number): void {
     this.displayedScore.set(0);
     if (this.animationTimer !== null) {

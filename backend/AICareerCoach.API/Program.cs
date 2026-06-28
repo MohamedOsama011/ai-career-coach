@@ -9,6 +9,7 @@ using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -57,6 +58,8 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
+            builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddHttpContextAccessor();
@@ -103,7 +106,14 @@ namespace AICareerCoach.API
 
             });
 
-            builder.Services.AddAuthorization();
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
 
             builder.Services.AddCors(options =>
             {

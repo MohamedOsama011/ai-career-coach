@@ -1,103 +1,355 @@
 <div class="interview-page-container">
-  <header class="interview-header">
-    <div class="header-left">
-      <span class="lab-label">AI INTERVIEW LAB</span>
-      <h1 class="page-title">Mock Interview</h1>
-      <p class="page-subtitle">Voice or text. Tailored to your target role and seniority.</p>
-    </div>
-    <div class="header-right">
-      <button class="start-session-btn" (click)="startSession()">
-        <span class="material-icons play-icon">play_arrow</span>
-        Start Session
-      </button>
-    </div>
-  </header>
 
-  <div class="interview-grid">
-    <!-- Left column: Live Transcript -->
-    <main class="transcript-section">
-      <div class="transcript-card">
-        <div class="card-header">
-          <span class="transcript-title">LIVE TRANSCRIPT</span>
-          @if (isListening) {
-            <div class="listening-indicator">
-              <span class="pulse-dot"></span>
-              <span class="listening-text">LISTENING</span>
-            </div>
-          } @else if (isBotTyping) {
-            <div class="typing-indicator">
-              <span class="typing-text">AI IS THINKING...</span>
-            </div>
-          }
-        </div>
+  <!-- ========== DASHBOARD VIEW ========== -->
+  @if (view() === 'dashboard') {
+    <header class="interview-header">
+      <div class="header-left">
+        <span class="lab-label">AI INTERVIEW LAB</span>
+        <h1 class="page-title">Mock Interview</h1>
+        <p class="page-subtitle">Welcome back! Ready for your next challenge?</p>
+      </div>
+    </header>
 
-        <div class="transcript-dialogue">
-          @for (msg of messages; track msg.id) {
-            <div class="message-wrapper" [class]="msg.sender">
-              <div class="avatar" [class]="msg.sender">
-                @if (msg.sender === 'bot') {
-                  <span class="material-icons robot-icon">smart_toy</span>
-                } @else {
-                  <span class="material-icons user-icon">person</span>
+    @if (hasActiveInProgress()) {
+      <div class="resume-banner">
+        <span class="material-icons">play_circle</span>
+        <span>You have an interview in progress.</span>
+        <button class="resume-btn" (click)="resumeActiveInterview()">Resume Interview</button>
+      </div>
+    }
+
+    @if (lastSession(); as last) {
+      <div class="dashboard-grid">
+        <div class="left-col">
+          <app-card class="welcome-card">
+            <p class="welcome-text">
+              Your last session was:
+              <span class="data">
+                <strong style="color: var(--brand-primary);">{{ last.track }}</strong> 
+              <strong style="color: var(--brand-text-secondary); font-weight: 500; margin-top: 0px;">{{ last.difficulty }}</strong>
+              <strong>{{ last.targetRole }}</strong>
+              </span>
+            </p>
+            <div class="welcome-actions">
+              <button class="action-btn primary" (click)="viewLastScorecard()">
+                <span class="material-icons">assessment</span>
+                View Last Scorecard Report
+              </button>
+              <button class="action-btn secondary" (click)="setupNewInterview()">
+                <span class="material-icons">play_arrow</span>
+                Setup New Interview
+              </button>
+            </div>
+          </app-card>
+
+          <app-card class="history-card">
+            <div class="history-header">
+              <h3 class="history-title">Past Sessions</h3>
+              @if (selectedTrackFilter(); as filter) {
+                <span class="filter-label">
+                  {{ filter }}
+                  <button class="filter-clear" (click)="clearTrackFilter()">&times;</button>
+                </span>
+              }
+            </div>
+            @if (filteredHistory().length > 0) {
+              <ul class="history-list">
+                @for (item of filteredHistory(); track item.id) {
+                  <li class="history-item" (click)="loadScorecardById(item.id)" title="View scorecard">
+                    <span class="history-track">{{ item.track }}</span>
+                    <span class="history-difficulty">{{ item.difficulty }}</span>
+                    @if (item.letterGrade) {
+                      <span class="history-grade" [class]="gradeClass(item.letterGrade)">{{ item.letterGrade }}</span>
+                    }
+                    <span class="history-date">{{ item.createdAt | date:'shortDate' }}</span>
+                  </li>
                 }
-              </div>
-              <div class="bubble" [class]="msg.sender">
-                {{ msg.text }}
-              </div>
-            </div>
+              </ul>
+            } @else {
+              <p class="history-empty">No sessions found for this track.</p>
+            }
+          </app-card>
+        </div>
+
+        <div class="right-col">
+          @if (last.overallScore != null && last.letterGrade) {
+            <app-card class="last-score-card">
+              <span class="last-score-label">LAST SCORE</span>
+              <span class="last-score-grade">{{ last.letterGrade }}</span>
+              <span class="last-score-meta">{{ last.track }} &middot; {{ last.difficulty }}</span>
+            </app-card>
           }
-        </div>
 
-        <div class="input-area">
-          <button 
-            class="mic-btn" 
-            [class.active]="isListening" 
-            (click)="toggleListening()"
-            [title]="isListening ? 'Mute Microphone' : 'Enable Voice'"
-          >
-            <span class="material-icons">{{ isListening ? 'mic' : 'mic_off' }}</span>
-          </button>
-          <input 
-            type="text" 
-            placeholder="Or type your response..." 
-            [(ngModel)]="inputText"
-            (keydown.enter)="sendMessage()"
-            [disabled]="isBotTyping"
-          />
-          <button class="end-btn" (click)="endSession()">END</button>
+          <div class="tracks-sidebar">
+            <span class="tracks-sidebar-label">TRACKS</span>
+            @for (t of tracks; track t.id) {
+              <app-card class="track-card" [class.selected]="selectedTrackFilter() === t.id" (click)="selectTrackFromDashboard(t.id)">
+                <h4 class="track-card-title">{{ t.title }}</h4>
+                <p class="track-card-subtitle">{{ t.subtitle }}</p>
+                <span class="track-card-count">{{ trackCount(t.id) }} {{ trackCount(t.id) > 1 ? 'sessions' : 'session' }}</span>
+              </app-card>
+            }
+          </div>
         </div>
       </div>
-    </main>
+    }
+  }
 
-    <!-- Right column: Sidebar (Score + Tracks) -->
-    <aside class="sidebar-section">
-      <!-- Last Score Card -->
-      <div class="score-card">
-        <span class="widget-title">LAST SCORE</span>
-        <div class="score-details">
-          <div class="score-grade">{{ lastScore.grade }}</div>
-          <div class="score-track">{{ lastScore.track }}</div>
-        </div>
-        <p class="score-feedback">{{ lastScore.feedback }}</p>
+  <!-- ========== SETUP VIEW ========== -->
+  @if (view() === 'setup') {
+    <header class="interview-header">
+      <div class="header-left">
+        <span class="lab-label">AI INTERVIEW LAB</span>
+        <h1 class="page-title">Mock Interview</h1>
+        <p class="page-subtitle">Choose a track, difficulty, and target role to begin.</p>
       </div>
+    </header>
 
-      <!-- Tracks Card -->
-      <div class="tracks-card">
-        <span class="widget-title">TRACKS</span>
-        <div class="tracks-list">
-          @for (track of tracks; track track.id) {
-            <div 
-              class="track-item" 
-              [class.active]="activeTrackId === track.id"
-              (click)="selectTrack(track.id)"
+    <div class="setup-section">
+      <div class="setup-group">
+        <label class="setup-label">Track</label>
+        <div class="option-cards">
+          @for (t of options()?.tracks ?? []; track t.value) {
+            <div
+              class="option-card"
+              [class.selected]="selectedTrack() === t.value"
+              (click)="selectedTrack.set(t.value)"
             >
-              <h4 class="track-title">{{ track.title }}</h4>
-              <p class="track-subtitle">{{ track.subtitle }}</p>
-              <span class="track-sessions">{{ track.sessionsCount }} sessions</span>
+              <span class="option-card-title">{{ t.label }}</span>
             </div>
           }
         </div>
       </div>
-    </aside>
-  </div>
+
+      <div class="setup-group">
+        <label class="setup-label">Difficulty</label>
+        <div class="option-cards">
+          @for (d of options()?.difficulties ?? []; track d.value) {
+            <div
+              class="option-card"
+              [class.selected]="selectedDifficulty() === d.value"
+              (click)="selectedDifficulty.set(d.value)"
+            >
+              <span class="option-card-title">{{ d.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label class="setup-label" for="targetRoleInput">Target Role</label>
+        <input
+          id="targetRoleInput"
+          class="role-input"
+          type="text"
+          placeholder="e.g. Full Stack .NET Developer"
+          [ngModel]="targetRole()"
+          (ngModelChange)="targetRole.set($event)"
+          (keydown.enter)="startSession()"
+        />
+      </div>
+
+      <button
+        class="start-session-btn"
+        (click)="startSession()"
+        [disabled]="loading() || !selectedTrack() || !selectedDifficulty() || !targetRole().trim()"
+      >
+        @if (loading()) {
+          <span class="spinner"></span>
+          Starting...
+        } @else {
+          <span class="material-icons">play_arrow</span>
+          Start Session
+        }
+      </button>
+
+      @if (error()) {
+        <div class="error-box">{{ error() }}</div>
+      }
+    </div>
+  }
+
+  <!-- ========== CHAT VIEW ========== -->
+  @if (view() === 'chat') {
+    <header class="interview-header">
+      <div class="header-left">
+        <span class="lab-label">AI INTERVIEW LAB</span>
+        <h1 class="page-title">Mock Interview</h1>
+        <p class="page-subtitle">{{ session()?.track }} · {{ session()?.difficulty }} · {{ session()?.targetRole }}</p>
+      </div>
+      <div class="header-right">
+        <button class="end-btn" (click)="newSession()">Exit</button>
+      </div>
+    </header>
+
+    <div class="step-indicator">
+      <div class="step-dots">
+        @for (step of stepArray(); track step) {
+          <div class="step-dot-wrapper">
+            <div class="step-dot" [class]="stepClass(step)"></div>
+            @if (step < maxQuestions()) {
+              <div class="step-line" [class.completed]="step < questionsAsked()"></div>
+            }
+          </div>
+        }
+      </div>
+      @if (isCompleted()) {
+        <span class="step-label">Completed · {{ maxQuestions() }} questions</span>
+      } @else {
+        <span class="step-label">
+          Question <strong class="step-current-number">{{ questionsAsked() }}</strong> of {{ maxQuestions() }}
+        </span>
+      }
+    </div>
+
+    <div class="interview-grid">
+      <main class="transcript-section">
+        <div class="transcript-card">
+          <div class="card-header">
+            <span class="transcript-title">
+              Session #{{ session()?.id }}
+              @if (isCompleted()) {
+                <span class="completed-badge">COMPLETED</span>
+              }
+            </span>
+            @if (isBotTyping()) {
+              <div class="typing-indicator">
+                <span class="typing-text">AI IS THINKING...</span>
+              </div>
+            }
+          </div>
+
+          <div class="transcript-dialogue">
+            @for (msg of messages(); track msg.id) {
+              <div class="message-wrapper" [class]="messageSender(msg.role)">
+                <div class="avatar" [class]="messageSender(msg.role)">
+                  @if (messageSender(msg.role) === 'bot') {
+                    <span class="material-icons robot-icon">smart_toy</span>
+                  } @else {
+                    <span class="material-icons user-icon">person</span>
+                  }
+                </div>
+                <div class="bubble" [class]="messageSender(msg.role)">
+                  {{ msg.content }}
+                </div>
+              </div>
+            }
+            <div #scrollAnchor></div>
+
+            @if (isCompleted()) {
+              <div class="completion-banner">
+                <span class="material-icons">check_circle</span>
+                <span>Session complete! You answered all {{ session()?.maxQuestions }} questions.</span>
+                <button class="view-scorecard-btn" (click)="loadScorecard()" [disabled]="loading()">
+                  View Scorecard Report
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="input-area">
+            <button class="mic-btn" title="Voice input (coming soon)">
+              <span class="material-icons">mic</span>
+            </button>
+            <input
+              type="text"
+              placeholder="Type your answer..."
+              [ngModel]="inputText()"
+              (ngModelChange)="inputText.set($event)"
+              (keydown.enter)="sendMessage()"
+              [disabled]="isBotTyping() || isCompleted()"
+            />
+            <button class="send-btn" (click)="sendMessage()" [disabled]="!inputText().trim() || isBotTyping() || isCompleted()">
+              <span class="material-icons">send</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  }
+
+  <!-- ========== SCORECARD VIEW ========== -->
+  @if (view() === 'scorecard') {
+    <header class="interview-header">
+      <div class="header-left">
+        <span class="lab-label">AI INTERVIEW LAB</span>
+        <h1 class="page-title">Scorecard Report</h1>
+        <p class="page-subtitle">{{ session()?.track }} · {{ session()?.difficulty }} · {{ session()?.targetRole }}</p>
+      </div>
+      <div class="header-right">
+        <button class="start-session-btn" (click)="newSession()">
+          <span class="material-icons">refresh</span>
+          New Session
+        </button>
+      </div>
+    </header>
+
+    @if (scorecard(); as sc) {
+      <div class="scorecard-section">
+        <app-card class="scorecard-summary">
+          <div class="summary-grade">
+            <span class="grade-value">{{ sc.letterGrade }}</span>
+            <span class="grade-score">{{ sc.overallScore }}/100</span>
+          </div>
+          <p class="summary-text">{{ sc.overallSummary }}</p>
+        </app-card>
+
+        <div class="stat-cards-row">
+          <app-stat-card label="Overall Score" [value]="sc.overallScore + '/100'" icon="score" />
+          <app-stat-card label="Grade" [value]="sc.letterGrade" icon="grade" color="var(--brand-success)" />
+          <app-stat-card label="Questions" [value]="sc.questionAnalysis.length + '/6'" icon="quiz" />
+        </div>
+
+        <div class="scorecard-lists">
+          <app-card class="list-card">
+            <h3 class="list-title">Strengths</h3>
+            <ul class="list-items">
+              @for (s of sc.strengths; track s) {
+                <li><span class="material-icons list-icon positive">check_circle</span> {{ s }}</li>
+              }
+            </ul>
+          </app-card>
+
+          <app-card class="list-card">
+            <h3 class="list-title">Areas for Improvement</h3>
+            <ul class="list-items">
+              @for (a of sc.areasForImprovement; track a) {
+                <li><span class="material-icons list-icon negative">arrow_upward</span> {{ a }}</li>
+              }
+            </ul>
+          </app-card>
+        </div>
+
+        <div class="question-analysis">
+          <h2 class="analysis-title">Question Analysis</h2>
+          @for (qa of sc.questionAnalysis; track qa; let i = $index) {
+            <app-card class="analysis-card">
+              <div class="analysis-header">
+                <span class="analysis-number">Q{{ i + 1 }}</span>
+                <app-badge [text]="qa.rating" [variant]="ratingVariant(qa.rating)" />
+              </div>
+              <div class="analysis-pair">
+                <div class="analysis-item">
+                  <span class="analysis-label">Question</span>
+                  <p class="analysis-text">{{ qa.question }}</p>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Your Answer</span>
+                  <p class="analysis-text">{{ qa.answer }}</p>
+                </div>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Explanation</span>
+                <p class="analysis-text">{{ qa.explanation }}</p>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Suggestion</span>
+                <p class="analysis-text suggestion">{{ qa.improvementSuggestion }}</p>
+              </div>
+            </app-card>
+          }
+        </div>
+      </div>
+    }
+  }
 </div>

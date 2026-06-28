@@ -21,7 +21,5 @@ public class CV
 
     public virtual ICollection<Roadmap>? Roadmaps { get; set; } = new List<Roadmap>();
 
-    public virtual ICollection<mockInterview>? Interviews { get; set; } = new List<mockInterview>();
-
 
 }
