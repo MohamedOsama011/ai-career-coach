@@ -23,9 +23,11 @@ namespace AICareerCoach.BLL.DTOs.CV
     }
     public class FeedbackSuggestion
     {
-        public string Category { get; set; } = string.Empty;  
+        public string Category { get; set; } = string.Empty;
         public string Issue { get; set; } = string.Empty;
         public string Recommendation { get; set; } = string.Empty;
-        public string Priority { get; set; } = string.Empty;  
+        public string Priority { get; set; } = string.Empty;
+        public string OriginalText { get; set; } = string.Empty;
+        public string SuggestedText { get; set; } = string.Empty;
     }
 }

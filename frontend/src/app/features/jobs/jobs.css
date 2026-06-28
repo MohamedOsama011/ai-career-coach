@@ -420,6 +420,56 @@
   animation: explanationFadeIn 0.2s ease both;
 }
 
+.missing-skills-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 10px;
+}
+
+.missing-skills-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.missing-skills-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #92400E;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.missing-skills-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.skill-pill {
+  background: #FFFFFF;
+  border: 1px solid #FDE68A;
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+}
+
+.view-skills-link {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400E;
+  text-decoration: none;
+}
+
+.view-skills-link:hover { text-decoration: underline; }
+
 @keyframes explanationFadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }

@@ -58,11 +58,25 @@
           <span class="meta-label">Template Track</span>
           <span class="meta-value">{{ rm.templateTrack }}</span>
         </div>
+        @if (rm.matchScore !== null && rm.matchScore !== undefined) {
+          <div class="meta-item">
+            <span class="meta-label">Match</span>
+            <span class="meta-value match-score">{{ matchPercent(rm.matchScore) }}%</span>
+          </div>
+        }
         <div class="meta-item">
           <span class="meta-label">Generated</span>
           <span class="meta-value">{{ formatDate(rm.createdAt) }}</span>
         </div>
       </div>
+      @if (rm.templateSnapshot; as snapshot) {
+        @if (snapshot.description) {
+          <div class="why-roadmap">
+            <span class="why-label">Why this roadmap?</span>
+            <p class="why-description">{{ snapshot.description }}</p>
+          </div>
+        }
+      }
     }
   </header>
 

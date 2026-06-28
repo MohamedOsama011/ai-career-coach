@@ -123,6 +123,175 @@ namespace AICareerCoach.BLL.Services.AI
             }
         }
 
+        public async Task<List<SkillsCategoryDto>> GenerateGapAnalysisAsync(
+            string cvText, string targetRole, Roadmap template)
+        {
+            var trimmedCv = cvText.Length > 3000 ? cvText[..3000] : cvText;
+
+            var jsonStructure = """
+            {
+              "gapAnalysis": [
+                {
+                  "category": "Technical Skills or Soft Skills or Tools & Technologies",
+                  "skills": [
+                    {
+                      "skillName": "Skill name",
+                      "currentLevel": "None or Beginner or Intermediate or Advanced",
+                      "requiredLevel": "Beginner or Intermediate or Advanced",
+                      "gap": "Explain what the candidate is missing",
+                      "priority": "High or Medium or Low"
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+
+            var systemPrompt = $"""
+                You are an expert technical mentor. Re-assess the candidate's skills gap against the target role, considering the reference template track. Return ONLY a valid JSON object matching this exact structure (no markdown, no ```json tags, no backticks):
+
+                TARGET ROLE: {targetRole}
+                TEMPLATE TRACK: {template.Track}
+                TEMPLATE TITLE: {template.Title}
+
+                {jsonStructure}
+
+                All text must be in English.
+                """;
+
+            try
+            {
+                var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage(systemPrompt),
+                    new UserChatMessage($"CANDIDATE CV:\n{trimmedCv}")
+                };
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                var response = await _chatClient.CompleteChatAsync(
+                    messages, new ChatCompletionOptions { Temperature = 0.3f }, cts.Token);
+
+                var rawJson = response.Value.Content[0].Text.Trim()
+                    .Replace("```json", "").Replace("```", "");
+
+                var parsed = JsonSerializer.Deserialize<RoadmapLlmResponse>(rawJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return parsed?.GapAnalysis ?? GetFallback(template).GapAnalysis;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to rescan gap analysis, activating fallback.");
+                return GetFallback(template).GapAnalysis;
+            }
+        }
+
+        public async Task<List<RoadmapStepResultDto>> GenerateWeaknessStepsAsync(
+            List<string> weakAreas, string cvText, string targetRole)
+        {
+            if (weakAreas == null || weakAreas.Count == 0)
+                return new List<RoadmapStepResultDto>();
+
+            var trimmedCv = cvText.Length > 2000 ? cvText[..2000] : cvText;
+
+            var jsonStructure = """
+            {
+              "steps": [
+                {
+                  "order": 1,
+                  "title": "Short actionable title (max 8 words)",
+                  "description": "1-2 sentence explanation of what to do and why",
+                  "level": "Beginner or Intermediate or Advanced",
+                  "resources": ["https://example.com/relevant-resource"],
+                  "duration": "1 week or 2 weeks etc."
+                }
+              ]
+            }
+            """;
+
+            var weaknessList = string.Join("\n", weakAreas.Select((w, i) => $"{i + 1}. {w}"));
+
+            var systemPrompt = $"""
+                You are an expert technical mentor. For each weak area identified in a candidate's mock interview, produce ONE concrete, actionable roadmap step that the candidate can take to improve.
+
+                You must return ONLY a valid JSON object matching this exact structure (no markdown, no ```json tags, no backticks):
+
+                {jsonStructure}
+
+                The 'steps' array must contain EXACTLY {weakAreas.Count} item(s) — one per weak area, in the same order.
+
+                All text must be in English.
+                """;
+
+            var userPrompt = $"""
+                TARGET ROLE: {targetRole}
+
+                WEAK AREAS (one step per area):
+                {weaknessList}
+
+                CANDIDATE CV (for context, to tailor the advice):
+                {trimmedCv}
+                """;
+
+            try
+            {
+                var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage(systemPrompt),
+                    new UserChatMessage(userPrompt)
+                };
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                var response = await _chatClient.CompleteChatAsync(
+                    messages, new ChatCompletionOptions { Temperature = 0.3f }, cts.Token);
+
+                var rawJson = response.Value.Content[0].Text.Trim()
+                    .Replace("```json", "").Replace("```", "");
+
+                var parsed = JsonSerializer.Deserialize<RoadmapLlmResponse>(rawJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                var steps = parsed?.Steps ?? new List<RoadmapStepResultDto>();
+
+                if (steps.Count == 0)
+                    return BuildFallbackSteps(weakAreas);
+
+                if (steps.Count > weakAreas.Count)
+                    steps = steps.Take(weakAreas.Count).ToList();
+
+                for (int i = 0; i < steps.Count; i++)
+                {
+                    steps[i].Order = i + 1;
+                }
+
+                return steps;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to generate weakness steps via AI, activating fallback.");
+                return BuildFallbackSteps(weakAreas);
+            }
+        }
+
+        private static List<RoadmapStepResultDto> BuildFallbackSteps(List<string> weakAreas)
+        {
+            return weakAreas.Select((area, i) => new RoadmapStepResultDto
+            {
+                Order = i + 1,
+                Title = Truncate(area, 60),
+                Description = $"Work on improving: {area}. Review relevant learning resources and practice the concept.",
+                Level = "Intermediate",
+                Resources = new List<string>(),
+                Duration = "2 weeks"
+            }).ToList();
+        }
+
+        private static string Truncate(string s, int max)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            return s.Length <= max ? s : s[..max].TrimEnd() + "…";
+        }
+
         private static (List<RoadmapStepResultDto> Steps, List<SkillsCategoryDto> GapAnalysis) GetFallback(Roadmap template)
         {
             var steps = template.Steps.OrderBy(s => s.OrderIndex).Select(s => new RoadmapStepResultDto

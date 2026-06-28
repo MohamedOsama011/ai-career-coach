@@ -1,4 +1,5 @@
-﻿using AICareerCoach.DAL.Entities;
+﻿using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace AICareerCoach.BLL.Interfaces.AI
 {
     public interface ILlmExplanationService
     {
-        Task<Dictionary<int, string>> GenerateExplanationsAsync(string cvText, List<Job> topJobs);
+        Task<Dictionary<int, JobExplanationDto>> GenerateExplanationsAsync(string cvText, List<Job> topJobs);
     }
 }

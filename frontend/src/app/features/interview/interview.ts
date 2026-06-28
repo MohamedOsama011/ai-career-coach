@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, ViewChild, ElementRef, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { Card } from '../../shared/components/card/card';
 import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
@@ -33,6 +34,7 @@ export class Interview implements OnInit {
   options = signal<InterviewOptionsDto | null>(null);
   session = signal<InterviewSessionDto | null>(null);
   scorecard = signal<InterviewScorecardDto | null>(null);
+  scorecardSessionId = signal<number | null>(null);
   history = signal<InterviewHistoryItemDto[]>([]);
   selectedTrack = signal('');
   selectedTrackFilter = signal<string | null>(null);
@@ -42,6 +44,8 @@ export class Interview implements OnInit {
   isBotTyping = signal(false);
   loading = signal(false);
   error = signal<string | null>(null);
+  converting = signal(false);
+  convertError = signal<string | null>(null);
 
   @ViewChild('scrollAnchor') scrollAnchor!: ElementRef<HTMLElement>;
 
@@ -64,7 +68,7 @@ export class Interview implements OnInit {
     { id: 'SystemDesign', title: 'System Design', subtitle: 'Whiteboard mode' }
   ];
 
-  constructor(private interviewService: InterviewService, private cdr: ChangeDetectorRef) {
+  constructor(private interviewService: InterviewService, private cdr: ChangeDetectorRef, private router: Router) {
     effect(() => {
       this.messages();
       setTimeout(() => {
@@ -220,6 +224,7 @@ export class Interview implements OnInit {
     this.interviewService.getScorecard(sessionId).subscribe({
       next: (sc) => {
         this.scorecard.set(sc);
+        this.scorecardSessionId.set(sessionId);
         this.view.set('scorecard');
         this.loading.set(false);
       },
@@ -234,6 +239,7 @@ export class Interview implements OnInit {
     this.session.set(null);
     this.cdr.detectChanges();
     this.scorecard.set(null);
+    this.scorecardSessionId.set(null);
     this.selectedTrack.set('');
     this.selectedTrackFilter.set(null);
     this.selectedDifficulty.set('');
@@ -272,5 +278,27 @@ export class Interview implements OnInit {
     if (grade === 'B+' || grade === 'B') return 'grade-b';
     if (grade === 'C') return 'grade-c';
     return 'grade-default';
+  }
+
+  convertToRoadmap(): void {
+    const sessionId = this.scorecardSessionId();
+    if (sessionId === null || this.converting()) return;
+
+    this.converting.set(true);
+    this.convertError.set(null);
+
+    this.interviewService.convertScorecardToRoadmap(sessionId).subscribe({
+      next: () => {
+        this.converting.set(false);
+        this.router.navigate(['/roadmap']);
+      },
+      error: (err) => {
+        this.converting.set(false);
+        this.convertError.set(
+          err.error?.message
+            ?? 'Failed to convert scorecard. Please generate a roadmap first, then try again.'
+        );
+      }
+    });
   }
 }

@@ -5,6 +5,22 @@
       <h1 class="page-title">Skills Gap Analysis</h1>
       <p class="page-subtitle">Your current proficiency vs the requirement for your target role, based on your CV.</p>
     </div>
+    <div class="header-right" *ngIf="categories().length > 0">
+      <label class="sort-label">
+        Sort:
+        <select class="sort-select" [value]="sortMode()" (change)="onSortChange($event)">
+          <option value="priority">Priority</option>
+          <option value="alphabetical">Alphabetical</option>
+        </select>
+      </label>
+      <button class="rescan-btn"
+              (click)="rescan()"
+              [disabled]="rescanning()">
+        <span class="material-icons" *ngIf="!rescanning()">refresh</span>
+        <span class="material-icons spinning" *ngIf="rescanning()">sync</span>
+        {{ rescanning() ? 'Rescanning...' : 'Rescan Gaps' }}
+      </button>
+    </div>
   </header>
 
   <div class="legend-container">
@@ -18,25 +34,25 @@
     </div>
   </div>
 
-  @if (loading) {
+  @if (loading()) {
     <div class="empty-state">
       <span class="material-icons empty-icon">sync</span>
       <h2>Loading...</h2>
       <p>Fetching your skills gap analysis.</p>
     </div>
-  } @else if (hasServerError) {
+  } @else if (hasServerError()) {
     <div class="empty-state error">
       <span class="material-icons empty-icon">cloud_off</span>
       <h2>Connection Error</h2>
-      <p>{{ errorMessage }}</p>
+      <p>{{ errorMessage() }}</p>
     </div>
-  } @else if (noRoadmap) {
+  } @else if (noRoadmap()) {
     <div class="empty-state">
       <span class="material-icons empty-icon">explore</span>
       <h2>No Roadmap Yet</h2>
       <p>You haven't generated a Career Roadmap yet. Go to the Roadmap page, enter a target role, and generate one to see your skills gap analysis here.</p>
     </div>
-  } @else if (categories.length === 0) {
+  } @else if (categories().length === 0) {
     <div class="empty-state">
       <span class="material-icons empty-icon">insights</span>
       <h2>No Gap Data</h2>
@@ -44,7 +60,7 @@
     </div>
   } @else {
     <div class="skills-container">
-      @for (category of categories; track category.category) {
+      @for (category of sortedCategories(); track category.category) {
         <div class="category-section">
           <div class="category-header">
             <h2 class="category-title">{{ category.category }}</h2>

@@ -985,6 +985,63 @@
   color: var(--brand-primary);
 }
 
+.convert-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.convert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.convert-btn:hover:not(:disabled) {
+  background: var(--brand-primary-dark, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.convert-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.convert-btn .material-icons {
+  font-size: 18px;
+}
+
+.convert-btn .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: convert-spin 0.8s linear infinite;
+}
+
+@keyframes convert-spin {
+  to { transform: rotate(360deg); }
+}
+
+.convert-error {
+  color: #DC2626;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .option-cards {
     grid-template-columns: 1fr;

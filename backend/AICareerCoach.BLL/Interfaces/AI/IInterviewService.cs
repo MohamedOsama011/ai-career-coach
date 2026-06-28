@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Roadmap;
 
 namespace AICareerCoach.BLL.Interfaces.AI
 {
@@ -10,5 +11,6 @@ namespace AICareerCoach.BLL.Interfaces.AI
         Task<InterviewSessionDto> SubmitAnswerAsync(string userId, int sessionId, SubmitAnswerRequestDto request);
         Task<InterviewScorecardDto> GetScorecardAsync(string userId, int sessionId);
         Task<List<InterviewHistoryItemDto>> GetHistoryAsync(string userId);
+        Task<UserRoadmapDto> ConvertScorecardToRoadmapAsync(string userId, int sessionId);
     }
 }

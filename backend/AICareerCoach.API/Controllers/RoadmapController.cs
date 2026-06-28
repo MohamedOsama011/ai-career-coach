@@ -107,5 +107,33 @@ namespace AICareerCoach.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("rescan-gaps")]
+        //[Authorize]
+        public async Task<ActionResult<UserRoadmapDto>> RescanGaps()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _userRoadmapService.RescanGapAnalysisAsync(userId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while rescanning gaps.", error = ex.Message });
+            }
+        }
     }
 }

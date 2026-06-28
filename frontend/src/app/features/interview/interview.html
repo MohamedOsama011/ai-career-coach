@@ -349,6 +349,21 @@
             </app-card>
           }
         </div>
+
+        <div class="convert-actions">
+          <button class="convert-btn" (click)="convertToRoadmap()" [disabled]="converting()">
+            @if (converting()) {
+              <span class="spinner"></span>
+              <span>Converting...</span>
+            } @else {
+              <span class="material-icons">auto_awesome</span>
+              <span>Convert to roadmap steps</span>
+            }
+          </button>
+          @if (convertError()) {
+            <p class="convert-error">{{ convertError() }}</p>
+          }
+        </div>
       </div>
     }
   }

@@ -35,7 +35,7 @@ namespace AICareerCoach.BLL.Services.AI
                 .FirstOrDefaultAsync(r => r.Track == track);
         }
 
-        public async Task<Roadmap?> FindBestMatchAsync(float[] cvEmbedding)
+        public async Task<(Roadmap? Template, double Score)> FindBestMatchAsync(float[] cvEmbedding)
         {
             var templates = await _context.Roadmaps
                 .Include(r => r.Steps)
@@ -47,7 +47,7 @@ namespace AICareerCoach.BLL.Services.AI
                 )
                 .ToListAsync();
 
-            if (!templates.Any()) return null;
+            if (!templates.Any()) return (null, 0);
 
             double bestScore = -1;
             Roadmap? bestMatch = null;
@@ -62,7 +62,7 @@ namespace AICareerCoach.BLL.Services.AI
                 }
             }
 
-            return bestMatch;
+            return (bestMatch, bestScore);
         }
 
         private static double ComputeCosineSimilarity(float[] vectorA, float[] vectorB)

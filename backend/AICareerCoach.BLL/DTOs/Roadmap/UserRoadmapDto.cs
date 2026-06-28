@@ -8,5 +8,7 @@ namespace AICareerCoach.BLL.DTOs.Roadmap
         public List<RoadmapStepResultDto> Steps { get; set; } = new();
         public List<SkillsCategoryDto> GapAnalysis { get; set; } = new();
         public DateTime CreatedAt { get; set; }
+        public double? MatchScore { get; set; }
+        public TemplateSnapshotDto? TemplateSnapshot { get; set; }
     }
 }

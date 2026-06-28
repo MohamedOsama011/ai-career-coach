@@ -10,6 +10,7 @@ import {
   InterviewScorecardDto,
   InterviewHistoryItemDto
 } from '../models/interview.model';
+import { UserRoadmapDto } from '../models/roadmap.model';
 
 @Injectable({
   providedIn: 'root'
@@ -62,5 +63,10 @@ export class InterviewService {
       timeout(7000),
       catchError(() => of([]))
     );
+  }
+
+  convertScorecardToRoadmap(sessionId: number): Observable<UserRoadmapDto> {
+    return this.http.post<UserRoadmapDto>(`${this.apiUrl}/sessions/${sessionId}/convert-to-roadmap`, {})
+      .pipe(timeout(30000));
   }
 }

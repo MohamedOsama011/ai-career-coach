@@ -3,6 +3,8 @@ export interface FeedbackSuggestion {
   issue: string;
   recommendation: string;
   priority: 'High' | 'Medium' | 'Low';
+  originalText?: string;
+  suggestedText?: string;
 }
 
 export interface CvFeedback {

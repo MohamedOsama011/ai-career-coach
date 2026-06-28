@@ -18,4 +18,9 @@ export class SkillsService {
       map(roadmap => roadmap.gapAnalysis)
     );
   }
+
+  rescanGapAnalysis(): Observable<UserRoadmapDto> {
+    return this.http.post<UserRoadmapDto>(`${this.apiUrl}/rescan-gaps`, {})
+      .pipe(timeout(30000));
+  }
 }

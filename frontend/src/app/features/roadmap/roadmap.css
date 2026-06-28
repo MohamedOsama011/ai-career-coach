@@ -157,6 +157,36 @@
   color: var(--brand-text);
 }
 
+.meta-value.match-score {
+  color: #2563EB;
+  font-weight: 800;
+}
+
+.why-roadmap {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  border-radius: 10px;
+}
+
+.why-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.why-description {
+  font-size: 13px;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* ─── Skeleton ─── */
 .skeleton-container {
   display: flex;

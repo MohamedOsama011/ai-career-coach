@@ -94,4 +94,8 @@ export class Roadmap implements OnInit {
       year: 'numeric', month: 'short', day: 'numeric'
     });
   }
+
+  matchPercent(score: number): number {
+    return Math.max(0, Math.min(100, Math.round(score * 100)));
+  }
 }

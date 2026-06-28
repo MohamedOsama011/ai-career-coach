@@ -8,12 +8,51 @@ import { InterviewService } from '../services/interview.service';
 import { JobsService } from '../services/jobs.service';
 import { ProfileResponse } from '../models/user.model';
 import { CvFeedback } from '../models/cv-feedback.model';
-import { UserRoadmapDto } from '../models/roadmap.model';
+import { UserRoadmapDto, SkillGapItemDto, SkillsCategoryDto } from '../models/roadmap.model';
 import { InterviewSessionDto, InterviewHistoryItemDto } from '../models/interview.model';
 import { JobRecommendationResult } from '../models/job.model';
 
+export type SkillsSortMode = 'priority' | 'alphabetical';
+const SKILLS_SORT_KEY = 'skillsSort';
+
 @Injectable({ providedIn: 'root' })
 export class CareerProfileStore {
+  private static readonly PRIORITY_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 };
+  private static readonly LEVEL_RANK: Record<string, number> = {
+    None: 0, Beginner: 1, Intermediate: 2, Advanced: 3, Expert: 4
+  };
+
+  static sortByPriority<T extends SkillGapItemDto>(skills: T[]): T[] {
+    return [...skills].sort((a, b) => {
+      const pa = CareerProfileStore.PRIORITY_ORDER[a.priority] ?? 99;
+      const pb = CareerProfileStore.PRIORITY_ORDER[b.priority] ?? 99;
+      if (pa !== pb) return pa - pb;
+      return (CareerProfileStore.LEVEL_RANK[a.currentLevel] ?? 0)
+           - (CareerProfileStore.LEVEL_RANK[b.currentLevel] ?? 0);
+    });
+  }
+
+  static sortByName<T extends SkillGapItemDto>(skills: T[]): T[] {
+    return [...skills].sort((a, b) => a.skillName.localeCompare(b.skillName));
+  }
+
+  static sortCategories(categories: SkillsCategoryDto[], mode: SkillsSortMode): SkillsCategoryDto[] {
+    return categories.map(cat => ({
+      ...cat,
+      skills: mode === 'priority'
+        ? CareerProfileStore.sortByPriority(cat.skills)
+        : CareerProfileStore.sortByName(cat.skills)
+    }));
+  }
+
+  static readSortMode(): SkillsSortMode {
+    return localStorage.getItem(SKILLS_SORT_KEY) === 'alphabetical' ? 'alphabetical' : 'priority';
+  }
+
+  static writeSortMode(mode: SkillsSortMode): void {
+    localStorage.setItem(SKILLS_SORT_KEY, mode);
+  }
+
   private readonly _profile = signal<ProfileResponse | null>(null);
   private readonly _cvFeedback = signal<CvFeedback | null>(null);
   private readonly _userRoadmap = signal<UserRoadmapDto | null>(null);
@@ -115,5 +154,6 @@ export class CareerProfileStore {
     this.refreshCvFeedback();
     this.refreshRoadmap();
     this.refreshJobs();
+    this.refreshProfile();
   }
 }

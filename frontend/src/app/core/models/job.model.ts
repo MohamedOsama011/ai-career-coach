@@ -22,6 +22,7 @@ export interface JobRecommendation {
   location: string;
   matchScore: number;
   matchExplanation: string;
+  missingSkills?: string[];
 }
 
 export interface JobRecommendationResult {

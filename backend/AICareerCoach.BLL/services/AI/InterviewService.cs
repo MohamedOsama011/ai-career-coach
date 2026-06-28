@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
@@ -14,15 +15,21 @@ namespace AICareerCoach.BLL.Services.AI
     {
         private readonly AICareerCoachDbContext _context;
         private readonly IInterviewLlmService _llmService;
+        private readonly IRoadmapLlmService _roadmapLlmService;
+        private readonly IUserRoadmapService _userRoadmapService;
         private readonly ILogger<InterviewService> _logger;
 
         public InterviewService(
             AICareerCoachDbContext context,
             IInterviewLlmService llmService,
+            IRoadmapLlmService roadmapLlmService,
+            IUserRoadmapService userRoadmapService,
             ILogger<InterviewService> logger)
         {
             _context = context;
             _llmService = llmService;
+            _roadmapLlmService = roadmapLlmService;
+            _userRoadmapService = userRoadmapService;
             _logger = logger;
         }
 
@@ -403,6 +410,38 @@ namespace AICareerCoach.BLL.Services.AI
                 CreatedAt = session.CreatedAt,
                 CompletedAt = session.CompletedAt
             };
+        }
+
+        public async Task<UserRoadmapDto> ConvertScorecardToRoadmapAsync(string userId, int sessionId)
+        {
+            var scorecard = await GetScorecardAsync(userId, sessionId);
+
+            if (scorecard.AreasForImprovement == null || scorecard.AreasForImprovement.Count == 0)
+                throw new InvalidOperationException(
+                    "No areas for improvement to convert. The candidate performed strongly on this interview.");
+
+            var cv = await _context.CVs
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.UploadedAt)
+                .FirstOrDefaultAsync();
+
+            var cvText = cv?.ExtractedData ?? string.Empty;
+
+            var session = await _context.InterviewSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
+
+            var targetRole = session?.TargetRole ?? "Software Engineer";
+
+            var newSteps = await _roadmapLlmService.GenerateWeaknessStepsAsync(
+                scorecard.AreasForImprovement, cvText, targetRole);
+
+            var updatedRoadmap = await _userRoadmapService.AppendWeaknessStepsAsync(userId, newSteps);
+
+            _logger.LogInformation(
+                "Converted scorecard for session {SessionId} to {Count} roadmap steps for user {UserId}.",
+                sessionId, newSteps.Count, userId);
+
+            return updatedRoadmap;
         }
 
         private static InterviewScorecardDto MapScorecardToDto(InterviewScorecard sc)

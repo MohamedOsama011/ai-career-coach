@@ -1,4 +1,5 @@
 ﻿using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.AspNetCore.Authorization;
@@ -124,6 +125,32 @@ namespace AICareerCoach.API.Controllers
 
             var result = await _interviewService.GetHistoryAsync(userId);
             return Ok(result);
+        }
+
+        [HttpPost("sessions/{sessionId}/convert-to-roadmap")]
+        public async Task<ActionResult<UserRoadmapDto>> ConvertToRoadmap(int sessionId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _interviewService.ConvertScorecardToRoadmapAsync(userId, sessionId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while converting the scorecard.", error = ex.Message });
+            }
         }
     }
 }

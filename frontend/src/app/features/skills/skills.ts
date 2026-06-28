@@ -1,53 +1,82 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SkillsService } from '../../core/services/skills.service';
+import { CareerProfileStore, SkillsSortMode } from '../../core/store/career-profile-store';
 import { SkillsCategoryDto } from '../../core/models/roadmap.model';
 
 @Component({
   selector: 'app-skills',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './skills.html',
   styleUrl: './skills.css',
 })
 export class Skills implements OnInit {
-  categories: SkillsCategoryDto[] = [];
-  loading = true;
-  errorMessage = '';
-  noRoadmap = false;
-  hasServerError = false;
+  private skillsService = inject(SkillsService);
 
-  constructor(private skillsService: SkillsService, private cdr: ChangeDetectorRef) {}
+  categories = signal<SkillsCategoryDto[]>([]);
+  loading = signal(true);
+  rescanning = signal(false);
+  errorMessage = signal('');
+  noRoadmap = signal(false);
+  hasServerError = signal(false);
+
+  sortMode = signal<SkillsSortMode>(CareerProfileStore.readSortMode());
+
+  sortedCategories = computed(() =>
+    CareerProfileStore.sortCategories(this.categories(), this.sortMode())
+  );
 
   ngOnInit(): void {
     this.loadSkillsAnalysis();
   }
 
   loadSkillsAnalysis(): void {
-    this.loading = true;
-    this.errorMessage = '';
-    this.noRoadmap = false;
-    this.hasServerError = false;
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.noRoadmap.set(false);
+    this.hasServerError.set(false);
 
     this.skillsService.getSkillsAnalysis().subscribe({
       next: (data) => {
-        this.loading = false;
-        this.categories = data || [];
-        this.cdr.detectChanges();
+        this.loading.set(false);
+        this.categories.set(data || []);
       },
       error: (err) => {
-        this.loading = false;
-        this.categories = [];
+        this.loading.set(false);
+        this.categories.set([]);
         const status = err.status;
         if (status === 404) {
-          this.noRoadmap = true;
-          this.errorMessage = 'لم يتم إنشاء خطة بعد. اذهب إلى صفحة المسار الوظيفي لإنشاء واحدة.';
+          this.noRoadmap.set(true);
+          this.errorMessage.set('لم يتم إنشاء خطة بعد. اذهب إلى صفحة المسار الوظيفي لإنشاء واحدة.');
         } else if (status === 0) {
-          this.hasServerError = true;
-          this.errorMessage = 'تعذر الاتصال بالخادم. تأكد من تشغيل Backend ثم حاول مرة أخرى.';
+          this.hasServerError.set(true);
+          this.errorMessage.set('تعذر الاتصال بالخادم. تأكد من تشغيل Backend ثم حاول مرة أخرى.');
         } else {
-          this.hasServerError = true;
-          this.errorMessage = `حدث خطأ (${status || 'غير معروف'}). حاول مرة أخرى لاحقاً.`;
+          this.hasServerError.set(true);
+          this.errorMessage.set(`حدث خطأ (${status || 'غير معروف'}). حاول مرة أخرى لاحقاً.`);
         }
-        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  setSort(mode: SkillsSortMode): void {
+    this.sortMode.set(mode);
+    CareerProfileStore.writeSortMode(mode);
+  }
+
+  onSortChange(event: Event): void {
+    this.setSort((event.target as HTMLSelectElement).value as SkillsSortMode);
+  }
+
+  rescan(): void {
+    this.rescanning.set(true);
+    this.skillsService.rescanGapAnalysis().subscribe({
+      next: (updated) => {
+        this.categories.set(updated.gapAnalysis);
+        this.rescanning.set(false);
+      },
+      error: () => {
+        this.rescanning.set(false);
       }
     });
   }
