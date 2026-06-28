@@ -1,5 +1,6 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
+using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.Interfaces;
@@ -57,6 +58,9 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddHttpContextAccessor();
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -76,7 +80,30 @@ namespace AICareerCoach.API
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine("AUTH FAILED");
+                        Console.WriteLine(context.Exception.GetType().Name);
+                        Console.WriteLine(context.Exception.Message);
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnChallenge = context =>
+                    {
+                        Console.WriteLine("CHALLENGE");
+                        Console.WriteLine(context.Error);
+                        Console.WriteLine(context.ErrorDescription);
+                        return Task.CompletedTask;
+                    }
+                };
+
             });
+
+            builder.Services.AddAuthorization();
 
             builder.Services.AddCors(options =>
             {
@@ -90,7 +117,23 @@ namespace AICareerCoach.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                string[] roles = { "Admin", "User" };
+
+                foreach (var role in roles)
+                {
+                    if (!await roleManager.RoleExistsAsync(role))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(role));
+                    }
+                }
+            }
 
             if (app.Environment.IsDevelopment())
             {
