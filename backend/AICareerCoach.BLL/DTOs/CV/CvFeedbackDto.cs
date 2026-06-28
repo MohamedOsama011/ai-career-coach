@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuestPDF.Fluent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +27,16 @@ namespace AICareerCoach.BLL.DTOs.CV
         public string Category { get; set; } = string.Empty;  
         public string Issue { get; set; } = string.Empty;
         public string Recommendation { get; set; } = string.Empty;
-        public string Priority { get; set; } = string.Empty;  
+        public string Priority { get; set; } = string.Empty;
+
+        internal void Description(TextDescriptor descriptor)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void Title(TextDescriptor descriptor)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

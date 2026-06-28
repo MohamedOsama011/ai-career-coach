@@ -1,4 +1,5 @@
-﻿using AICareerCoach.BLL.Interfaces;
+﻿using AICareerCoach.BLL.DTOs.CV;
+using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,7 @@ namespace AICareerCoach.API.Controllers
         private readonly ICvFeedbackService _feedbackService;
         private readonly UserManager<User> _userManager;
         private readonly IPdfReportService _pdfReportService;
+        private CvFeedbackDto feedback;
 
         public AiController(
             ICvFeedbackService feedbackService,
@@ -54,7 +56,7 @@ namespace AICareerCoach.API.Controllers
 
                 var feedback = await _feedbackService.GetFeedbackAsync(userId);
 
-                var pdf = _pdfReportService.GenerateCvAnalysisReport(feedback);
+                var pdf = _pdfReportService.GenerateCvReport(feedback);
 
                 return File(
                     pdf,
@@ -63,7 +65,11 @@ namespace AICareerCoach.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.ToString());
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    details = ex.ToString()
+                });
             }
         }
     }

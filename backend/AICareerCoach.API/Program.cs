@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using QuestPDF.Infrastructure;
+using System.Text;
 
 
 namespace AICareerCoach.API
@@ -24,8 +24,7 @@ namespace AICareerCoach.API
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            QuestPDF.Settings.License = LicenseType.Community;
-            builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community; builder.Services.AddDbContext<AICareerCoachDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -39,7 +38,6 @@ namespace AICareerCoach.API
             })
             .AddEntityFrameworkStores<AICareerCoachDbContext>()
             .AddDefaultTokenProviders();
-            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
             builder.Services.AddScoped(typeof(IBaserepo<>), typeof(GenericRepo<>));
             builder.Services.AddScoped(typeof(IBaseservice<>), typeof(Genericservice<>));
             builder.Services.AddScoped<IJobRepository, JobRepository>();
@@ -49,18 +47,16 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
-            
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
             builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
-
             builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
             builder.Services.AddScoped<ILlmExplanationService, LlmExplanationService>();
             builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
-
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
