@@ -9,6 +9,7 @@ using Org.BouncyCastle.Tsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -21,11 +22,13 @@ namespace AICareerCoach.BLL.services
         private readonly HttpClient httpClient;
         private readonly IConfiguration configuration;
         private readonly AICareerCoachDbContext context;
-        public FawaterakService(HttpClient _httpClient, IConfiguration _configuration, AICareerCoachDbContext _context)
+        private readonly IFawaterakTokenService fawaterakTokenService;
+        public FawaterakService(HttpClient _httpClient, IConfiguration _configuration, AICareerCoachDbContext _context ,IFawaterakTokenService _ifa)
         {
             httpClient = _httpClient;
             configuration = _configuration;
-            context = _context; 
+            context = _context;
+            fawaterakTokenService= _ifa;
         }
         public async Task<Generalresponse> createpayment(datasendedwhenclickonsubscriptionDTO dto)
         {
@@ -100,9 +103,12 @@ namespace AICareerCoach.BLL.services
 
        public async Task<GetPaymentMethodsResponseDTO> getallpaymentmethods()
         {
+            //var accesstoken=await fawaterakTokenService.GetAccessTokenAsync();
+            
+            configuration["Fawaterak:ApiKey"] = await fawaterakTokenService.GetAccessTokenAsync();
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v2/getPaymentmethods");
-            request.Headers.Add("Authorization", configuration["Fawaterak:ApiKey"]);
+            request.Headers.Authorization =new AuthenticationHeaderValue("Bearer",  configuration["Fawaterak:ApiKey"]);
             request.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
             var response = await httpClient.SendAsync(request);
@@ -142,6 +148,8 @@ namespace AICareerCoach.BLL.services
         }
         public  async Task<excutepaymentgeneralResponseDTO>  Excutepayment(FawaterakDto Dto)
         {
+            configuration["Fawaterak:ApiKey"] = await fawaterakTokenService.GetAccessTokenAsync();
+
             var requestbody = new
             {
                 payment_method_id=Dto.payment_method_id,

@@ -64,6 +64,7 @@ namespace AICareerCoach.API
 
             builder.Services.AddScoped<ISubsription,SubscriptionService>();
             builder.Services.AddHttpClient<Ifawaterak,FawaterakService>();
+            builder.Services.AddMemoryCache();
             builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
 
 

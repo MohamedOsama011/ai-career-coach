@@ -1,5 +1,6 @@
 ﻿using AICareerCoach.BLL.DTOs.Fawaterak;
 using AICareerCoach.BLL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -16,27 +17,30 @@ namespace AICareerCoach.BLL.services
     
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache cache;
 
-        private string? _accessToken;
-        private DateTime _expiresAt = DateTime.MinValue;
+        
 
         public FawaterakTokenService(
             HttpClient httpClient,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IMemoryCache memoryCache)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            cache = memoryCache;
         }
 
         public async Task<string> GetAccessTokenAsync()
         {
-            // Return cached token if still valid
-            if (!string.IsNullOrWhiteSpace(_accessToken) &&
-                DateTime.UtcNow < _expiresAt)
-            {
-                return _accessToken;
-            }
 
+            //private const string CacheKey = "FawaterakToken";
+            
+            if (cache.TryGetValue("FawaterakToken", out string token))
+            {
+                return token;
+
+            }
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
                 _configuration["Fawaterak:TokenUrl"]);
@@ -68,13 +72,25 @@ namespace AICareerCoach.BLL.services
             {
                 throw new Exception("Fawaterak returned an invalid access token.");
             }
+            if (tokenResponse.ExpiresIn > 60)
+            {
+                cache.Set("FawaterakToken",
+                          tokenResponse.AccessToken,
+                          TimeSpan.FromSeconds(tokenResponse.ExpiresIn - 60));
+            }
+            else
+            {
+                cache.Set("FawaterakToken",
+                          tokenResponse.AccessToken,
+                          TimeSpan.FromSeconds(tokenResponse.ExpiresIn));
+            }
 
-            _accessToken = tokenResponse.AccessToken;
 
-            // Refresh one minute before expiry
-            _expiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn - 60);
+            return tokenResponse.AccessToken; ;
 
-            return _accessToken;
+            //using singlton pattern to store the token and its expiration time it's a semple way
+            //_accessToken = tokenResponse.AccessToken;
+            //_expiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn - 60);
         }
     }
 }
