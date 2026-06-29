@@ -13,6 +13,7 @@ namespace AICareerCoach.BLL.Interfaces.AI
         Task<List<InterviewHistoryItemDto>> GetHistoryAsync(string userId);
         Task<UserRoadmapDto> ConvertScorecardToRoadmapAsync(string userId, int sessionId);
         Task DeleteSessionAsync(string userId, int sessionId);
+        Task<HintResponseDto> GetHintAsync(string userId, int sessionId);
 
         /// <summary>
         /// Streaming variant of <see cref="SubmitAnswerAsync"/>. Persists the

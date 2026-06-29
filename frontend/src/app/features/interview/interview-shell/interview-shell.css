@@ -3,5 +3,60 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-7);
+}
+
+:host .interview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-6);
+}
+
+:host .header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+:host .lab-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+:host .page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brand-text);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+:host .page-subtitle {
+  font-size: 15px;
+  color: var(--brand-text-secondary);
+  margin: 0;
+}
+
+:host .header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+:host > :not(.interview-page-container) {
+  animation: viewFadeIn var(--duration-slow) var(--ease-out) both;
+}
+
+:host .interview-page-container > :first-child {
+  animation: viewFadeIn var(--duration-slow) var(--ease-out) both;
 }

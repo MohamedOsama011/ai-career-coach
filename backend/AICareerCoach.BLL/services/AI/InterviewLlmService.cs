@@ -257,8 +257,8 @@ namespace AICareerCoach.BLL.Services.AI
             string targetRole,
             string cvExcerpt)
         {
-            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole, cvExcerpt);
             var interviewerQuestionCount = transcript.Count(m => m.Role == MessageRole.Interviewer);
+            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole, cvExcerpt, interviewerQuestionCount);
             string? lastFailureReason = null;
 
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
@@ -382,7 +382,7 @@ namespace AICareerCoach.BLL.Services.AI
         }
 
         private static string BuildScorecardSystemPrompt(
-            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string cvExcerpt)
+            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string cvExcerpt, int questionCount)
         {
             var cvSection = string.IsNullOrWhiteSpace(cvExcerpt)
                 ? ""
@@ -422,7 +422,7 @@ namespace AICareerCoach.BLL.Services.AI
                 - B (70-79): Good — adequate but needs improvement in several areas
                 - C (<70): Needs significant improvement
 
-                Ensure questionAnalysis has exactly the same number of items as question-answer pairs in the transcript.{{cvSection}}
+                The transcript contains exactly {{questionCount}} question-answer pair(s). Your questionAnalysis array MUST have exactly {{questionCount}} items.{{cvSection}}
                 """;
         }
 
@@ -442,6 +442,97 @@ namespace AICareerCoach.BLL.Services.AI
             }
 
             return messages;
+        }
+
+        public async Task<HintResponseDto> GenerateHintAsync(
+            InterviewTrack track,
+            InterviewDifficulty difficulty,
+            string targetRole,
+            string currentQuestion,
+            string summaryContextJson)
+        {
+            var systemPrompt = BuildHintSystemPrompt(track, difficulty, targetRole, summaryContextJson);
+            var messages = new List<ChatMessage>
+            {
+                new SystemChatMessage(systemPrompt),
+                new UserChatMessage($"Current interview question:\n{currentQuestion}")
+            };
+
+            for (int attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                try
+                {
+                    _logger.LogInformation("Generating hint for {Track}/{Difficulty} — Attempt {Attempt}", track, difficulty, attempt);
+
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutSeconds));
+                    var response = await _chatClient.CompleteChatAsync(messages, new ChatCompletionOptions
+                    {
+                        Temperature = 0.6f,
+                        MaxOutputTokenCount = 250
+                    }, cts.Token);
+
+                    var text = response.Value.Content[0].Text?.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                        return new HintResponseDto { Hint = text };
+                }
+                catch (Exception ex) when (IsFatal(ex))
+                {
+                    _logger.LogError(ex, "Fatal error in hint generation (attempt {Attempt}): {Error}. Throwing.", attempt, ex.Message);
+                    throw;
+                }
+                catch (Exception ex) when (attempt < MaxRetries)
+                {
+                    _logger.LogWarning("Hint generation attempt {Attempt} failed: {Error}. Retrying...", attempt, ex.Message);
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Hint generation failed after {MaxRetries} attempts.", MaxRetries);
+                }
+            }
+
+            return new HintResponseDto
+            {
+                Hint = "Try breaking the problem into smaller parts and explaining your reasoning out loud."
+            };
+        }
+
+        private static string BuildHintSystemPrompt(
+            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string summaryContextJson)
+        {
+            var trackRubric = track switch
+            {
+                InterviewTrack.Behavioral => """
+                    Track: Behavioral Interview
+                    Focus: Leadership, teamwork, conflict resolution, STAR method, cultural fit.
+                    """,
+                InterviewTrack.TechnicalCoding => """
+                    Track: Technical Coding Interview
+                    Focus: Data structures, algorithms, problem-solving approach, time/space complexity.
+                    """,
+                InterviewTrack.SystemDesign => """
+                    Track: System Design Interview
+                    Focus: Architecture trade-offs, scalability, database design, distributed systems.
+                    """,
+                _ => ""
+            };
+
+            return $"""
+                You are a warm, encouraging career coach helping a candidate prepare for a {track} mock interview for a {targetRole} role at {difficulty} level.
+
+                {trackRubric}
+
+                The candidate is stuck on the current interview question. Provide a single, concise hint that:
+                - Is encouraging and supportive in tone.
+                - Nudges the candidate toward the right mental model or framework.
+                - Does NOT give the full answer or a complete solution.
+                - Is 1-2 sentences long, max 40 words.
+
+                CANDIDATE CONTEXT:
+                Target Role: {targetRole}
+                CV Context (session-start excerpt):
+                {summaryContextJson}
+                """;
         }
 
         private static InterviewScorecardDto ParseScorecardJson(string rawJson)

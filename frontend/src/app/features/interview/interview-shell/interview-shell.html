@@ -13,7 +13,8 @@
       (selectTrackFilter)="selectTrackFromDashboard($event)"
       (clearTrackFilter)="clearTrackFilter()"
       (loadScorecardById)="loadScorecardById($event)"
-      (requestDeleteSession)="requestDeleteSession($event)">
+      (requestDeleteSession)="requestDeleteSession($event)"
+      [userName]="userName()">
     </app-interview-dashboard>
   }
 
@@ -43,7 +44,7 @@
       (inputTextChange)="setInputText($event)"
       (sendMessage)="sendMessage()"
       (retryLastAnswer)="retryLastAnswer()"
-      (exit)="newSession()"
+      (exit)="requestExit()"
       (loadScorecard)="loadScorecard()">
     </app-interview-chat>
   }
@@ -71,4 +72,15 @@
   [variant]="'danger'"
   (confirm)="confirmDeleteSession()"
   (cancel)="cancelDelete()"
+/>
+
+<app-confirm-modal
+  [open]="pendingExit()"
+  [title]="'End this interview session?'"
+  [message]="'Your progress is saved automatically. You can resume this interview or view your scorecard from the dashboard.'"
+  [confirmText]="'End session'"
+  [cancelText]="'Cancel'"
+  [variant]="'default'"
+  (confirm)="confirmExit()"
+  (cancel)="cancelExit()"
 />

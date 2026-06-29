@@ -46,6 +46,7 @@ export interface InterviewHistoryItemDto {
   targetRole: string;
   status: string;
   questionsAsked: number;
+  maxQuestions: number;
   overallScore: number | null;
   letterGrade: string | null;
   overallSummary: string | null;
@@ -59,6 +60,10 @@ export interface QuestionAnalysisItemDto {
   rating: string;
   explanation: string;
   improvementSuggestion: string;
+}
+
+export interface HintResponseDto {
+  hint: string;
 }
 
 export interface InterviewScorecardDto {

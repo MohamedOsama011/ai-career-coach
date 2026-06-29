@@ -1,7 +1,8 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Card } from '../../../shared/components/card/card';
 import { InterviewHistoryItemDto, InterviewOptionItem } from '../../../core/models/interview.model';
+import { RoleNormalizerService } from '../../../core/services/role-normalizer.service';
 
 const TRACK_LABELS: Record<string, string> = {
   Behavioral: 'Behavioral',
@@ -22,12 +23,15 @@ const TRACK_SUBTITLES: Record<string, string> = {
   styleUrl: './interview-dashboard.css',
 })
 export class InterviewDashboard {
+  private readonly roleNormalizer = inject(RoleNormalizerService);
+
   history = input.required<InterviewHistoryItemDto[]>();
   lastSession = input<InterviewHistoryItemDto | null>(null);
   hasActiveInProgress = input<boolean>(false);
   selectedTrackFilter = input<string | null>(null);
   trackOptions = input.required<InterviewOptionItem[]>();
   trackCounts = input.required<Record<string, number>>();
+  userName = input<string>('');
 
   setupNew = output<void>();
   viewLastScorecard = output<void>();
@@ -42,6 +46,10 @@ export class InterviewDashboard {
     if (!filter) return this.history();
     return this.history().filter(item => item.track === filter);
   });
+
+  displayRole(role: string | undefined | null): string {
+    return this.roleNormalizer.normalize(role);
+  }
 
   trackLabel(value: string): string {
     return TRACK_LABELS[value] ?? value;

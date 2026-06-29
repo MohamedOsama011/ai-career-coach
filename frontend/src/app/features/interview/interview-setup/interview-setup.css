@@ -1,37 +1,29 @@
-.interview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 24px;
-}
-
 .header-left {
   display: flex;
   flex-direction: column;
 }
-
-.lab-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--brand-text-secondary);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+.header-left span {
+    font-size: 11px; 
+    font-weight: 700;
+  color: #9CA3AF;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
 }
-
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: var(--brand-text);
-  margin: 0 0 8px 0;
+  color: #111827;
+  margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: var(--brand-text-secondary);
-  margin: 0;
+  color: #6B7280;
+  margin: 0 0 18px 0;
 }
+
 
 .setup-section {
   display: flex;
@@ -61,11 +53,11 @@
 
 .option-card {
   border: 1px solid var(--brand-border);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
   cursor: pointer;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) var(--ease-in-out);
   background: var(--brand-card);
 }
 
@@ -95,9 +87,9 @@
   padding: 14px 16px;
   font-size: 15px;
   border: 1px solid var(--brand-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-base) var(--ease-in-out);
   box-sizing: border-box;
 }
 
@@ -112,13 +104,13 @@
   padding: 14px 28px;
   font-size: 15px;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background 0.2s ease;
+  transition: background var(--duration-base) var(--ease-in-out);
   align-self: flex-start;
 }
 
@@ -148,7 +140,7 @@
   background: #FEF2F2;
   color: #991B1B;
   border: 1px solid #FECACA;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 14px 18px;
   font-size: 14px;
 }

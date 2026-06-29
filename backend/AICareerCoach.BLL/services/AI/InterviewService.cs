@@ -37,19 +37,21 @@ namespace AICareerCoach.BLL.Services.AI
 
         public Task<InterviewOptionsDto> GetOptionsAsync()
         {
-            var tracks = new List<InterviewOptionItem>
-            {
-                new() { Value = "Behavioral", Label = "Behavioral" },
-                new() { Value = "TechnicalCoding", Label = "Technical Coding" },
-                new() { Value = "SystemDesign", Label = "System Design" }
-            };
+            var tracks = Enum.GetValues<InterviewTrack>()
+                .Select(v => new InterviewOptionItem
+                {
+                    Value = v.ToString(),
+                    Label = EnumDisplay.Name(v)
+                })
+                .ToList();
 
-            var difficulties = new List<InterviewOptionItem>
-            {
-                new() { Value = "Junior", Label = "Junior" },
-                new() { Value = "MidLevel", Label = "Mid-Level" },
-                new() { Value = "Senior", Label = "Senior" }
-            };
+            var difficulties = Enum.GetValues<InterviewDifficulty>()
+                .Select(v => new InterviewOptionItem
+                {
+                    Value = v.ToString(),
+                    Label = EnumDisplay.Name(v)
+                })
+                .ToList();
 
             return Task.FromResult(new InterviewOptionsDto
             {
@@ -152,6 +154,41 @@ namespace AICareerCoach.BLL.Services.AI
             if (session is null) return null;
 
             return await LoadSessionDtoAsync(session.Id);
+        }
+
+        public async Task<HintResponseDto> GetHintAsync(string userId, int sessionId)
+        {
+            var session = await _context.InterviewSessions
+                .Include(s => s.Messages)
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
+                ?? throw new KeyNotFoundException("Session not found.");
+
+            if (session.Status != InterviewStatus.Active)
+            {
+                _logger.LogWarning("GetHint blocked: session {SessionId} status is {Status}, not Active.", session.Id, session.Status);
+                throw new InvalidOperationException("Session is not active.");
+            }
+
+            var currentQuestion = session.Messages
+                .Where(m => m.Role == MessageRole.Interviewer)
+                .OrderByDescending(m => m.TurnNumber)
+                .FirstOrDefault()
+                ?.Content;
+
+            if (string.IsNullOrWhiteSpace(currentQuestion))
+            {
+                _logger.LogWarning("GetHint blocked: session {SessionId} has no interviewer question.", session.Id);
+                throw new InvalidOperationException("No active question to provide a hint for.");
+            }
+
+            _logger.LogInformation("Generating hint for session {SessionId}, question turn {Turn}.", session.Id, session.QuestionsAsked);
+
+            return await _llmService.GenerateHintAsync(
+                session.Track,
+                session.Difficulty,
+                session.TargetRole,
+                currentQuestion,
+                session.SummaryContextJson ?? "{}");
         }
 
         public async Task<InterviewSessionDto> SubmitAnswerAsync(string userId, int sessionId, SubmitAnswerRequestDto request)
@@ -442,6 +479,8 @@ namespace AICareerCoach.BLL.Services.AI
             _logger.LogInformation(
                 "Streamed question for session {SessionId}, turn {Turn}, usedFallback={UsedFallback}.",
                 sessionIdLocal, nextTurn, usedFallback);
+
+            yield return new StreamTokenDto { Type = "done" };
         }
 
         public async Task DeleteSessionAsync(string userId, int sessionId)
@@ -565,11 +604,12 @@ namespace AICareerCoach.BLL.Services.AI
                 .Select(s => new InterviewHistoryItemDto
                 {
                     Id = s.Id,
-                    Track = s.Track.ToString(),
-                    Difficulty = s.Difficulty.ToString(),
+                    Track = EnumDisplay.Name(s.Track),
+                    Difficulty = EnumDisplay.Name(s.Difficulty),
                     TargetRole = s.TargetRole,
                     Status = s.Status.ToString(),
                     QuestionsAsked = s.QuestionsAsked,
+                    MaxQuestions = s.MaxQuestions,
                     OverallScore = s.Scorecard != null ? s.Scorecard.OverallScore : null,
                     LetterGrade = s.Scorecard != null ? s.Scorecard.LetterGrade : null,
                     OverallSummary = s.Scorecard != null ? s.Scorecard.OverallSummary : null,
@@ -591,8 +631,8 @@ namespace AICareerCoach.BLL.Services.AI
             return new InterviewSessionDto
             {
                 Id = session.Id,
-                Track = session.Track.ToString(),
-                Difficulty = session.Difficulty.ToString(),
+                Track = EnumDisplay.Name(session.Track),
+                Difficulty = EnumDisplay.Name(session.Difficulty),
                 TargetRole = session.TargetRole,
                 Status = session.Status.ToString(),
                 QuestionsAsked = session.QuestionsAsked,

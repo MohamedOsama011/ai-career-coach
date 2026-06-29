@@ -2,7 +2,7 @@
   <div class="header-left">
     <span class="lab-label">AI INTERVIEW LAB</span>
     <h1 class="page-title">Mock Interview</h1>
-    <p class="page-subtitle">Welcome back! Ready for your next challenge?</p>
+    <p class="page-subtitle">{{ userName() ? 'Welcome back, ' + userName() + '! Ready for your next challenge?' : 'Welcome back! Ready for your next challenge?' }}</p>
   </div>
 </header>
 
@@ -36,7 +36,7 @@
                 <span class="welcome-data-sep">&middot;</span>
                 <span class="welcome-data-difficulty">{{ last.difficulty }}</span>
               </span>
-              <span class="welcome-data-role">{{ last.targetRole }}</span>
+              <span class="welcome-data-role">{{ displayRole(last.targetRole) }}</span>
             </span>
           </p>
           <div class="welcome-actions">

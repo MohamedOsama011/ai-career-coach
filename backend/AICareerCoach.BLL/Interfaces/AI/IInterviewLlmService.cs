@@ -36,5 +36,16 @@ namespace AICareerCoach.BLL.Interfaces.AI
             InterviewDifficulty difficulty,
             string targetRole,
             string cvExcerpt);
+
+        /// <summary>
+        /// Generates a concise, encouraging hint for the current interview
+        /// question without giving away the full answer.
+        /// </summary>
+        Task<HintResponseDto> GenerateHintAsync(
+            InterviewTrack track,
+            InterviewDifficulty difficulty,
+            string targetRole,
+            string currentQuestion,
+            string summaryContextJson);
     }
 }

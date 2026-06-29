@@ -5,7 +5,7 @@
     <p class="page-subtitle">
       {{ trackLabel(session()?.track ?? viewedScorecardMeta()?.track ?? '') }}
       · {{ session()?.difficulty ?? viewedScorecardMeta()?.difficulty }}
-      · {{ session()?.targetRole ?? viewedScorecardMeta()?.targetRole }}
+      · {{ displayRole() }}
     </p>
   </div>
   <div class="header-right">
@@ -33,7 +33,7 @@
     <div class="stat-cards-row">
       <app-stat-card label="Overall Score" [value]="sc.overallScore + '/100'" icon="score" />
       <app-stat-card label="Grade" [value]="sc.letterGrade" icon="grade" color="var(--brand-success)" />
-      <app-stat-card label="Questions" [value]="sc.questionAnalysis.length + '/6'" icon="quiz" />
+      <app-stat-card label="Questions" [value]="sc.questionAnalysis.length + '/' + (session()?.maxQuestions ?? viewedScorecardMeta()?.maxQuestions ?? 6)" icon="quiz" />
     </div>
 
     <div class="scorecard-lists">
@@ -57,7 +57,25 @@
     </div>
 
     <div class="question-analysis">
-      <h2 class="analysis-title">Question Analysis</h2>
+      <div class="question-analysis-header">
+        <h2 class="analysis-title">Question Analysis</h2>
+        <div class="convert-actions">
+          <button class="convert-btn" (click)="onConvertToRoadmap()" [disabled]="converting()" aria-label="Convert scorecard weak areas to roadmap steps">
+            @if (converting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Converting...</span>
+            } @else {
+              <span class="material-icons" aria-hidden="true">auto_awesome</span>
+              <span>Convert to roadmap steps</span>
+            }
+          </button>
+          @if (convertError()) {
+            <p class="convert-error" role="alert">{{ convertError() }}</p>
+          }
+        </div>
+      </div>
+      
+      
       @for (qa of sc.questionAnalysis; track qa; let i = $index) {
         <app-card class="analysis-card">
           <div class="analysis-header">
@@ -86,19 +104,6 @@
       }
     </div>
 
-    <div class="convert-actions">
-      <button class="convert-btn" (click)="onConvertToRoadmap()" [disabled]="converting()" aria-label="Convert scorecard weak areas to roadmap steps">
-        @if (converting()) {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Converting...</span>
-        } @else {
-          <span class="material-icons" aria-hidden="true">auto_awesome</span>
-          <span>Convert to roadmap steps</span>
-        }
-      </button>
-      @if (convertError()) {
-        <p class="convert-error" role="alert">{{ convertError() }}</p>
-      }
-    </div>
+    
   </div>
 }

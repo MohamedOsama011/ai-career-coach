@@ -186,6 +186,28 @@ namespace AICareerCoach.API.Controllers
             }
         }
 
+        [HttpPost("sessions/{sessionId}/hint")]
+        public async Task<ActionResult<HintResponseDto>> GetHint(int sessionId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            try
+            {
+                var result = await _interviewService.GetHintAsync(userId, sessionId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("sessions/{sessionId}/scorecard")]
         public async Task<ActionResult<InterviewScorecardDto>> GetScorecard(int sessionId)
         {

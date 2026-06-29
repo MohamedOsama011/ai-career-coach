@@ -10,7 +10,8 @@ import {
   InterviewScorecardDto,
   InterviewHistoryItemDto,
   InterviewStreamCallbacks,
-  InterviewStreamEvent
+  InterviewStreamEvent,
+  HintResponseDto
 } from '../models/interview.model';
 import { UserRoadmapDto } from '../models/roadmap.model';
 import { AuthService } from './auth.service';
@@ -77,6 +78,11 @@ export class InterviewService {
   deleteSession(sessionId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/sessions/${sessionId}`)
       .pipe(timeout(7000));
+  }
+
+  requestHint(sessionId: number): Observable<HintResponseDto> {
+    return this.http.post<HintResponseDto>(`${this.apiUrl}/sessions/${sessionId}/hint`, {})
+      .pipe(timeout(15000));
   }
 
   submitAnswerStream(

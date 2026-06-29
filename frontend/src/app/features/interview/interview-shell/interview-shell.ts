@@ -8,6 +8,8 @@ import { InterviewSetup } from '../interview-setup/interview-setup';
 import { InterviewChat } from '../interview-chat/interview-chat';
 import { InterviewScorecardComponent } from '../interview-scorecard/interview-scorecard';
 import { InterviewService } from '../../../core/services/interview.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { SpeechSynthesisService } from '../../../core/services/speech-synthesis.service';
 import {
   InterviewMessageDto,
   InterviewOptionsDto,
@@ -33,7 +35,13 @@ import {
 })
 export class InterviewShell implements OnInit {
   private readonly interviewService = inject(InterviewService);
+  readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly speechSynthesis = inject(SpeechSynthesisService);
+
+  private sentenceBuffer = '';
+
+  userName = computed(() => this.authService.getUserFullName());
 
   view = signal<'setup' | 'dashboard' | 'chat' | 'scorecard'>('setup');
   options = signal<InterviewOptionsDto | null>(null);
@@ -54,6 +62,7 @@ export class InterviewShell implements OnInit {
   lastSubmittedAnswer = signal<string | null>(null);
   viewedScorecardMeta = signal<InterviewHistoryItemDto | null>(null);
   pendingDeleteId = signal<number | null>(null);
+  pendingExit = signal(false);
   deleting = signal(false);
   streamingBubble = signal<{ text: string; usedFallback: boolean } | null>(null);
   private streamController: AbortController | null = null;
@@ -185,6 +194,7 @@ export class InterviewShell implements OnInit {
   private sendMessageStreamed(text: string, currentSession: InterviewSessionDto): void {
     let usedFallback = false;
     let streamedContent = '';
+    this.sentenceBuffer = '';
     const nextTurn = currentSession.questionsAsked + 1;
 
     this.streamController = this.interviewService.submitAnswerStream(
@@ -194,8 +204,22 @@ export class InterviewShell implements OnInit {
         onToken: (content) => {
           streamedContent += content;
           this.streamingBubble.set({ text: streamedContent, usedFallback });
+
+          this.sentenceBuffer += content;
+          const sentences = this.extractSentences(this.sentenceBuffer);
+          if (sentences.complete.length > 0) {
+            for (const sentence of sentences.complete) {
+              this.speechSynthesis.speak(sentence);
+            }
+            this.sentenceBuffer = sentences.remaining;
+          }
         },
         onDone: () => {
+          if (this.sentenceBuffer.trim()) {
+            this.speechSynthesis.speak(this.sentenceBuffer.trim());
+            this.sentenceBuffer = '';
+          }
+
           this.streamingBubble.set(null);
           this.isBotTyping.set(false);
           this.lastSubmittedAnswer.set(null);
@@ -213,8 +237,11 @@ export class InterviewShell implements OnInit {
           // dropped from the signal even though it's safely in the DB.
           const liveSession = this.session();
           if (liveSession) {
+            const isFinalTurn = nextTurn >= (liveSession.maxQuestions ?? 6);
             this.session.set({
               ...liveSession,
+              status: isFinalTurn ? 'Completed' : liveSession.status,
+              completedAt: isFinalTurn ? new Date().toISOString() : liveSession.completedAt,
               questionsAsked: nextTurn,
               messages: [...liveSession.messages, newMessage]
             });
@@ -248,6 +275,24 @@ export class InterviewShell implements OnInit {
         }
       }
     );
+  }
+
+  private extractSentences(text: string): { complete: string[]; remaining: string } {
+    const sentenceEndPattern = /[.!?]+(\s|$)/g;
+    const sentences: string[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = sentenceEndPattern.exec(text)) !== null) {
+      const sentence = text.slice(lastIndex, match.index + match[0].length).trim();
+      if (sentence) {
+        sentences.push(sentence);
+      }
+      lastIndex = match.index + match[0].length;
+    }
+
+    const remaining = text.slice(lastIndex);
+    return { complete: sentences, remaining };
   }
 
   retryLastAnswer(): void {
@@ -338,6 +383,19 @@ export class InterviewShell implements OnInit {
   cancelDelete(): void {
     if (this.deleting()) return;
     this.pendingDeleteId.set(null);
+  }
+
+  requestExit(): void {
+    this.pendingExit.set(true);
+  }
+
+  cancelExit(): void {
+    this.pendingExit.set(false);
+  }
+
+  confirmExit(): void {
+    this.pendingExit.set(false);
+    this.newSession();
   }
 
   confirmDeleteSession(): void {

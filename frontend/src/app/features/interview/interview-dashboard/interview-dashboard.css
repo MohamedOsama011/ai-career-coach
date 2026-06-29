@@ -1,48 +1,41 @@
-.interview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 24px;
-}
-
 .header-left {
   display: flex;
   flex-direction: column;
 }
-
-.lab-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--brand-text-secondary);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+.header-left span {
+    font-size: 11px; 
+    font-weight: 700;
+  color: #9CA3AF;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
 }
-
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: var(--brand-text);
-  margin: 0 0 8px 0;
+  color: #111827;
+  margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: var(--brand-text-secondary);
-  margin: 0;
+  color: #6B7280;
+  margin: 0 0 18px 0;
 }
+
 
 .resume-banner {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   background: #EFF6FF;
   border: 1px solid #BFDBFE;
-  border-radius: 12px;
-  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  padding: 10px var(--space-5);
   font-size: 14px;
   color: #1E40AF;
+  margin-bottom: 16px;
 }
 
 .resume-banner .material-icons {
@@ -176,13 +169,13 @@
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 12px 22px;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) var(--ease-in-out);
   border: none;
 }
 
