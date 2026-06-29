@@ -133,7 +133,11 @@
                       <span class="skill-pill">{{ skill }}</span>
                     }
                   </div>
-                  <a class="view-skills-link" routerLink="/skills">View in Skills Gap →</a>
+                  <a class="view-skills-link"
+                     [routerLink]="['/skills']"
+                     [queryParams]="{ fromJob: job.title, highlight: job.missingSkills.join(',') }">
+                    View in Skills Gap →
+                  </a>
                 </div>
               }
               </article>

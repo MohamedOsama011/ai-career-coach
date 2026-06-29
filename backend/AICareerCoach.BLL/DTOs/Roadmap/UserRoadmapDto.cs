@@ -10,5 +10,8 @@ namespace AICareerCoach.BLL.DTOs.Roadmap
         public DateTime CreatedAt { get; set; }
         public double? MatchScore { get; set; }
         public TemplateSnapshotDto? TemplateSnapshot { get; set; }
+        public string? CurrentSeniority { get; set; }
+        public string? TargetSeniority { get; set; }
+        public string? SeniorityGap { get; set; }
     }
 }

@@ -24,6 +24,7 @@ export class InterviewSetup {
 
   tracks = computed<InterviewOptionItem[]>(() => this.options()?.tracks ?? []);
   difficulties = computed<InterviewOptionItem[]>(() => this.options()?.difficulties ?? []);
+  focusAreas = computed<string[]>(() => this.options()?.focusAreas ?? []);
   canStart = computed(() =>
     !!this.selectedTrack() && !!this.selectedDifficulty() && !!this.targetRole().trim()
   );

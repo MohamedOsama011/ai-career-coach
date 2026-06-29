@@ -34,6 +34,24 @@
     </div>
   </div>
 
+  @if (showBanner()) {
+    <div class="context-banner" role="status">
+      <span class="material-icons context-banner-icon">work</span>
+      <div class="context-banner-text">
+        <span class="context-banner-label">Skills relevant to</span>
+        <strong class="context-banner-job">{{ contextJobTitle() }}</strong>
+        @if (skillsNotInRoadmap().length > 0) {
+          <span class="context-banner-note">{{ skillsNotInRoadmap().length }} of {{ highlightedSkills().size }} skill(s) are not yet in your roadmap.</span>
+        } @else {
+          <span class="context-banner-note positive">All listed skills are already in your gap analysis below.</span>
+        }
+      </div>
+      <button class="context-banner-close" (click)="dismissBanner()" type="button" aria-label="Dismiss">
+        <span class="material-icons" aria-hidden="true">close</span>
+      </button>
+    </div>
+  }
+
   @if (loading()) {
     <div class="empty-state">
       <span class="material-icons empty-icon">sync</span>
@@ -67,11 +85,14 @@
           </div>
           <div class="category-skills">
             @for (skill of category.skills; track skill.skillName) {
-              <div class="skill-row">
+              <div class="skill-row" [class.highlighted]="isHighlighted(skill.skillName)">
                 <div class="skill-left">
                   <div class="skill-info">
                     <span class="skill-name">{{ skill.skillName }}</span>
                     <span class="priority-badge" [class]="priorityClass(skill.priority)">{{ skill.priority }}</span>
+                    @if (isHighlighted(skill.skillName)) {
+                      <span class="skill-from-badge">From job</span>
+                    }
                   </div>
                   <p class="skill-gap">{{ skill.gap }}</p>
                 </div>
@@ -95,5 +116,22 @@
         </div>
       }
     </div>
+
+    @if (hasContext() && skillsNotInRoadmap().length > 0) {
+      <div class="not-in-roadmap-section">
+        <div class="not-in-roadmap-header">
+          <span class="material-icons">school</span>
+          <h2>Not in your roadmap yet</h2>
+        </div>
+        <p class="not-in-roadmap-subtitle">
+          These skills from <strong>{{ contextJobTitle() }}</strong> aren't tracked in your current roadmap. Consider adding them via a rescan or a fresh roadmap generation.
+        </p>
+        <div class="not-in-roadmap-pills">
+          @for (skill of skillsNotInRoadmap(); track skill) {
+            <span class="not-in-roadmap-pill">{{ skill }}</span>
+          }
+        </div>
+      </div>
+    }
   }
 </div>

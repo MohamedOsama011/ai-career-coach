@@ -6,6 +6,19 @@
   </div>
 </header>
 
+@if (focusAreas().length > 0) {
+  <div class="focus-banner" role="status">
+    <span class="material-icons focus-banner-icon" aria-hidden="true">insights</span>
+    <div class="focus-banner-content">
+      <span class="focus-banner-title">Personalized focus areas</span>
+      <span class="focus-banner-text">
+        This interview will prioritize probing your identified gaps:
+        {{ focusAreas().join(', ') }}
+      </span>
+    </div>
+  </div>
+}
+
 <div class="setup-section">
   <div class="setup-group">
     <label class="setup-label" id="setup-track-label">Track</label>

@@ -40,7 +40,11 @@ namespace AICareerCoach.API.Controllers
         [HttpGet("options")]
         public async Task<ActionResult<InterviewOptionsDto>> GetOptions()
         {
-            var result = await _interviewService.GetOptionsAsync();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var result = await _interviewService.GetOptionsAsync(userId);
             return Ok(result);
         }
 

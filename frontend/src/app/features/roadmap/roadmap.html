@@ -68,7 +68,19 @@
           <span class="meta-label">Generated</span>
           <span class="meta-value">{{ formatDate(rm.createdAt) }}</span>
         </div>
+        @if (rm.currentSeniority && rm.targetSeniority) {
+          <div class="meta-item seniority-chip">
+            <span class="meta-label">Level</span>
+            <span class="meta-value seniority-value">{{ rm.currentSeniority }} → {{ rm.targetSeniority }}</span>
+          </div>
+        }
       </div>
+      @if (rm.seniorityGap) {
+        <div class="seniority-gap-note">
+          <span class="material-icons">trending_up</span>
+          <span>{{ rm.seniorityGap }}</span>
+        </div>
+      }
       @if (rm.templateSnapshot; as snapshot) {
         @if (snapshot.description) {
           <div class="why-roadmap">

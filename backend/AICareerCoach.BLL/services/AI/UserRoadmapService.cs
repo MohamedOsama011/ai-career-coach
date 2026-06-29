@@ -67,10 +67,12 @@ namespace AICareerCoach.BLL.Services.AI
                 ?? throw new InvalidOperationException(
                     $"Template track '{roadmap.TemplateTrack}' no longer exists.");
 
-            var gapAnalysis = await _llmService.GenerateGapAnalysisAsync(
+            var (gapAnalysis, assessment) = await _llmService.GenerateGapAnalysisAsync(
                 cv.ExtractedData, roadmap.TargetRole, template);
 
             roadmap.GapAnalysisJson = JsonSerializer.Serialize(gapAnalysis);
+            if (assessment is not null)
+                roadmap.AssessmentJson = JsonSerializer.Serialize(assessment);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
@@ -160,7 +162,7 @@ namespace AICareerCoach.BLL.Services.AI
                     throw new InvalidOperationException("No matching roadmap template found.");
             }
 
-            var (steps, gapAnalysis) = await _llmService.GenerateRoadmapAsync(cvText, request.TargetRole, template);
+            var (steps, gapAnalysis, assessment) = await _llmService.GenerateRoadmapAsync(cvText, request.TargetRole, template);
 
             var snapshot = new TemplateSnapshotDto
             {
@@ -190,6 +192,7 @@ namespace AICareerCoach.BLL.Services.AI
                 TemplateSnapshotJson = JsonSerializer.Serialize(snapshot),
                 StepsJson = JsonSerializer.Serialize(steps),
                 GapAnalysisJson = JsonSerializer.Serialize(gapAnalysis),
+                AssessmentJson = assessment is not null ? JsonSerializer.Serialize(assessment) : null,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -214,6 +217,12 @@ namespace AICareerCoach.BLL.Services.AI
                     ? null
                     : JsonSerializer.Deserialize<TemplateSnapshotDto>(r.TemplateSnapshotJson));
 
+            CandidateAssessmentDto? assessment = null;
+            if (!string.IsNullOrEmpty(r.AssessmentJson))
+            {
+                assessment = JsonSerializer.Deserialize<CandidateAssessmentDto>(r.AssessmentJson);
+            }
+
             return new UserRoadmapDto
             {
                 Id = r.Id,
@@ -223,7 +232,10 @@ namespace AICareerCoach.BLL.Services.AI
                 GapAnalysis = gapAnalysis,
                 CreatedAt = r.CreatedAt,
                 MatchScore = matchScore,
-                TemplateSnapshot = snapshot
+                TemplateSnapshot = snapshot,
+                CurrentSeniority = assessment?.CurrentSeniority,
+                TargetSeniority = assessment?.TargetSeniority,
+                SeniorityGap = assessment?.SeniorityGap
             };
         }
 

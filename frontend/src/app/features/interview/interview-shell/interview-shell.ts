@@ -196,6 +196,12 @@ export class InterviewShell implements OnInit {
     let streamedContent = '';
     this.sentenceBuffer = '';
     const nextTurn = currentSession.questionsAsked + 1;
+    // The session completes when the candidate answers the LAST question, i.e.
+    // when the current questionsAsked already equals maxQuestions. The backend
+    // marks Completed + sends `done` with NO streamed tokens in that case (no
+    // next question is generated). On intermediate turns the backend streams
+    // the next question then sends `done`, so we must append it + bump the turn.
+    const isFinalTurn = currentSession.questionsAsked >= (currentSession.maxQuestions ?? 6);
 
     this.streamController = this.interviewService.submitAnswerStream(
       currentSession.id,
@@ -225,23 +231,32 @@ export class InterviewShell implements OnInit {
           this.lastSubmittedAnswer.set(null);
           this.streamController = null;
 
-          const newMessage: InterviewMessageDto = {
-            id: -Date.now(),
-            role: 'Interviewer',
-            turnNumber: nextTurn,
-            content: streamedContent,
-            createdAt: ''
-          };
           // Use the live session (has the optimistic candidate message) instead
           // of the closure-captured one — otherwise the optimistic message is
           // dropped from the signal even though it's safely in the DB.
           const liveSession = this.session();
-          if (liveSession) {
-            const isFinalTurn = nextTurn >= (liveSession.maxQuestions ?? 6);
+          if (!liveSession) return;
+
+          if (isFinalTurn) {
+            // Backend marked the session Completed and sent no new question.
+            // Keep questionsAsked at maxQuestions (do NOT bump) and do not
+            // append an interviewer message — there is none.
             this.session.set({
               ...liveSession,
-              status: isFinalTurn ? 'Completed' : liveSession.status,
-              completedAt: isFinalTurn ? new Date().toISOString() : liveSession.completedAt,
+              status: 'Completed',
+              completedAt: new Date().toISOString()
+            });
+          } else {
+            // Intermediate turn: append the streamed next question + advance.
+            const newMessage: InterviewMessageDto = {
+              id: -Date.now(),
+              role: 'Interviewer',
+              turnNumber: nextTurn,
+              content: streamedContent,
+              createdAt: ''
+            };
+            this.session.set({
+              ...liveSession,
               questionsAsked: nextTurn,
               messages: [...liveSession.messages, newMessage]
             });

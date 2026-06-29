@@ -7,6 +7,7 @@ using OpenAI;
 using OpenAI.Chat;
 using System.ClientModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 
@@ -255,10 +256,10 @@ namespace AICareerCoach.BLL.Services.AI
             InterviewTrack track,
             InterviewDifficulty difficulty,
             string targetRole,
-            string cvExcerpt)
+            string summaryContextJson)
         {
             var interviewerQuestionCount = transcript.Count(m => m.Role == MessageRole.Interviewer);
-            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole, cvExcerpt, interviewerQuestionCount);
+            var systemPrompt = BuildScorecardSystemPrompt(track, difficulty, targetRole, summaryContextJson, interviewerQuestionCount);
             string? lastFailureReason = null;
 
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
@@ -330,6 +331,132 @@ namespace AICareerCoach.BLL.Services.AI
             };
         }
 
+        /// <summary>
+        /// Parses the session's <paramref name="summaryContextJson"/> snapshot
+        /// and builds a structured "PERSONALIZED FOCUS AREAS" section for the
+        /// question-gen / hint / scorecard prompts. Returns empty string when
+        /// no focus-area data is present (graceful degradation — the interview
+        /// works with CV-only context if no feedback/roadmap/jobs were available).
+        /// </summary>
+        private static string BuildFocusAreasSection(string summaryContextJson)
+        {
+            if (string.IsNullOrWhiteSpace(summaryContextJson))
+                return string.Empty;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(summaryContextJson);
+                var root = doc.RootElement;
+
+                var sb = new StringBuilder();
+
+                // CV weaknesses
+                if (root.TryGetProperty("cvWeaknesses", out var weaknesses) && weaknesses.ValueKind == JsonValueKind.Array)
+                {
+                    var items = weaknesses.EnumerateArray()
+                        .Select(e => e.GetString())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Take(5)
+                        .ToList();
+                    if (items.Count > 0)
+                    {
+                        sb.AppendLine("- CV-identified weaknesses:");
+                        foreach (var w in items)
+                            sb.AppendLine($"    • {w}");
+                    }
+                }
+
+                // Missing keywords
+                if (root.TryGetProperty("missingKeywords", out var keywords) && keywords.ValueKind == JsonValueKind.Array)
+                {
+                    var items = keywords.EnumerateArray()
+                        .Select(e => e.GetString())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Take(5)
+                        .ToList();
+                    if (items.Count > 0)
+                    {
+                        sb.AppendLine("- Missing CV keywords:");
+                        sb.AppendLine($"    • {string.Join(", ", items)}");
+                    }
+                }
+
+                // High-priority skill gaps
+                if (root.TryGetProperty("highPriorityGaps", out var gaps) && gaps.ValueKind == JsonValueKind.Array)
+                {
+                    var gapItems = gaps.EnumerateArray()
+                        .Where(e => e.TryGetProperty("skill", out _) )
+                        .Take(5)
+                        .ToList();
+                    if (gapItems.Count > 0)
+                    {
+                        sb.AppendLine("- High-priority skill gaps (from roadmap):");
+                        foreach (var g in gapItems)
+                        {
+                            var skill = g.GetProperty("skill").GetString() ?? "";
+                            var current = g.TryGetProperty("currentLevel", out var cl) ? cl.GetString() ?? "" : "";
+                            var required = g.TryGetProperty("requiredLevel", out var rl) ? rl.GetString() ?? "" : "";
+                            sb.AppendLine($"    • {skill}: {current} → {required}");
+                        }
+                    }
+                }
+
+                // Seniority gap
+                if (root.TryGetProperty("seniorityGap", out var sg) && sg.ValueKind == JsonValueKind.String)
+                {
+                    var gap = sg.GetString();
+                    if (!string.IsNullOrWhiteSpace(gap))
+                        sb.AppendLine($"- Seniority gap: {gap}");
+                }
+
+                // Job missing skills
+                if (root.TryGetProperty("jobMissingSkills", out var jobSkills) && jobSkills.ValueKind == JsonValueKind.Array)
+                {
+                    var items = jobSkills.EnumerateArray()
+                        .Select(e => e.GetString())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Take(8)
+                        .ToList();
+                    if (items.Count > 0)
+                    {
+                        sb.AppendLine("- Skills required by target jobs (not yet in CV):");
+                        sb.AppendLine($"    • {string.Join(", ", items)}");
+                    }
+                }
+
+                var result = sb.ToString().Trim();
+                return string.IsNullOrEmpty(result) ? string.Empty : result;
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the <c>cvExcerpt</c> field from the session's context JSON
+        /// and truncates it to <paramref name="maxChars"/>. Returns empty string
+        /// on any parse failure.
+        /// </summary>
+        private static string ExtractCvExcerptFromContext(string summaryContextJson, int maxChars)
+        {
+            if (string.IsNullOrWhiteSpace(summaryContextJson))
+                return string.Empty;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(summaryContextJson);
+                var excerpt = doc.RootElement.TryGetProperty("cvExcerpt", out var el) && el.ValueKind == JsonValueKind.String
+                    ? el.GetString() ?? string.Empty
+                    : string.Empty;
+                return excerpt.Length > maxChars ? excerpt[..maxChars] : excerpt;
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
+        }
+
         private static string BuildQuestionSystemPrompt(
             InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string summaryContextJson)
         {
@@ -358,6 +485,18 @@ namespace AICareerCoach.BLL.Services.AI
                 _ => ""
             };
 
+            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, 4000);
+            var focusSection = BuildFocusAreasSection(summaryContextJson);
+            var focusBlock = string.IsNullOrEmpty(focusSection)
+                ? string.Empty
+                : $"""
+
+                   PERSONALIZED FOCUS AREAS (derived from the candidate's CV feedback, skills-gap roadmap, and job recommendations):
+                   {focusSection}
+
+                   PRIORITIZE probing the candidate's identified gaps. Aim for 2-3 questions tied to these focus areas across the interview. Do NOT ask ONLY gap questions — mix with standard track questions. If a gap is listed, frame a question that tests that specific skill or area.
+                   """;
+
             return $"""
                 You are a professional technical interviewer conducting a mock interview. Your role is to ask one question at a time, listen to the candidate's answer, and then ask a relevant follow-up or move to a new topic.
 
@@ -374,22 +513,35 @@ namespace AICareerCoach.BLL.Services.AI
                 - Be professional but conversational.
                 - Do NOT repeat previously asked questions.
 
-                CANDIDATE CONTEXT (target role + CV excerpt):
+                CANDIDATE CONTEXT:
                 Target Role: {targetRole}
-                CV Context (4,000-char excerpt taken at session start):
-                {summaryContextJson}
+                CV Context (excerpt taken at session start):
+                {cvExcerpt}{focusBlock}
                 """;
         }
 
         private static string BuildScorecardSystemPrompt(
-            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string cvExcerpt, int questionCount)
+            InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string summaryContextJson, int questionCount)
         {
+            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, 1000);
+            var focusSection = BuildFocusAreasSection(summaryContextJson);
+
             var cvSection = string.IsNullOrWhiteSpace(cvExcerpt)
                 ? ""
                 : $"""
 
                    CANDIDATE CV EXCERPT (for reference — assess whether the candidate accurately represented their stated experience):
                    {cvExcerpt}
+                   """;
+
+            var focusBlock = string.IsNullOrEmpty(focusSection)
+                ? ""
+                : $"""
+
+                   IDENTIFIED FOCUS AREAS (from the candidate's CV feedback, skills-gap roadmap, and job recommendations):
+                   {focusSection}
+
+                   In overallSummary, comment on how the candidate performed on their identified focus areas relative to standard track questions. In areasForImprovement, reference any focus areas that remain weak.
                    """;
 
             return $$"""
@@ -422,7 +574,7 @@ namespace AICareerCoach.BLL.Services.AI
                 - B (70-79): Good — adequate but needs improvement in several areas
                 - C (<70): Needs significant improvement
 
-                The transcript contains exactly {{questionCount}} question-answer pair(s). Your questionAnalysis array MUST have exactly {{questionCount}} items.{{cvSection}}
+                The transcript contains exactly {{questionCount}} question-answer pair(s). Your questionAnalysis array MUST have exactly {{questionCount}} items.{{cvSection}}{{focusBlock}}
                 """;
         }
 
@@ -517,6 +669,15 @@ namespace AICareerCoach.BLL.Services.AI
                 _ => ""
             };
 
+            var focusSection = BuildFocusAreasSection(summaryContextJson);
+            var focusBlock = string.IsNullOrEmpty(focusSection)
+                ? string.Empty
+                : $"""
+
+                   CANDIDATE FOCUS AREAS (brief):
+                   {focusSection}
+                   """;
+
             return $"""
                 You are a warm, encouraging career coach helping a candidate prepare for a {track} mock interview for a {targetRole} role at {difficulty} level.
 
@@ -529,9 +690,7 @@ namespace AICareerCoach.BLL.Services.AI
                 - Is 1-2 sentences long, max 40 words.
 
                 CANDIDATE CONTEXT:
-                Target Role: {targetRole}
-                CV Context (session-start excerpt):
-                {summaryContextJson}
+                Target Role: {targetRole}{focusBlock}
                 """;
         }
 

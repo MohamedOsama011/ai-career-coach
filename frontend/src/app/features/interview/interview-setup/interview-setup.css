@@ -24,6 +24,45 @@
   margin: 0 0 18px 0;
 }
 
+.focus-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-left: 4px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.focus-banner-icon {
+  color: var(--brand-primary);
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.focus-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.focus-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E40AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.focus-banner-text {
+  font-size: 14px;
+  color: #1E3A8A;
+  line-height: 1.5;
+}
+
 
 .setup-section {
   display: flex;

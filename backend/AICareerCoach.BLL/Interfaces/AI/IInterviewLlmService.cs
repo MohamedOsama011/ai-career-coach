@@ -35,7 +35,7 @@ namespace AICareerCoach.BLL.Interfaces.AI
             InterviewTrack track,
             InterviewDifficulty difficulty,
             string targetRole,
-            string cvExcerpt);
+            string summaryContextJson);
 
         /// <summary>
         /// Generates a concise, encouraging hint for the current interview

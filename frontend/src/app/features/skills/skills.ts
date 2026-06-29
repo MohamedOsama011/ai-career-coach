@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { SkillsService } from '../../core/services/skills.service';
 import { CareerProfileStore, SkillsSortMode } from '../../core/store/career-profile-store';
 import { SkillsCategoryDto } from '../../core/models/roadmap.model';
@@ -12,6 +13,7 @@ import { SkillsCategoryDto } from '../../core/models/roadmap.model';
 })
 export class Skills implements OnInit {
   private skillsService = inject(SkillsService);
+  private route = inject(ActivatedRoute);
 
   categories = signal<SkillsCategoryDto[]>([]);
   loading = signal(true);
@@ -22,11 +24,42 @@ export class Skills implements OnInit {
 
   sortMode = signal<SkillsSortMode>(CareerProfileStore.readSortMode());
 
+  contextJobTitle = signal<string>('');
+  highlightedSkills = signal<Set<string>>(new Set());
+  bannerDismissed = signal(false);
+
   sortedCategories = computed(() =>
     CareerProfileStore.sortCategories(this.categories(), this.sortMode())
   );
 
+  hasContext = computed(() => !!this.contextJobTitle() && this.highlightedSkills().size > 0);
+  showBanner = computed(() => this.hasContext() && !this.bannerDismissed());
+
+  skillsNotInRoadmap = computed<string[]>(() => {
+    const highlight = this.highlightedSkills();
+    if (highlight.size === 0) return [];
+    const inRoadmap = new Set<string>();
+    for (const cat of this.categories()) {
+      for (const s of cat.skills) {
+        inRoadmap.add(s.skillName.toLowerCase());
+      }
+    }
+    return Array.from(highlight).filter((s) => !inRoadmap.has(s.toLowerCase()));
+  });
+
   ngOnInit(): void {
+    const fromJob = this.route.snapshot.queryParamMap.get('fromJob');
+    const highlightParam = this.route.snapshot.queryParamMap.get('highlight');
+    if (fromJob) this.contextJobTitle.set(fromJob);
+    if (highlightParam) {
+      const set = new Set<string>(
+        highlightParam
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+      );
+      if (set.size > 0) this.highlightedSkills.set(set);
+    }
     this.loadSkillsAnalysis();
   }
 
@@ -88,5 +121,15 @@ export class Skills implements OnInit {
 
   priorityClass(priority: string): string {
     return priority === 'High' ? 'high' : priority === 'Medium' ? 'medium' : 'low';
+  }
+
+  isHighlighted(skillName: string): boolean {
+    const set = this.highlightedSkills();
+    if (set.size === 0) return false;
+    return set.has(skillName) || Array.from(set).some((s) => s.toLowerCase() === skillName.toLowerCase());
+  }
+
+  dismissBanner(): void {
+    this.bannerDismissed.set(true);
   }
 }

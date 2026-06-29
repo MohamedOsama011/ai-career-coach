@@ -56,6 +56,9 @@ export interface UserRoadmapDto {
   createdAt: string;
   matchScore?: number;
   templateSnapshot?: TemplateSnapshotDto;
+  currentSeniority?: string;
+  targetSeniority?: string;
+  seniorityGap?: string;
 }
 
 export interface GenerateRoadmapRequestDto {

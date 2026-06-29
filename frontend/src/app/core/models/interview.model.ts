@@ -6,6 +6,7 @@ export interface InterviewOptionItem {
 export interface InterviewOptionsDto {
   tracks: InterviewOptionItem[];
   difficulties: InterviewOptionItem[];
+  focusAreas?: string[];
 }
 
 export interface StartSessionRequestDto {

@@ -1,4 +1,6 @@
+using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Job;
 using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
@@ -19,6 +21,8 @@ namespace AICareerCoach.BLL.Services.AI
         private readonly IInterviewLlmService _llmService;
         private readonly IRoadmapLlmService _roadmapLlmService;
         private readonly IUserRoadmapService _userRoadmapService;
+        private readonly ICvFeedbackService _cvFeedbackService;
+        private readonly IJobRecommendationService _jobRecommendationService;
         private readonly ILogger<InterviewService> _logger;
 
         public InterviewService(
@@ -26,16 +30,20 @@ namespace AICareerCoach.BLL.Services.AI
             IInterviewLlmService llmService,
             IRoadmapLlmService roadmapLlmService,
             IUserRoadmapService userRoadmapService,
+            ICvFeedbackService cvFeedbackService,
+            IJobRecommendationService jobRecommendationService,
             ILogger<InterviewService> logger)
         {
             _context = context;
             _llmService = llmService;
             _roadmapLlmService = roadmapLlmService;
             _userRoadmapService = userRoadmapService;
+            _cvFeedbackService = cvFeedbackService;
+            _jobRecommendationService = jobRecommendationService;
             _logger = logger;
         }
 
-        public Task<InterviewOptionsDto> GetOptionsAsync()
+        public async Task<InterviewOptionsDto> GetOptionsAsync(string userId)
         {
             var tracks = Enum.GetValues<InterviewTrack>()
                 .Select(v => new InterviewOptionItem
@@ -53,11 +61,14 @@ namespace AICareerCoach.BLL.Services.AI
                 })
                 .ToList();
 
-            return Task.FromResult(new InterviewOptionsDto
+            var focusContext = await GatherFocusContextAsync(userId);
+
+            return new InterviewOptionsDto
             {
                 Tracks = tracks,
-                Difficulties = difficulties
-            });
+                Difficulties = difficulties,
+                FocusAreas = focusContext.FocusAreas
+            };
         }
 
         public async Task<InterviewSessionDto> StartSessionAsync(string userId, StartSessionRequestDto request)
@@ -86,11 +97,23 @@ namespace AICareerCoach.BLL.Services.AI
                 ? cv.ExtractedData[..4000]
                 : cv.ExtractedData;
 
+            // Gather personalized context from CV feedback, skills gap, and job
+            // recommendations. Best-effort: each source is fetched in parallel
+            // and silently skipped on failure so the interview still works with
+            // just the CV excerpt if none are available.
+            var focus = await GatherFocusContextAsync(userId);
+
             var summaryContextJson = JsonSerializer.Serialize(new
             {
                 cvExcerpt,
-                targetRole = request.TargetRole
-            });
+                targetRole = request.TargetRole,
+                cvScore = focus.CvScore,
+                cvWeaknesses = focus.CvWeaknesses,
+                missingKeywords = focus.MissingKeywords,
+                highPriorityGaps = focus.HighPriorityGaps,
+                seniorityGap = focus.SeniorityGap,
+                jobMissingSkills = focus.JobMissingSkills
+            }, ContextJsonOptions);
 
             // Generate the first question BEFORE any DB write so a fatal LLM
             // error (401, config) leaves no orphan session row. The LLM call
@@ -531,14 +554,12 @@ namespace AICareerCoach.BLL.Services.AI
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync();
 
-            // M5: pass a bounded (~1000-char) CV excerpt from the session's
-            // SummaryContextJson snapshot so the evaluator can assess whether
-            // the candidate accurately represented their experience.
-            var cvExcerpt = ExtractCvExcerpt(session.SummaryContextJson);
-
+            // Pass the full SummaryContextJson snapshot so the evaluator can
+            // see both the CV excerpt AND the personalized focus areas (M5 +
+            // context-rich interview). The prompt builder extracts what it needs.
             // LLM call outside any transaction to avoid long-held locks (Phase 4, H3).
             var dto = await _llmService.GenerateScorecardAsync(
-                transcript, session.Track, session.Difficulty, session.TargetRole, cvExcerpt);
+                transcript, session.Track, session.Difficulty, session.TargetRole, session.SummaryContextJson ?? "{}");
 
             // Atomic write: re-check inside the TX so a concurrent request that
             // already inserted short-circuits; the unique index on SessionId is the
@@ -714,12 +735,159 @@ namespace AICareerCoach.BLL.Services.AI
         }
 
         /// <summary>
+        /// Gathers personalized context from CV feedback, skills-gap roadmap,
+        /// and job recommendations in parallel. Each source is best-effort: a
+        /// failure (cache miss, service error) is logged and silently skipped
+        /// so the interview still works with whatever context is available.
+        /// Used by <see cref="StartSessionAsync"/> (full JSON snapshot) and
+        /// <see cref="GetOptionsAsync"/> (FocusAreas list only).
+        /// </summary>
+        private async Task<InterviewFocusContext> GatherFocusContextAsync(string userId)
+        {
+            CvFeedbackDto? feedback = null;
+            UserRoadmapDto? roadmap = null;
+            JobRecommendationResultDto? jobs = null;
+
+            var feedbackTask = TryCatchAsync(
+                () => _cvFeedbackService.GetFeedbackAsync(userId),
+                "CV feedback", userId);
+            var roadmapTask = TryCatchAsync(
+                () => _userRoadmapService.GetMyRoadmapAsync(userId),
+                "roadmap", userId);
+            var jobsTask = TryCatchAsync(
+                () => _jobRecommendationService.GetRecommendationsAsync(userId),
+                "job recommendations", userId);
+
+            await Task.WhenAll(feedbackTask, roadmapTask, jobsTask);
+            feedback = feedbackTask.Result;
+            roadmap = roadmapTask.Result;
+            jobs = jobsTask.Result;
+
+            // CV feedback → score + high-priority weaknesses + missing keywords
+            int? cvScore = feedback?.OverallScore > 0 ? feedback!.OverallScore : null;
+
+            var cvWeaknesses = feedback?.Suggestions
+                .OrderByDescending(s => string.Equals(s.Priority, "High", StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(s => Truncate(s.Issue, 100))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList() ?? new List<string>();
+
+            var missingKeywords = feedback?.MissingKeywords.Take(5).ToList() ?? new List<string>();
+
+            // Roadmap → high-priority skill gaps + seniority gap
+            var allGaps = roadmap?.GapAnalysis
+                .SelectMany(c => c.Skills)
+                .ToList() ?? new List<SkillGapItemDto>();
+
+            var highPriorityGaps = allGaps
+                .OrderByDescending(g => string.Equals(g.Priority, "High", StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(g => new GapSummary(
+                    g.SkillName,
+                    g.CurrentLevel,
+                    g.RequiredLevel,
+                    Truncate(g.Gap, 80)))
+                .ToList();
+
+            string? seniorityGap = string.IsNullOrWhiteSpace(roadmap?.SeniorityGap)
+                ? null
+                : roadmap!.SeniorityGap;
+
+            // Job recommendations → merge missing skills from top 3 jobs
+            var jobMissingSkills = jobs?.Recommendations
+                .Take(3)
+                .SelectMany(j => j.MissingSkills)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToList() ?? new List<string>();
+
+            // FocusAreas = combined unique skill names from gaps + job missing skills
+            var focusAreas = highPriorityGaps
+                .Select(g => g.Skill)
+                .Concat(jobMissingSkills)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToList();
+
+            if (focusAreas.Count == 0 && cvWeaknesses.Count > 0)
+            {
+                // No skill gaps but CV has weaknesses — surface a general label
+                focusAreas.Add("CV-identified weaknesses");
+            }
+
+            _logger.LogInformation(
+                "Gathered interview context for user {UserId}: cvScore={CvScore}, cvWeaknesses={CvWeaknesses}, gaps={Gaps}, jobSkills={JobSkills}, focusAreas={FocusAreas}",
+                userId, cvScore, cvWeaknesses.Count, highPriorityGaps.Count, jobMissingSkills.Count, focusAreas.Count);
+
+            return new InterviewFocusContext(
+                focusAreas,
+                cvScore,
+                cvWeaknesses,
+                missingKeywords,
+                highPriorityGaps,
+                seniorityGap,
+                jobMissingSkills);
+        }
+
+        /// <summary>
+        /// Runs a task and swallows exceptions, logging a warning. Used by
+        /// <see cref="GatherFocusContextAsync"/> for best-effort context fetches.
+        /// </summary>
+        private async Task<T?> TryCatchAsync<T>(Func<Task<T?>> factory, string label, string userId) where T : class
+        {
+            try
+            {
+                return await factory();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Failed to gather {Label} for interview context (user {UserId}): {Error}", label, userId, ex.Message);
+                return null;
+            }
+        }
+
+        private static string Truncate(string? text, int max) =>
+            string.IsNullOrWhiteSpace(text) ? string.Empty :
+            text.Length <= max ? text : text[..max] + "…";
+
+        private static readonly JsonSerializerOptions ContextJsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        /// <summary>
+        /// Structured personalized context gathered from CV feedback, roadmap,
+        /// and job recommendations. Serialized into <see cref="InterviewSession.SummaryContextJson"/>
+        /// at session start and fed to the LLM prompt builders.
+        /// </summary>
+        private record InterviewFocusContext(
+            List<string> FocusAreas,
+            int? CvScore,
+            List<string> CvWeaknesses,
+            List<string> MissingKeywords,
+            List<GapSummary> HighPriorityGaps,
+            string? SeniorityGap,
+            List<string> JobMissingSkills);
+
+        /// <summary>
+        /// A single skill-gap item surfaced to the LLM as a focus area.
+        /// </summary>
+        private record GapSummary(
+            string Skill,
+            string CurrentLevel,
+            string RequiredLevel,
+            string Gap);
+
+        /// <summary>
         /// Extracts the <c>cvExcerpt</c> field from the session's
         /// <see cref="InterviewSession.SummaryContextJson"/> snapshot (stored at
-        /// session start as <c>{ cvExcerpt, targetRole }</c>) and truncates it to
-        /// 1000 chars to bound the scorecard prompt token budget (Phase 7, M5).
-        /// Returns empty string on any parse failure so the prompt degrades
-        /// gracefully (no CV context section).
+        /// session start; contains cvExcerpt + targetRole + personalized focus
+        /// areas) and truncates it to 1000 chars to bound the scorecard prompt
+        /// token budget (Phase 7, M5). Returns empty string on any parse
+        /// failure so the prompt degrades gracefully (no CV context section).
         /// </summary>
         private static string ExtractCvExcerpt(string? summaryContextJson)
         {
