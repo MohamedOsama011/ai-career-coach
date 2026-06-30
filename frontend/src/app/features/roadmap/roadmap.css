@@ -222,6 +222,39 @@
   line-height: 1.5;
 }
 
+.why-roadmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.download-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: transparent;
+  color: var(--brand-primary);
+  border: 1.5px solid var(--brand-primary);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.download-pdf-btn .material-icons {
+  font-size: 17px;
+}
+
+.download-pdf-btn:hover {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
 /* ─── Skeleton ─── */
 .skeleton-container {
   display: flex;
