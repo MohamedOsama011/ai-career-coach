@@ -1,4 +1,5 @@
-﻿using AICareerCoach.BLL.DTOs.CV;
+﻿using System;
+using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Interfaces;
 using QuestPDF.Fluent;
@@ -9,11 +10,29 @@ namespace AICareerCoach.BLL.Services.Pdf
 {
     public class PdfReportService : IPdfReportService
     {
+        private static string Primary => "#4338CA";
+        private static string PrimaryLight => "#EEF2FF";
+        private static string PrimaryMid => "#C7D2FE";
+        private static string PrimaryDark => "#1E1B4B";
+        private static string TextMuted => "#6B7280";
+        private static string BorderColor => "#E5E7EB";
+        private static string BgSection => "#F3F4F6";
+
+        private static string ScoreColor(int score) => score >= 85 ? "#059669"
+            : score >= 65 ? "#2563EB"
+            : score >= 40 ? "#D97706"
+            : "#DC2626";
+
+        private static (string Bg, string Border, string Text) PriorityStyle(string priority) => priority switch
+        {
+            "High" => ("#FEE2E2", "#FCA5A5", "#991B1B"),
+            "Medium" => ("#FFF7ED", "#FDBA74", "#9A3412"),
+            _ => ("#DCFCE7", "#86EFAC", "#166534")
+        };
+
         public byte[] GenerateCvReport(CvFeedbackDto report)
         {
-            if (report == null)
-                throw new Exception("Report is null");
-
+            if (report == null) throw new ArgumentNullException(nameof(report));
             report.Strengths ??= new();
             report.MissingKeywords ??= new();
             report.Suggestions ??= new();
@@ -21,276 +40,321 @@ namespace AICareerCoach.BLL.Services.Pdf
 
             return Document.Create(container =>
             {
-            container.Page(page =>
-            {
-            page.Margin(30);
-
-            page.Header().Column(header =>
-            {
-                header.Item()
-                    .Text("AI Career Coach")
-                    .FontSize(26)
-                    .Bold()
-                    .FontColor(Colors.Blue.Darken2);
-
-                header.Item()
-                    .Text("CV Analysis Report")
-                    .FontSize(18)
-                    .SemiBold();
-
-                header.Item().LineHorizontal(1);
-            });
-
-            page.Content().Column(column =>
-            {
-            column.Spacing(18);
-
-            // =======================
-            // SCORE CARD
-            // =======================
-
-            column.Item()
-                .Border(1)
-                .BorderColor(Colors.Grey.Lighten2)
-                .Padding(15)
-                .Column(box =>
-                {
-                    box.Item()
-                        .Text($"Overall Score : {report.OverallScore}/100")
-                        .Bold()
-                        .FontSize(20)
-                        .FontColor(Colors.Green.Darken2);
-
-                    box.Item()
-                        .Text($"Generated At : {report.GeneratedAt:g}");
-
-                    box.Item().PaddingTop(10);
-
-                    box.Item().Text($"Keyword Match : {report.KeywordMatch}%");
-                    box.Item().Text($"Impact Statements : {report.ImpactStatements}%");
-                    box.Item().Text($"Formatting : {report.Formatting}%");
-                    box.Item().Text($"Leadership Signals : {report.LeadershipSignals}%");
-                });
-
-            // =======================
-            // SUMMARY
-            // =======================
-
-            column.Item()
-                .Text("Overall Summary")
-                .Bold()
-                .FontSize(16);
-
-            column.Item()
-                .Text(report.OverallSummary);
-
-            // =======================
-            // STRENGTHS
-            // =======================
-
-            column.Item()
-                .PaddingTop(10)
-                .Text("Key Strengths")
-                .Bold()
-                .FontSize(16);
-
-            foreach (var strength in report.Strengths)
-            {
-                column.Item()
-                    .Text($"✓ {strength}");
-            }
-
-            // =======================
-            // MISSING KEYWORDS
-            // =======================
-
-            column.Item()
-                .PaddingTop(10)
-                .Text("Missing Keywords")
-                .Bold()
-                .FontSize(16);
-
-            foreach (var keyword in report.MissingKeywords)
-            {
-                column.Item()
-                    .Text($"• {keyword}");
-            }
-
-            // =======================
-            // SUGGESTIONS
-            // =======================
-
-            column.Item()
-                .PaddingTop(10)
-                .Text("Suggested Improvements")
-                .Bold()
-                .FontSize(16);
-
-            foreach (var s in report.Suggestions)
-            {
-                column.Item()
-                    .Border(1)
-                    .BorderColor(Colors.Grey.Lighten2)
-                    .Padding(12)
-                    .Column(box =>
-                    {
-                    box.Item()
-                                    .Text(s.Category.ToUpper())
-                                    .Bold()
-                                    .FontColor(Colors.Blue.Darken2);
-                        box.Item()
-        .PaddingTop(5)
-        .Text($"Issue: {s.Issue}");
-
-                        box.Item()
-                            .PaddingTop(3)
-                            .Text($"Recommendation: {s.Recommendation}");
-
-                        box.Item()
-                            .PaddingTop(3)
-                            .Text($"Priority: {s.Priority}")
-                            .Bold()
-                            .FontColor(
-                                s.Priority == "High"
-                                    ? Colors.Red.Darken2
-                                    : s.Priority == "Medium"
-                                        ? Colors.Orange.Darken2
-                                        : Colors.Green.Darken2
-                            );
-                    });
-                }
-
-                // =======================
-                // END OF REPORT
-                // =======================
-
-                column.Item()
-                    .PaddingTop(15)
-                    .LineHorizontal(1);
-
-                column.Item()
-                    .AlignCenter()
-                    .Text("End of CV Analysis Report")
-                    .Italic()
-                    .FontColor(Colors.Grey.Darken1);
-            });
-
-                page.Footer()
-                    .AlignCenter()
-                    .Text(text =>
-                    {
-                        text.Span("Generated by ");
-                        text.Span("AI Career Coach").Bold();
-                    });
-            });
-            })
-            .GeneratePdf();
+                CoverPage(container, "CV Analysis Report", report.GeneratedAt);
+                CvContentPage(container, report);
+            }).GeneratePdf();
         }
 
         public byte[] GenerateRoadmapReport(RoadmapDto roadmap)
         {
-            if (roadmap == null)
-                throw new Exception("Roadmap is null");
-
+            if (roadmap == null) throw new ArgumentNullException(nameof(roadmap));
             roadmap.Steps ??= new();
+
             return Document.Create(container =>
             {
-                container.Page(page =>
+                CoverPage(container, "Career Roadmap Report", null);
+                RoadmapContentPage(container, roadmap);
+            }).GeneratePdf();
+        }
+
+        private void CoverPage(IDocumentContainer container, string reportTitle, DateTime? generatedAt)
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(0);
+                page.PageColor(PrimaryDark);
+                page.DefaultTextStyle(x => x.FontColor(Colors.White));
+
+                page.Content().AlignMiddle().Column(col =>
                 {
-                    page.Margin(30);
-
-                    page.Header().Column(header =>
+                    col.Spacing(8);
+                    col.Item().AlignCenter().Text("AI Career Coach").FontSize(36).Bold();
+                    col.Item().AlignCenter().Width(200).Height(1).Background("#FFFFFF66");
+                    col.Item().PaddingTop(16).AlignCenter().Text(reportTitle).FontSize(22).Light();
+                    if (generatedAt.HasValue)
                     {
-                        header.Item()
-                            .Text("AI Career Coach")
-                            .FontSize(26)
-                            .Bold()
-                            .FontColor(Colors.Blue.Darken2);
+                        col.Item().PaddingTop(24).AlignCenter()
+                            .Text(generatedAt.Value.ToString("MMMM dd, yyyy")).FontSize(12)
+                            .FontColor("#FFFFFF99");
+                    }
+                    col.Item().PaddingTop(60).AlignCenter()
+                        .Text("Powered by AI Career Coach · Confidential").FontSize(9)
+                        .FontColor("#FFFFFF80");
+                });
+            });
+        }
 
-                        header.Item()
-                            .Text("Career Roadmap Report")
-                            .FontSize(18)
-                            .SemiBold();
+        private void CvContentPage(IDocumentContainer container, CvFeedbackDto report)
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(40);
+                page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
 
-                        header.Item().LineHorizontal(1);
+                page.Header().Column(h =>
+                {
+                    h.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text("AI Career Coach").Bold().FontSize(14).FontColor(Primary);
+                        r.ConstantItem(100).AlignRight().Text("CV Analysis").FontSize(10).FontColor(TextMuted);
+                    });
+                    h.Item().PaddingTop(4).LineHorizontal(1).LineColor(Primary);
+                });
+
+                page.Content().Column(col =>
+                {
+                    col.Spacing(18);
+                    RenderScoreOverview(col, report);
+                    RenderSection(col, "Overall Summary", report.OverallSummary);
+                    RenderStrengths(col, report.Strengths);
+                    RenderMissingKeywords(col, report.MissingKeywords);
+                    RenderSuggestions(col, report.Suggestions);
+                });
+
+                page.Footer().Row(f =>
+                {
+                    f.RelativeItem().Text("Generated by AI Career Coach").FontSize(8).FontColor(TextMuted);
+                    f.ConstantItem(80).AlignRight().Text(x =>
+                    {
+                        x.Span("Page ").FontSize(8).FontColor(TextMuted);
+                        x.CurrentPageNumber().FontSize(8).FontColor(TextMuted);
+                    });
+                });
+            });
+        }
+
+        private void RenderScoreOverview(ColumnDescriptor col, CvFeedbackDto report)
+        {
+            var sc = ScoreColor(report.OverallScore);
+            col.Item().Background(BgSection).Padding(20).Column(box =>
+            {
+                box.Item().Text("Score Overview").FontSize(16).Bold().FontColor(Primary);
+
+                box.Item().PaddingTop(12).Row(row =>
+                {
+                    row.ConstantItem(130).Column(n =>
+                    {
+                        n.Item().AlignCenter().Text(report.OverallScore.ToString()).FontSize(40).Bold().FontColor(sc);
+                        n.Item().AlignCenter().Text("/ 100").FontSize(11).FontColor(TextMuted);
+                        n.Item().PaddingTop(6).AlignCenter().Height(4).Background(sc).Width(50);
                     });
 
-                    page.Content().Column(column =>
+                    row.RelativeItem().PaddingLeft(16).Column(sub =>
                     {
-                        column.Spacing(15);
+                        RenderScoreBar(sub, "Keyword Match", report.KeywordMatch);
+                        RenderScoreBar(sub, "Impact Statements", report.ImpactStatements);
+                        RenderScoreBar(sub, "Formatting", report.Formatting);
+                        RenderScoreBar(sub, "Leadership Signals", report.LeadershipSignals);
+                    });
+                });
+            });
+        }
 
-                        column.Item()
-                            .Text($"Track: {roadmap.Track}")
-                            .Bold()
-                            .FontSize(18);
+        private void RenderScoreBar(ColumnDescriptor col, string label, int value)
+        {
+            var c = ScoreColor(value);
+            col.Item().PaddingBottom(4).Column(s =>
+            {
+                s.Item().Row(r =>
+                {
+                    r.RelativeItem().Text(label).FontSize(9).FontColor(TextMuted);
+                    r.ConstantItem(28).AlignRight().Text($"{value}%").FontSize(9).Bold().FontColor(c);
+                });
+                s.Item().PaddingTop(2).Row(r =>
+                {
+                    r.RelativeItem(value).Height(7).Background(c);
+                    r.RelativeItem(100 - value).Height(7).Background(Colors.Grey.Lighten3);
+                });
+            });
+        }
 
-                        column.Item()
-                            .Text($"Roadmap Title: {roadmap.Title}")
-                            .FontSize(16);
+        private void RenderSection(ColumnDescriptor col, string title, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            col.Item().Column(s =>
+            {
+                s.Item().Text(title).FontSize(14).Bold().FontColor(Primary);
+                s.Item().PaddingTop(6).BorderLeft(3).BorderColor(Primary).PaddingLeft(12).Text(text).FontSize(10);
+            });
+        }
 
-                        column.Item()
-                            .PaddingTop(10)
-                            .Text("Description")
-                            .Bold()
-                            .FontSize(16);
+        private void RenderStrengths(ColumnDescriptor col, List<string> strengths)
+        {
+            if (strengths.Count == 0) return;
+            col.Item().Background(BgSection).Padding(14).Column(s =>
+            {
+                s.Item().Text("Key Strengths").FontSize(14).Bold().FontColor(Primary);
+                foreach (var item in strengths)
+                {
+                    s.Item().PaddingTop(4).Row(r =>
+                    {
+                        r.ConstantItem(16).Text("✓").FontColor("#059669").Bold().FontSize(11);
+                        r.RelativeItem().Text(item).FontSize(10);
+                    });
+                }
+            });
+        }
 
-                        column.Item()
-                            .Text(roadmap.Description);
+        private void RenderMissingKeywords(ColumnDescriptor col, List<string> keywords)
+        {
+            if (keywords.Count == 0) return;
+            col.Item().Column(s =>
+            {
+                s.Item().Text("Missing Keywords").FontSize(14).Bold().FontColor(Primary);
+                s.Item().PaddingTop(6).Row(r =>
+                {
+                    foreach (var kw in keywords)
+                    {
+                        r.AutoItem().PaddingRight(6).PaddingBottom(6)
+                            .Background(PrimaryLight).PaddingHorizontal(10).PaddingVertical(4)
+                            .Text(kw).FontSize(9).FontColor(Primary);
+                    }
+                });
+            });
+        }
 
-                        column.Item()
-                            .PaddingTop(20)
-                            .Text("Learning Steps")
-                            .Bold()
-                            .FontSize(18);
-
-                        foreach (var step in roadmap.Steps.OrderBy(x => x.OrderIndex))
+        private void RenderSuggestions(ColumnDescriptor col, List<FeedbackSuggestion> suggestions)
+        {
+            if (suggestions.Count == 0) return;
+            col.Item().Column(s =>
+            {
+                s.Item().Text("Suggested Improvements").FontSize(14).Bold().FontColor(Primary);
+                foreach (var sug in suggestions)
+                {
+                    var ps = PriorityStyle(sug.Priority);
+                    s.Item().PaddingTop(8)
+                        .Border(1).BorderColor(ps.Border).Background(ps.Bg).Padding(12).Column(c =>
+                    {
+                        c.Item().Row(r =>
                         {
-                            column.Item()
-                                .Border(1)
-                                .BorderColor(Colors.Grey.Lighten2)
-                                .Padding(12)
-                                .Column(box =>
-                                {
-                                    box.Item()
-                                        .Text($"{step.OrderIndex}. {step.Title}")
-                                        .Bold()
-                                        .FontSize(15)
-                                        .FontColor(Colors.Blue.Darken2);
+                            r.RelativeItem().Text((sug.Category ?? "").ToUpper()).Bold().FontSize(10).FontColor(Primary);
+                            r.ConstantItem(55).AlignRight().Background(ps.Border)
+                                .PaddingHorizontal(8).PaddingVertical(2).AlignCenter()
+                                .Text(sug.Priority ?? "").FontSize(8).Bold().FontColor(Colors.White);
+                        });
+                        c.Item().PaddingTop(6).Text("Issue: " + (sug.Issue ?? "")).FontSize(9);
+                        c.Item().PaddingTop(3).Text("Recommendation: " + (sug.Recommendation ?? "")).FontSize(9);
+                    });
+                }
+            });
+        }
 
-                                    box.Item()
-                                        .Text($"Level: {step.Level}");
+        private void RoadmapContentPage(IDocumentContainer container, RoadmapDto roadmap)
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(40);
+                page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
 
-                                    box.Item()
-                                        .PaddingTop(5)
-                                        .Text(step.Description);
+                page.Header().Column(h =>
+                {
+                    h.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text("AI Career Coach").Bold().FontSize(14).FontColor(Primary);
+                        r.ConstantItem(120).AlignRight().Text("Career Roadmap").FontSize(10).FontColor(TextMuted);
+                    });
+                    h.Item().PaddingTop(4).LineHorizontal(1).LineColor(Primary);
+                });
 
-                                    if (step.Resources != null && step.Resources.Any())
-                                    {
-                                        box.Item()
-                                            .PaddingTop(8)
-                                            .Text("Resources")
-                                            .Bold();
+                page.Content().Column(col =>
+                {
+                    col.Spacing(14);
 
-                                        foreach (var resource in step.Resources)
-                                        {
-                                            box.Item()
-                                                .Text($"• {resource}");
-                                        }
-                                    }
-                                });
+                    col.Item().Background(PrimaryLight).Padding(16).Column(info =>
+                    {
+                        info.Item().Row(r =>
+                        {
+                            r.RelativeItem().Column(n =>
+                            {
+                                n.Item().Text("Track").FontSize(9).FontColor(TextMuted);
+                                n.Item().PaddingTop(2).Text(roadmap.Track).FontSize(12).Bold().FontColor(Primary);
+                            });
+                            r.ConstantItem(24);
+                            r.RelativeItem().Column(n =>
+                            {
+                                n.Item().Text("Target Role").FontSize(9).FontColor(TextMuted);
+                                n.Item().PaddingTop(2).Text(roadmap.Title).FontSize(12).Bold();
+                            });
+                        });
+                        if (!string.IsNullOrEmpty(roadmap.Description))
+                        {
+                            info.Item().PaddingTop(10).LineHorizontal(0.5f).LineColor(BorderColor);
+                            info.Item().PaddingTop(8).Row(r =>
+                            {
+                                r.ConstantItem(14).Text("→").FontColor(Primary).Bold();
+                                r.RelativeItem().PaddingLeft(4).Text(roadmap.Description).FontSize(10).FontColor(TextMuted);
+                            });
                         }
                     });
 
-                    page.Footer()
-                        .AlignCenter()
-                        .Text(text =>
-                        {
-                            text.Span("Generated by ");
-                            text.Span("AI Career Coach").Bold();
-                        });
+                    col.Item().Text("Learning Steps").FontSize(16).Bold().FontColor(Primary);
+
+                    var steps = roadmap.Steps ?? new();
+                    steps = steps.OrderBy(x => x.OrderIndex).ToList();
+                    for (int i = 0; i < steps.Count; i++)
+                    {
+                        RenderStep(col, steps[i], i == steps.Count - 1);
+                    }
                 });
-            })
-.GeneratePdf();
+
+                page.Footer().Row(f =>
+                {
+                    f.RelativeItem().Text("Generated by AI Career Coach").FontSize(8).FontColor(TextMuted);
+                    f.ConstantItem(80).AlignRight().Text(x =>
+                    {
+                        x.Span("Page ").FontSize(8).FontColor(TextMuted);
+                        x.CurrentPageNumber().FontSize(8).FontColor(TextMuted);
+                    });
+                });
+            });
+        }
+
+        private void RenderStep(ColumnDescriptor col, RoadmapStepDto step, bool isLast)
+        {
+            col.Item().Row(row =>
+            {
+                row.ConstantItem(32).Column(tl =>
+                {
+                    tl.Item().Width(26).Height(26).Background(Primary).AlignCenter().AlignMiddle()
+                        .Text(step.OrderIndex.ToString()).FontSize(12).Bold().FontColor(Colors.White);
+                    if (!isLast)
+                    {
+                        tl.Item().PaddingTop(2).Width(2).Background(PrimaryMid).Height(50);
+                    }
+                });
+
+                row.RelativeItem().PaddingLeft(8).Column(c =>
+                {
+                    c.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text(step.Title ?? "").FontSize(13).Bold().FontColor(Primary);
+                        if (!string.IsNullOrEmpty(step.Level))
+                        {
+                            r.ConstantItem(80).AlignRight().Background(PrimaryMid).PaddingHorizontal(8).PaddingVertical(2)
+                                .AlignCenter().Text(step.Level).FontSize(8).Bold().FontColor(Primary);
+                        }
+                    });
+                    if (!string.IsNullOrEmpty(step.Description))
+                    {
+                        c.Item().PaddingTop(4).Text(step.Description).FontSize(10).FontColor("#374151");
+                    }
+                    if (step.Resources != null && step.Resources.Count > 0)
+                    {
+                        c.Item().PaddingTop(6).Text("Resources:").FontSize(9).Bold().FontColor(TextMuted);
+                        foreach (var res in step.Resources)
+                        {
+                            c.Item().PaddingLeft(8).PaddingTop(1).Row(r =>
+                            {
+                                r.ConstantItem(8).Text("•").FontSize(9).FontColor(Primary);
+                                r.RelativeItem().Text(res ?? "").FontSize(9).FontColor("#1D4ED8");
+                            });
+                        }
+                    }
+                });
+            });
         }
     }
 }
