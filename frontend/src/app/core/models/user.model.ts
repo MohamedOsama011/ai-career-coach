@@ -46,4 +46,5 @@ export interface ProfileResponse {
   careerGoal: string;
   createdAt: string;
   cvCount: number;
+  roles: string[];
 }

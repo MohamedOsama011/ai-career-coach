@@ -216,8 +216,10 @@
                 [logoInitials]="job.logoInitials"
                 [companyLogoUrl]="job.companyLogoUrl ?? ''"
                 [saved]="isSaved(job.id)"
+                [isRemote]="job.isRemote ?? false"
+                [source]="job.source"
                 (saveToggled)="toggleSave(job.id)"
-                (applied)="onApply(job.title, job.company)"
+                (applied)="applyToJob(job)"
               />
             } @empty {
               <div class="state-box">

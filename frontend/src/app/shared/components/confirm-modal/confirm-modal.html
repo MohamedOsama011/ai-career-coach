@@ -8,7 +8,10 @@
       <button class="confirm-modal-btn cancel" (click)="cancel.emit()" type="button">
         {{ cancelText }}
       </button>
-      <button class="confirm-modal-btn confirm" [class.danger]="variant === 'danger'" (click)="confirm.emit()" type="button">
+      <button class="confirm-modal-btn confirm" [class.danger]="variant === 'danger'" (click)="confirm.emit()" type="button" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner"></span>
+        }
         {{ confirmText }}
       </button>
     </div>

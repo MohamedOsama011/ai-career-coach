@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, timeout } from 'rxjs/operators';
-import { Job, JobRecommendationResult } from '../models/job.model';
+import { Job, JobRecommendationResult, SyncResultDto, SyncStatusDto, UpdateJobDto } from '../models/job.model';
 
 
 @Injectable({
@@ -46,7 +46,7 @@ export class JobsService {
   }
 
   getJobs(): Observable<Job[]> {
-    
+
     return this.http.get<{ items: any[] }>(this.apiUrl).pipe(
       timeout(7000),
       map(response => {
@@ -54,8 +54,8 @@ export class JobsService {
             return response.items.map(item => {
             const logo = item.company ? item.company.substring(0, 2).toUpperCase() : 'JB';
             const match = Math.min(99, Math.max(65, 95 - (item.title.length % 15)));
-            const salaryStr = item.salary > 0 
-              ? `$${Math.round(item.salary / 1000)}k` 
+            const salaryStr = item.salary > 0
+              ? `$${Math.round(item.salary / 1000)}k`
               : 'Competitive';
 
             return {
@@ -68,7 +68,12 @@ export class JobsService {
               postedAt: item.postedAt,
               matchPercentage: match,
               logoInitials: logo,
-              companyLogoUrl: item.companyLogoUrl || undefined
+              companyLogoUrl: item.companyLogoUrl || undefined,
+              externalUrl: item.externalUrl || undefined,
+              contractType: item.contractType || undefined,
+              isRemote: item.isRemote ?? false,
+              category: item.category || undefined,
+              source: item.source || undefined
             };
           });
         }
@@ -79,6 +84,36 @@ export class JobsService {
 
   getRecommendations(): Observable<JobRecommendationResult> {
     return this.http.get<JobRecommendationResult>(`${this.apiUrl}/recommendations`).pipe(
+      timeout(7000)
+    );
+  }
+
+  syncJobs(): Observable<SyncResultDto> {
+    return this.http.post<SyncResultDto>(`${this.apiUrl}/sync`, {}).pipe(
+      timeout(30000)
+    );
+  }
+
+  createJob(dto: any): Observable<Job> {
+    return this.http.post<Job>(this.apiUrl, dto).pipe(
+      timeout(7000)
+    );
+  }
+
+  getSyncStatus(): Observable<SyncStatusDto> {
+    return this.http.get<SyncStatusDto>(`${this.apiUrl}/sync-status`).pipe(
+      timeout(7000)
+    );
+  }
+
+  updateJob(id: number, dto: UpdateJobDto): Observable<Job> {
+    return this.http.put<Job>(`${this.apiUrl}/${id}`, dto).pipe(
+      timeout(7000)
+    );
+  }
+
+  deleteJob(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       timeout(7000)
     );
   }

@@ -120,13 +120,16 @@ namespace AICareerCoach.API.Controllers
             var cvCount = await _context.Set<CV>()
                 .CountAsync(c => c.UserId == user!.Id);
 
+            var roles = await _userManager.GetRolesAsync(user!);
+
             return Ok(new
             {
                 fullName = user!.FullName,
                 email = user.Email,
                 careerGoal = user.CareerGoal,
                 createdAt = user.CreatedAt,
-                cvCount
+                cvCount,
+                roles
             });
         }
 

@@ -1,0 +1,52 @@
+@if (loading()) {
+  <div class="loading">Loading jobs...</div>
+} @else if (jobs().length === 0) {
+  <div class="empty-state">
+    <span class="material-icons empty-icon">work_off</span>
+    <p>No jobs in the database. Click "Sync Now" to fetch from Adzuna, or "Add Job" to create one manually.</p>
+  </div>
+} @else {
+  <div class="table-wrapper card">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Location</th>
+          <th>Source</th>
+          <th>Posted</th>
+          <th>Remote</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (job of jobs(); track job.id) {
+          <tr>
+            <td class="title-cell">{{ job.title }}</td>
+            <td>{{ job.company }}</td>
+            <td>{{ job.location }}</td>
+            <td>
+              <span class="source-chip">{{ job.source ?? 'Manual' }}</span>
+            </td>
+            <td>{{ job.postedAt | date: 'mediumDate' }}</td>
+            <td>
+              @if (job.isRemote) {
+                <span class="remote-badge">Remote</span>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+            <td class="actions-col">
+              <button class="btn-icon" (click)="edit.emit(job)" aria-label="Edit job">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-icon danger" (click)="delete.emit(job.id)" aria-label="Delete job">
+                <span class="material-icons">delete</span>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

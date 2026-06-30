@@ -112,6 +112,14 @@ export class Jobs implements OnInit {
     alert(`Successfully applied for the "${title}" position at ${company}!`);
   }
 
+  applyToJob(job: Job): void {
+    if (job.externalUrl) {
+      window.open(job.externalUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      alert('No external link — apply via company website.');
+    }
+  }
+
   matchBadgeClass(score: number): string {
     if (score >= 65) return 'badge-high';
     if (score >= 60) return 'badge-medium';

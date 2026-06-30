@@ -5,6 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.DAL.Seed
 {
+    /// <summary>
+    /// Fallback seeder — only runs if Adzuna sync fails on first startup.
+    /// Called by JobSyncHostedService, NOT by Program.cs anymore.
+    /// Provides 20 hardcoded Egypt-focused .NET/Angular jobs so the app is
+    /// demoable offline (no Adzuna credentials required).
+    /// </summary>
     public static class JobSeeder
     {
         public static async Task SeedAsync(AICareerCoachDbContext context)

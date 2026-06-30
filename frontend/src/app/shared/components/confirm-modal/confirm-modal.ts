@@ -14,6 +14,7 @@ export class ConfirmModal {
   @Input() cancelText = 'Cancel';
   @Input() variant: 'default' | 'danger' = 'default';
   @Input() open = false;
+  @Input() loading = false;
 
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();

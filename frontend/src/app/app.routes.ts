@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { cvGuard } from './core/guards/cv.guard';
 import { redirectIfLoggedIn } from './core/guards/redirect-if-logged-in.guard';
 
@@ -34,6 +35,9 @@ export const routes: Routes = [
       { path: 'interview', canActivate: [cvGuard], loadComponent: () => import('./features/interview').then(m => m.InterviewShell) },
       { path: 'skills', canActivate: [cvGuard], loadComponent: () => import('./features/skills/skills').then(m => m.Skills) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
+      { path: 'admin', canActivate: [adminGuard], children: [
+        { path: 'jobs', loadComponent: () => import('./features/admin/jobs-admin/jobs-admin').then(m => m.JobsAdmin) },
+      ]},
     ],
   },
   { path: '**', redirectTo: '' },
