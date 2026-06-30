@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, timeout } from 'rxjs/operators';
 import { Job, JobRecommendationResult, SyncResultDto, SyncStatusDto, UpdateJobDto } from '../models/job.model';
@@ -45,39 +45,50 @@ export class JobsService {
     return this.getSavedJobIds().includes(id);
   }
 
-  getJobs(): Observable<Job[]> {
+  getJobs(page: number = 1, pageSize: number = 10, isRemote?: boolean, savedJobIds?: number[]): Observable<{ jobs: Job[], totalCount: number, page: number, totalPages: number, hasNext: boolean, hasPrev: boolean }> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('pageSize', pageSize);
 
-    return this.http.get<{ items: any[] }>(this.apiUrl).pipe(
+    if (isRemote !== undefined) params = params.set('isRemote', isRemote);
+    if (savedJobIds && savedJobIds.length > 0) params = params.set('jobIds', savedJobIds.join(','));
+
+    return this.http.get<{ items: any[], totalCount: number, page: number, totalPages: number, hasNext: boolean, hasPrev: boolean }>(this.apiUrl, { params }).pipe(
       timeout(7000),
       map(response => {
-        if (response && response.items && response.items.length > 0) {
-            return response.items.map(item => {
-            const logo = item.company ? item.company.substring(0, 2).toUpperCase() : 'JB';
-            const match = Math.min(99, Math.max(65, 95 - (item.title.length % 15)));
-            const salaryStr = item.salary > 0
-              ? `$${Math.round(item.salary / 1000)}k`
-              : 'Competitive';
+        const jobs = (response.items || []).map(item => {
+          const logo = item.company ? item.company.substring(0, 2).toUpperCase() : 'JB';
+          const match = Math.min(99, Math.max(65, 95 - (item.title.length % 15)));
+          const salaryStr = item.salary > 0
+            ? `$${Math.round(item.salary / 1000)}k`
+            : 'Competitive';
 
-            return {
-              id: item.id,
-              title: item.title,
-              company: item.company,
-              location: item.location,
-              requiredSkills: item.requiredSkills || [],
-              salary: salaryStr,
-              postedAt: item.postedAt,
-              matchPercentage: match,
-              logoInitials: logo,
-              companyLogoUrl: item.companyLogoUrl || undefined,
-              externalUrl: item.externalUrl || undefined,
-              contractType: item.contractType || undefined,
-              isRemote: item.isRemote ?? false,
-              category: item.category || undefined,
-              source: item.source || undefined
-            };
-          });
-        }
-        return [];
+          return {
+            id: item.id,
+            title: item.title,
+            company: item.company,
+            location: item.location,
+            requiredSkills: item.requiredSkills || [],
+            salary: salaryStr,
+            postedAt: item.postedAt,
+            matchPercentage: match,
+            logoInitials: logo,
+            companyLogoUrl: item.companyLogoUrl || undefined,
+            externalUrl: item.externalUrl || undefined,
+            contractType: item.contractType || undefined,
+            isRemote: item.isRemote ?? false,
+            category: item.category || undefined,
+            source: item.source || undefined
+          };
+        });
+        return {
+          jobs,
+          totalCount: response.totalCount,
+          page: response.page,
+          totalPages: response.totalPages,
+          hasNext: response.hasNext,
+          hasPrev: response.hasPrev
+        };
       })
     );
   }

@@ -26,6 +26,7 @@ export interface JobRecommendation {
   companyLogoUrl?: string;
   salary: number;
   location: string;
+  externalUrl?: string;
   matchScore: number;
   matchExplanation: string;
   missingSkills?: string[];
@@ -53,6 +54,16 @@ export interface SyncStatusDto {
   lastSyncErrors?: number;
   enabled: boolean;
   intervalHours: number;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export interface UpdateJobDto {

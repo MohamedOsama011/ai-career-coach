@@ -109,7 +109,7 @@
 
               <div class="description-row">
                 <p class="recommendation-description">{{ job.description }}</p>
-                <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>
+                <button class="apply-btn" (click)="applyToRecommendation(job)" type="button">Apply</button>
               </div>
               <div class="explanation-box" [class.expanded]="isExplanationExpanded(job.jobId)">
                 <button class="explanation-toggle" (click)="toggleExplanation(job.jobId)" type="button">
@@ -211,7 +211,7 @@
                 [title]="job.title"
                 [company]="job.company"
                 [location]="job.location"
-                [salary]="job.salary"
+                [salary]="displaySalary(job.salary)"
                 [skills]="job.requiredSkills"
                 [logoInitials]="job.logoInitials"
                 [companyLogoUrl]="job.companyLogoUrl ?? ''"
@@ -229,6 +229,21 @@
               </div>
             }
           </div>
+
+          @if (totalPages() > 1 && filteredJobs().length > 0) {
+            <div class="pagination-bar">
+              <span class="pagination-info">{{ rangeStart() }}–{{ rangeEnd() }} of {{ totalCount() }} jobs</span>
+              <div class="pagination-controls">
+                <button class="pagination-btn" [class.disabled]="currentPage() <= 1" (click)="prevPage()" type="button" [disabled]="currentPage() <= 1">
+                  <span class="material-icons">chevron_left</span> Prev
+                </button>
+                <span class="pagination-page">Page {{ currentPage() }} of {{ totalPages() }}</span>
+                <button class="pagination-btn" [class.disabled]="currentPage() >= totalPages()" (click)="nextPage()" type="button" [disabled]="currentPage() >= totalPages()">
+                  Next <span class="material-icons">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          }
         }
       </section>
     }

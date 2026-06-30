@@ -26,6 +26,14 @@ export class Jobs implements OnInit {
 
   ringReady = signal(false);
 
+  PAGE_SIZE = 10;
+  currentPage = signal(1);
+  totalPages = signal(1);
+  totalCount = signal(0);
+
+  rangeStart = computed(() => (this.currentPage() - 1) * this.PAGE_SIZE + 1);
+  rangeEnd = computed(() => Math.min(this.currentPage() * this.PAGE_SIZE, this.totalCount()));
+
   filteredJobs = computed(() => {
     const jobs = this.jobs();
     switch (this.activeFilter()) {
@@ -51,9 +59,15 @@ export class Jobs implements OnInit {
     this.jobsLoading.set(true);
     this.jobsError.set(null);
 
-    this.jobsService.getJobs().subscribe({
-      next: (data) => {
-        this.jobs.set(data);
+    const filter = this.activeFilter();
+    const isRemote = filter === 'remote' ? true : undefined;
+    const savedJobIds = filter === 'saved' ? this.jobsService.getSavedJobIds() : undefined;
+
+    this.jobsService.getJobs(this.currentPage(), this.PAGE_SIZE, isRemote, savedJobIds).subscribe({
+      next: (result) => {
+        this.jobs.set(result.jobs);
+        this.totalPages.set(result.totalPages);
+        this.totalCount.set(result.totalCount);
         this.jobsLoading.set(false);
       },
       error: (err) => {
@@ -62,6 +76,20 @@ export class Jobs implements OnInit {
         this.jobsLoading.set(false);
       }
     });
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(p => p + 1);
+      this.loadJobs();
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+      this.loadJobs();
+    }
   }
 
   loadRecommendations(): void {
@@ -94,6 +122,8 @@ export class Jobs implements OnInit {
 
   setFilter(filter: 'all' | 'remote' | 'saved'): void {
     this.activeFilter.set(filter);
+    this.currentPage.set(1);
+    this.loadJobs();
   }
 
   isSaved(jobId: number): boolean {
@@ -108,15 +138,19 @@ export class Jobs implements OnInit {
     }
   }
 
-  onApply(title: string, company: string): void {
-    alert(`Successfully applied for the "${title}" position at ${company}!`);
+  applyToRecommendation(job: JobRecommendation): void {
+    if (job.externalUrl) {
+      window.open(job.externalUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      alert('No external link yet — clear the recommendations cache and try again.');
+    }
   }
 
   applyToJob(job: Job): void {
     if (job.externalUrl) {
       window.open(job.externalUrl, '_blank', 'noopener,noreferrer');
     } else {
-      alert('No external link — apply via company website.');
+      alert('No external link yet — clear the recommendations cache and try again.');
     }
   }
 
@@ -137,8 +171,16 @@ export class Jobs implements OnInit {
   }
 
   formatSalary(salary: number): string {
+    if (salary <= 0) return 'Comp.';
     if (salary >= 1000) return `${(salary / 1000).toFixed(0)}k`;
     return salary.toString();
+  }
+
+  displaySalary(salary: string | number): string {
+    const num = typeof salary === 'string' ? parseFloat(salary) : salary;
+    if (isNaN(num) || num <= 0) return 'Comp.';
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}k`;
+    return num.toString();
   }
 
   expandedExplanations = signal<Set<number>>(new Set());

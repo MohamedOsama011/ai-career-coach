@@ -44,9 +44,9 @@ export class JobsAdmin implements OnInit {
   loadJobs(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.jobsService.getJobs().subscribe({
-      next: (jobs) => {
-        this.jobs.set(jobs);
+    this.jobsService.getJobs(1, 1000).subscribe({
+      next: (result) => {
+        this.jobs.set(result.jobs);
         this.loading.set(false);
       },
       error: (err) => {
