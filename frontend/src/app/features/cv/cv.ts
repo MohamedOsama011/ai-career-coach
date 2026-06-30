@@ -217,15 +217,18 @@ export class Cv implements OnInit, OnDestroy {
     window.open(cv.downloadUrl, '_blank');
   }
 
-  downloadReport(): void {
-    const cvs = this.cvs();
-    if (!cvs.length) return;
-
-    const latestCV = cvs.reduce((latest, current) =>
-      new Date(current.uploadedAt) > new Date(latest.uploadedAt) ? current : latest
-    );
-
-    this.downloadCV(latestCV);
+  downloadCvAnalysisReport(): void {
+    this.aiService.downloadCvAnalysisReport().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'CV_Analysis_Report.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => alert('Failed to download report')
+    });
   }
 
   formatDate(dateString: string): string {

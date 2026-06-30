@@ -5,6 +5,8 @@ using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.External;
 using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.BLL.Services.Pdf;
+using QuestPDF.Infrastructure;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
@@ -67,6 +69,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
             builder.Services.AddScoped<IJobSyncService, JobSyncService>();
             builder.Services.AddHostedService<JobSyncHostedService>();
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -111,6 +114,8 @@ namespace AICareerCoach.API
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            QuestPDF.Settings.License = LicenseType.Community;
 
             if (app.Environment.IsDevelopment())
             {

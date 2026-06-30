@@ -74,6 +74,12 @@
             <span class="meta-value seniority-value">{{ rm.currentSeniority }} → {{ rm.targetSeniority }}</span>
           </div>
         }
+        <div class="meta-item">
+          <button class="action-btn" (click)="downloadRoadmapReport()">
+            <span class="material-icons">picture_as_pdf</span>
+            Download PDF
+          </button>
+        </div>
       </div>
       @if (rm.seniorityGap) {
         <div class="seniority-gap-note">
