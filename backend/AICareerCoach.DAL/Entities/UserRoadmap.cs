@@ -11,6 +11,7 @@ namespace AICareerCoach.DAL.Entities
         public string? TemplateSnapshotJson { get; set; }
         public string StepsJson { get; set; } = "[]";
         public string GapAnalysisJson { get; set; } = "[]";
+        public string? AssessmentJson { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

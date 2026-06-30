@@ -7,9 +7,11 @@ using AICareerCoach.DAL.Entities;
 
 namespace AICareerCoach.BLL.Interfaces
 {
+    public record UploadCVResult(CV Cv, bool IsNew);
+
     public interface ICVService
     {
-        Task<CV> UploadCVAsync(
+        Task<UploadCVResult> UploadCVAsync(
             Stream fileStream,
             string fileName,
             string userId);

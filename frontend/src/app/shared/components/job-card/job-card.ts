@@ -26,6 +26,14 @@ import { Card } from '../card/card';
             {{ location() }}
           </span>
         </div>
+        <div class="job-badges">
+          @if (isRemote()) {
+            <span class="remote-badge">Remote</span>
+          }
+          @if (source()) {
+            <span class="source-chip">{{ source() }}</span>
+          }
+        </div>
       </div>
 
       <div class="skills-area">
@@ -114,6 +122,32 @@ import { Card } from '../card/card';
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+
+    .job-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .remote-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #DCFCE7;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 9999px;
+    }
+
+    .source-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #F1F5F9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 9999px;
     }
     .location-icon {
       font-size: 14px;
@@ -237,7 +271,9 @@ export class JobCard {
   logoInitials = input<string>('');
   companyLogoUrl = input<string | undefined>('');
   saved = input<boolean>(false);
-  
+  isRemote = input<boolean>(false);
+  source = input<string | undefined>(undefined);
+
   applied = output<void>();
   saveToggled = output<void>();
 }

@@ -1,0 +1,83 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Jobs Management</h1>
+      <p class="subtitle">{{ totalJobs() }} jobs in database</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="triggerSync()" [disabled]="syncing()">
+        @if (syncing()) {
+          <span class="spinner"></span>
+          <span>Syncing...</span>
+        } @else {
+          <span class="material-icons">sync</span>
+          <span>Sync Now</span>
+        }
+      </button>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <span class="material-icons">add</span>
+        <span>Add Job</span>
+      </button>
+    </div>
+  </header>
+
+  @if (syncStatus(); as status) {
+    <div class="card sync-status-card">
+      <h3>Sync Status</h3>
+      <div class="sync-grid">
+        <div>
+          <span class="label">Last sync</span>
+          <span class="value">{{ status.lastSyncAt ? (status.lastSyncAt | date: 'short') : 'Never' }}</span>
+        </div>
+        <div>
+          <span class="label">New jobs</span>
+          <span class="value">{{ status.lastSyncNew ?? '—' }}</span>
+        </div>
+        <div>
+          <span class="label">Errors</span>
+          <span class="value">{{ status.lastSyncErrors ?? '—' }}</span>
+        </div>
+        <div>
+          <span class="label">Auto-sync</span>
+          <span class="value">{{ status.enabled ? 'Every ' + status.intervalHours + 'h' : 'Disabled' }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">×</button>
+    </div>
+  }
+
+  <app-jobs-admin-table
+    [jobs]="jobs()"
+    [loading]="loading()"
+    (edit)="openEdit($event)"
+    (delete)="requestDelete($event)"
+  />
+</div>
+
+@if (showAddModal()) {
+  <app-job-form-modal
+    [job]="editingJob()"
+    (save)="saveJob($event)"
+    (cancel)="closeModal()"
+  />
+}
+
+@if (pendingDeleteId() !== null) {
+  <app-confirm-modal
+    [open]="true"
+    title="Delete job?"
+    [message]="'Are you sure you want to delete &quot;' + (pendingDeleteJob()?.title ?? 'this job') + '&quot;? This cannot be undone.'"
+    confirmText="Delete"
+    variant="danger"
+    [loading]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  />
+}

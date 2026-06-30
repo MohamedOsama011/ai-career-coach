@@ -157,6 +157,71 @@
   color: var(--brand-text);
 }
 
+.meta-value.match-score {
+  color: #2563EB;
+  font-weight: 800;
+}
+
+.seniority-chip {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+}
+
+.seniority-value {
+  color: #1D4ED8;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.seniority-gap-note {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #166534;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.seniority-gap-note .material-icons {
+  font-size: 18px;
+  color: #16A34A;
+  flex-shrink: 0;
+}
+
+.why-roadmap {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  border-radius: 10px;
+}
+
+.why-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.why-description {
+  font-size: 13px;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* ─── Skeleton ─── */
 .skeleton-container {
   display: flex;

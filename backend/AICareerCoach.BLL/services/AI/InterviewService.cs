@@ -1,4 +1,7 @@
+using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
@@ -6,6 +9,8 @@ using AICareerCoach.DAL.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace AICareerCoach.BLL.Services.AI
@@ -14,39 +19,56 @@ namespace AICareerCoach.BLL.Services.AI
     {
         private readonly AICareerCoachDbContext _context;
         private readonly IInterviewLlmService _llmService;
+        private readonly IRoadmapLlmService _roadmapLlmService;
+        private readonly IUserRoadmapService _userRoadmapService;
+        private readonly ICvFeedbackService _cvFeedbackService;
+        private readonly IJobRecommendationService _jobRecommendationService;
         private readonly ILogger<InterviewService> _logger;
 
         public InterviewService(
             AICareerCoachDbContext context,
             IInterviewLlmService llmService,
+            IRoadmapLlmService roadmapLlmService,
+            IUserRoadmapService userRoadmapService,
+            ICvFeedbackService cvFeedbackService,
+            IJobRecommendationService jobRecommendationService,
             ILogger<InterviewService> logger)
         {
             _context = context;
             _llmService = llmService;
+            _roadmapLlmService = roadmapLlmService;
+            _userRoadmapService = userRoadmapService;
+            _cvFeedbackService = cvFeedbackService;
+            _jobRecommendationService = jobRecommendationService;
             _logger = logger;
         }
 
-        public Task<InterviewOptionsDto> GetOptionsAsync()
+        public async Task<InterviewOptionsDto> GetOptionsAsync(string userId)
         {
-            var tracks = new List<InterviewOptionItem>
-            {
-                new() { Value = "Behavioral", Label = "Behavioral" },
-                new() { Value = "TechnicalCoding", Label = "Technical Coding" },
-                new() { Value = "SystemDesign", Label = "System Design" }
-            };
+            var tracks = Enum.GetValues<InterviewTrack>()
+                .Select(v => new InterviewOptionItem
+                {
+                    Value = v.ToString(),
+                    Label = EnumDisplay.Name(v)
+                })
+                .ToList();
 
-            var difficulties = new List<InterviewOptionItem>
-            {
-                new() { Value = "Junior", Label = "Junior" },
-                new() { Value = "MidLevel", Label = "Mid-Level" },
-                new() { Value = "Senior", Label = "Senior" }
-            };
+            var difficulties = Enum.GetValues<InterviewDifficulty>()
+                .Select(v => new InterviewOptionItem
+                {
+                    Value = v.ToString(),
+                    Label = EnumDisplay.Name(v)
+                })
+                .ToList();
 
-            return Task.FromResult(new InterviewOptionsDto
+            var focusContext = await GatherFocusContextAsync(userId);
+
+            return new InterviewOptionsDto
             {
                 Tracks = tracks,
-                Difficulties = difficulties
-            });
+                Difficulties = difficulties,
+                FocusAreas = focusContext.FocusAreas
+            };
         }
 
         public async Task<InterviewSessionDto> StartSessionAsync(string userId, StartSessionRequestDto request)
@@ -75,11 +97,23 @@ namespace AICareerCoach.BLL.Services.AI
                 ? cv.ExtractedData[..4000]
                 : cv.ExtractedData;
 
+            // Gather personalized context from CV feedback, skills gap, and job
+            // recommendations. Best-effort: each source is fetched in parallel
+            // and silently skipped on failure so the interview still works with
+            // just the CV excerpt if none are available.
+            var focus = await GatherFocusContextAsync(userId);
+
             var summaryContextJson = JsonSerializer.Serialize(new
             {
                 cvExcerpt,
-                targetRole = request.TargetRole
-            });
+                targetRole = request.TargetRole,
+                cvScore = focus.CvScore,
+                cvWeaknesses = focus.CvWeaknesses,
+                missingKeywords = focus.MissingKeywords,
+                highPriorityGaps = focus.HighPriorityGaps,
+                seniorityGap = focus.SeniorityGap,
+                jobMissingSkills = focus.JobMissingSkills
+            }, ContextJsonOptions);
 
             // Generate the first question BEFORE any DB write so a fatal LLM
             // error (401, config) leaves no orphan session row. The LLM call
@@ -143,6 +177,41 @@ namespace AICareerCoach.BLL.Services.AI
             if (session is null) return null;
 
             return await LoadSessionDtoAsync(session.Id);
+        }
+
+        public async Task<HintResponseDto> GetHintAsync(string userId, int sessionId)
+        {
+            var session = await _context.InterviewSessions
+                .Include(s => s.Messages)
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
+                ?? throw new KeyNotFoundException("Session not found.");
+
+            if (session.Status != InterviewStatus.Active)
+            {
+                _logger.LogWarning("GetHint blocked: session {SessionId} status is {Status}, not Active.", session.Id, session.Status);
+                throw new InvalidOperationException("Session is not active.");
+            }
+
+            var currentQuestion = session.Messages
+                .Where(m => m.Role == MessageRole.Interviewer)
+                .OrderByDescending(m => m.TurnNumber)
+                .FirstOrDefault()
+                ?.Content;
+
+            if (string.IsNullOrWhiteSpace(currentQuestion))
+            {
+                _logger.LogWarning("GetHint blocked: session {SessionId} has no interviewer question.", session.Id);
+                throw new InvalidOperationException("No active question to provide a hint for.");
+            }
+
+            _logger.LogInformation("Generating hint for session {SessionId}, question turn {Turn}.", session.Id, session.QuestionsAsked);
+
+            return await _llmService.GenerateHintAsync(
+                session.Track,
+                session.Difficulty,
+                session.TargetRole,
+                currentQuestion,
+                session.SummaryContextJson ?? "{}");
         }
 
         public async Task<InterviewSessionDto> SubmitAnswerAsync(string userId, int sessionId, SubmitAnswerRequestDto request)
@@ -259,6 +328,204 @@ namespace AICareerCoach.BLL.Services.AI
             }
         }
 
+        public async IAsyncEnumerable<StreamTokenDto> SubmitAnswerStreamAsync(
+            string userId,
+            int sessionId,
+            SubmitAnswerRequestDto request,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            InterviewMessage? nextQuestion = null;
+            string? cvExcerpt = null;
+            InterviewTrack track = default;
+            InterviewDifficulty difficulty = default;
+            string targetRole = string.Empty;
+            List<InterviewMessage> fullTranscript = new();
+            bool isFinalTurn = false;
+            int nextTurn = 0;
+            int sessionIdLocal = 0;
+            bool usedFallback = false;
+            var fullContent = new StringBuilder();
+            var tokensEmitted = false;
+            Exception? lastStreamError = null;
+
+            try
+            {
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+                    var session = await _context.InterviewSessions
+                        .Include(s => s.Messages)
+                        .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId, cancellationToken)
+                        ?? throw new KeyNotFoundException("Session not found.");
+
+                    if (session.Status != InterviewStatus.Active)
+                    {
+                        _logger.LogWarning("SubmitAnswerStream blocked: session {SessionId} status is {Status}, not Active.", sessionId, session.Status);
+                        throw new InvalidOperationException("Session is not active.");
+                    }
+
+                    var currentDbState = await _context.InterviewSessions
+                        .Where(s => s.Id == sessionId)
+                        .Select(s => new { s.QuestionsAsked, s.Status })
+                        .FirstAsync(cancellationToken);
+
+                    if (currentDbState.Status != InterviewStatus.Active
+                        || currentDbState.QuestionsAsked != session.QuestionsAsked)
+                    {
+                        throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
+                    }
+
+                    var turnNumber = session.QuestionsAsked;
+
+                    var answer = new InterviewMessage
+                    {
+                        SessionId = session.Id,
+                        Role = MessageRole.Candidate,
+                        TurnNumber = turnNumber,
+                        Content = request.Answer,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.InterviewMessages.Add(answer);
+                    await _context.SaveChangesAsync(cancellationToken);
+
+                    if (turnNumber >= session.MaxQuestions)
+                    {
+                        session.Status = InterviewStatus.Completed;
+                        session.CompletedAt = DateTime.UtcNow;
+                        await _context.SaveChangesAsync(cancellationToken);
+                        await tx.CommitAsync(cancellationToken);
+                        _logger.LogInformation("Session {SessionId} completed after {Questions} questions (stream).", session.Id, turnNumber);
+                        isFinalTurn = true;
+                    }
+                    else
+                    {
+                        fullTranscript = await _context.InterviewMessages
+                            .Where(m => m.SessionId == session.Id)
+                            .OrderBy(m => m.CreatedAt)
+                            .ToListAsync(cancellationToken);
+
+                        cvExcerpt = session.SummaryContextJson ?? "{}";
+                        track = session.Track;
+                        difficulty = session.Difficulty;
+                        targetRole = session.TargetRole;
+                        nextTurn = turnNumber + 1;
+                        sessionIdLocal = session.Id;
+
+                        await tx.CommitAsync(cancellationToken);
+                    }
+                });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new ConflictException("This session was already advanced by another request. Please reload and try again.");
+            }
+
+            if (isFinalTurn)
+            {
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            _logger.LogInformation("Streaming question for session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+
+            await foreach (var token in _llmService.GenerateNextQuestionStreamAsync(
+                track, difficulty, targetRole, cvExcerpt ?? "{}", fullTranscript, nextTurn, cancellationToken))
+            {
+                if (token.Type == "token" && token.Content is not null)
+                {
+                    tokensEmitted = true;
+                    fullContent.Append(token.Content);
+                }
+                if (token.Type == "error" && token.Code == "fallback")
+                {
+                    usedFallback = true;
+                }
+                lastStreamError = token.Type == "error" ? new Exception(token.Message ?? "Stream error") : lastStreamError;
+                yield return token;
+            }
+
+            if (!tokensEmitted)
+            {
+                _logger.LogError(lastStreamError, "Stream completed without any tokens for session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+                yield return new StreamTokenDto { Type = "error", Code = "fatal", Message = "AI returned no content." };
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            var streamConflict = false;
+            try
+            {
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+                    var session = await _context.InterviewSessions
+                        .FirstOrDefaultAsync(s => s.Id == sessionIdLocal, cancellationToken)
+                        ?? throw new KeyNotFoundException("Session disappeared mid-stream.");
+
+                    var question = new InterviewMessage
+                    {
+                        SessionId = sessionIdLocal,
+                        Role = MessageRole.Interviewer,
+                        TurnNumber = nextTurn,
+                        Content = fullContent.ToString(),
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.InterviewMessages.Add(question);
+                    session.QuestionsAsked = nextTurn;
+                    if (usedFallback)
+                    {
+                        session.UsedFallback = true;
+                        session.FallbackCount++;
+                    }
+                    await _context.SaveChangesAsync(cancellationToken);
+                    await tx.CommitAsync(cancellationToken);
+                });
+            }
+            catch (DbUpdateConcurrencyException concurrencyEx)
+            {
+                _logger.LogWarning(concurrencyEx, "Stream question save hit RowVersion conflict on session {SessionId}, turn {Turn}.", sessionIdLocal, nextTurn);
+                streamConflict = true;
+            }
+
+            if (streamConflict)
+            {
+                yield return new StreamTokenDto { Type = "error", Code = "fallback", Message = "Session was advanced by another request. Reload to continue." };
+                yield return new StreamTokenDto { Type = "done" };
+                yield break;
+            }
+
+            _logger.LogInformation(
+                "Streamed question for session {SessionId}, turn {Turn}, usedFallback={UsedFallback}.",
+                sessionIdLocal, nextTurn, usedFallback);
+
+            yield return new StreamTokenDto { Type = "done" };
+        }
+
+        public async Task DeleteSessionAsync(string userId, int sessionId)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var tx = await _context.Database.BeginTransactionAsync();
+
+                var session = await _context.InterviewSessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
+                    ?? throw new KeyNotFoundException($"Session {sessionId} not found.");
+
+                _context.InterviewSessions.Remove(session);
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+            });
+
+            _logger.LogInformation("Deleted interview session {SessionId} for user {UserId}.", sessionId, userId);
+        }
+
         public async Task<InterviewScorecardDto> GetScorecardAsync(string userId, int sessionId)
         {
             var session = await _context.InterviewSessions
@@ -287,14 +554,12 @@ namespace AICareerCoach.BLL.Services.AI
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync();
 
-            // M5: pass a bounded (~1000-char) CV excerpt from the session's
-            // SummaryContextJson snapshot so the evaluator can assess whether
-            // the candidate accurately represented their experience.
-            var cvExcerpt = ExtractCvExcerpt(session.SummaryContextJson);
-
+            // Pass the full SummaryContextJson snapshot so the evaluator can
+            // see both the CV excerpt AND the personalized focus areas (M5 +
+            // context-rich interview). The prompt builder extracts what it needs.
             // LLM call outside any transaction to avoid long-held locks (Phase 4, H3).
             var dto = await _llmService.GenerateScorecardAsync(
-                transcript, session.Track, session.Difficulty, session.TargetRole, cvExcerpt);
+                transcript, session.Track, session.Difficulty, session.TargetRole, session.SummaryContextJson ?? "{}");
 
             // Atomic write: re-check inside the TX so a concurrent request that
             // already inserted short-circuits; the unique index on SessionId is the
@@ -360,11 +625,12 @@ namespace AICareerCoach.BLL.Services.AI
                 .Select(s => new InterviewHistoryItemDto
                 {
                     Id = s.Id,
-                    Track = s.Track.ToString(),
-                    Difficulty = s.Difficulty.ToString(),
+                    Track = EnumDisplay.Name(s.Track),
+                    Difficulty = EnumDisplay.Name(s.Difficulty),
                     TargetRole = s.TargetRole,
                     Status = s.Status.ToString(),
                     QuestionsAsked = s.QuestionsAsked,
+                    MaxQuestions = s.MaxQuestions,
                     OverallScore = s.Scorecard != null ? s.Scorecard.OverallScore : null,
                     LetterGrade = s.Scorecard != null ? s.Scorecard.LetterGrade : null,
                     OverallSummary = s.Scorecard != null ? s.Scorecard.OverallSummary : null,
@@ -386,8 +652,8 @@ namespace AICareerCoach.BLL.Services.AI
             return new InterviewSessionDto
             {
                 Id = session.Id,
-                Track = session.Track.ToString(),
-                Difficulty = session.Difficulty.ToString(),
+                Track = EnumDisplay.Name(session.Track),
+                Difficulty = EnumDisplay.Name(session.Difficulty),
                 TargetRole = session.TargetRole,
                 Status = session.Status.ToString(),
                 QuestionsAsked = session.QuestionsAsked,
@@ -403,6 +669,38 @@ namespace AICareerCoach.BLL.Services.AI
                 CreatedAt = session.CreatedAt,
                 CompletedAt = session.CompletedAt
             };
+        }
+
+        public async Task<UserRoadmapDto> ConvertScorecardToRoadmapAsync(string userId, int sessionId)
+        {
+            var scorecard = await GetScorecardAsync(userId, sessionId);
+
+            if (scorecard.AreasForImprovement == null || scorecard.AreasForImprovement.Count == 0)
+                throw new InvalidOperationException(
+                    "No areas for improvement to convert. The candidate performed strongly on this interview.");
+
+            var cv = await _context.CVs
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.UploadedAt)
+                .FirstOrDefaultAsync();
+
+            var cvText = cv?.ExtractedData ?? string.Empty;
+
+            var session = await _context.InterviewSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
+
+            var targetRole = session?.TargetRole ?? "Software Engineer";
+
+            var newSteps = await _roadmapLlmService.GenerateWeaknessStepsAsync(
+                scorecard.AreasForImprovement, cvText, targetRole);
+
+            var updatedRoadmap = await _userRoadmapService.AppendWeaknessStepsAsync(userId, newSteps);
+
+            _logger.LogInformation(
+                "Converted scorecard for session {SessionId} to {Count} roadmap steps for user {UserId}.",
+                sessionId, newSteps.Count, userId);
+
+            return updatedRoadmap;
         }
 
         private static InterviewScorecardDto MapScorecardToDto(InterviewScorecard sc)
@@ -437,12 +735,159 @@ namespace AICareerCoach.BLL.Services.AI
         }
 
         /// <summary>
+        /// Gathers personalized context from CV feedback, skills-gap roadmap,
+        /// and job recommendations in parallel. Each source is best-effort: a
+        /// failure (cache miss, service error) is logged and silently skipped
+        /// so the interview still works with whatever context is available.
+        /// Used by <see cref="StartSessionAsync"/> (full JSON snapshot) and
+        /// <see cref="GetOptionsAsync"/> (FocusAreas list only).
+        /// </summary>
+        private async Task<InterviewFocusContext> GatherFocusContextAsync(string userId)
+        {
+            CvFeedbackDto? feedback = null;
+            UserRoadmapDto? roadmap = null;
+            JobRecommendationResultDto? jobs = null;
+
+            var feedbackTask = TryCatchAsync(
+                () => _cvFeedbackService.GetFeedbackAsync(userId),
+                "CV feedback", userId);
+            var roadmapTask = TryCatchAsync(
+                () => _userRoadmapService.GetMyRoadmapAsync(userId),
+                "roadmap", userId);
+            var jobsTask = TryCatchAsync(
+                () => _jobRecommendationService.GetRecommendationsAsync(userId),
+                "job recommendations", userId);
+
+            await Task.WhenAll(feedbackTask, roadmapTask, jobsTask);
+            feedback = feedbackTask.Result;
+            roadmap = roadmapTask.Result;
+            jobs = jobsTask.Result;
+
+            // CV feedback → score + high-priority weaknesses + missing keywords
+            int? cvScore = feedback?.OverallScore > 0 ? feedback!.OverallScore : null;
+
+            var cvWeaknesses = feedback?.Suggestions
+                .OrderByDescending(s => string.Equals(s.Priority, "High", StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(s => Truncate(s.Issue, 100))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList() ?? new List<string>();
+
+            var missingKeywords = feedback?.MissingKeywords.Take(5).ToList() ?? new List<string>();
+
+            // Roadmap → high-priority skill gaps + seniority gap
+            var allGaps = roadmap?.GapAnalysis
+                .SelectMany(c => c.Skills)
+                .ToList() ?? new List<SkillGapItemDto>();
+
+            var highPriorityGaps = allGaps
+                .OrderByDescending(g => string.Equals(g.Priority, "High", StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(g => new GapSummary(
+                    g.SkillName,
+                    g.CurrentLevel,
+                    g.RequiredLevel,
+                    Truncate(g.Gap, 80)))
+                .ToList();
+
+            string? seniorityGap = string.IsNullOrWhiteSpace(roadmap?.SeniorityGap)
+                ? null
+                : roadmap!.SeniorityGap;
+
+            // Job recommendations → merge missing skills from top 3 jobs
+            var jobMissingSkills = jobs?.Recommendations
+                .Take(3)
+                .SelectMany(j => j.MissingSkills)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToList() ?? new List<string>();
+
+            // FocusAreas = combined unique skill names from gaps + job missing skills
+            var focusAreas = highPriorityGaps
+                .Select(g => g.Skill)
+                .Concat(jobMissingSkills)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToList();
+
+            if (focusAreas.Count == 0 && cvWeaknesses.Count > 0)
+            {
+                // No skill gaps but CV has weaknesses — surface a general label
+                focusAreas.Add("CV-identified weaknesses");
+            }
+
+            _logger.LogInformation(
+                "Gathered interview context for user {UserId}: cvScore={CvScore}, cvWeaknesses={CvWeaknesses}, gaps={Gaps}, jobSkills={JobSkills}, focusAreas={FocusAreas}",
+                userId, cvScore, cvWeaknesses.Count, highPriorityGaps.Count, jobMissingSkills.Count, focusAreas.Count);
+
+            return new InterviewFocusContext(
+                focusAreas,
+                cvScore,
+                cvWeaknesses,
+                missingKeywords,
+                highPriorityGaps,
+                seniorityGap,
+                jobMissingSkills);
+        }
+
+        /// <summary>
+        /// Runs a task and swallows exceptions, logging a warning. Used by
+        /// <see cref="GatherFocusContextAsync"/> for best-effort context fetches.
+        /// </summary>
+        private async Task<T?> TryCatchAsync<T>(Func<Task<T?>> factory, string label, string userId) where T : class
+        {
+            try
+            {
+                return await factory();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Failed to gather {Label} for interview context (user {UserId}): {Error}", label, userId, ex.Message);
+                return null;
+            }
+        }
+
+        private static string Truncate(string? text, int max) =>
+            string.IsNullOrWhiteSpace(text) ? string.Empty :
+            text.Length <= max ? text : text[..max] + "…";
+
+        private static readonly JsonSerializerOptions ContextJsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        /// <summary>
+        /// Structured personalized context gathered from CV feedback, roadmap,
+        /// and job recommendations. Serialized into <see cref="InterviewSession.SummaryContextJson"/>
+        /// at session start and fed to the LLM prompt builders.
+        /// </summary>
+        private record InterviewFocusContext(
+            List<string> FocusAreas,
+            int? CvScore,
+            List<string> CvWeaknesses,
+            List<string> MissingKeywords,
+            List<GapSummary> HighPriorityGaps,
+            string? SeniorityGap,
+            List<string> JobMissingSkills);
+
+        /// <summary>
+        /// A single skill-gap item surfaced to the LLM as a focus area.
+        /// </summary>
+        private record GapSummary(
+            string Skill,
+            string CurrentLevel,
+            string RequiredLevel,
+            string Gap);
+
+        /// <summary>
         /// Extracts the <c>cvExcerpt</c> field from the session's
         /// <see cref="InterviewSession.SummaryContextJson"/> snapshot (stored at
-        /// session start as <c>{ cvExcerpt, targetRole }</c>) and truncates it to
-        /// 1000 chars to bound the scorecard prompt token budget (Phase 7, M5).
-        /// Returns empty string on any parse failure so the prompt degrades
-        /// gracefully (no CV context section).
+        /// session start; contains cvExcerpt + targetRole + personalized focus
+        /// areas) and truncates it to 1000 chars to bound the scorecard prompt
+        /// token budget (Phase 7, M5). Returns empty string on any parse
+        /// failure so the prompt degrades gracefully (no CV context section).
         /// </summary>
         private static string ExtractCvExcerpt(string? summaryContextJson)
         {

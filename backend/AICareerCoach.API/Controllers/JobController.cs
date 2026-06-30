@@ -14,11 +14,16 @@ namespace AICareerCoach.API.Controllers
     {
         private readonly IJobService _jobService;
         private readonly IJobRecommendationService _jobRecommendationService;
+        private readonly IJobSyncService _jobSyncService;
 
-        public JobController(IJobService jobService, IJobRecommendationService jobRecommendationService)
+        public JobController(
+            IJobService jobService,
+            IJobRecommendationService jobRecommendationService,
+            IJobSyncService jobSyncService)
         {
             _jobService = jobService;
             _jobRecommendationService = jobRecommendationService;
+            _jobSyncService = jobSyncService;
         }
 
         [HttpGet]
@@ -43,15 +48,68 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<JobDto>> Create(CreateJobDto dto)
         {
             var job = await _jobService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = job.Id }, job);
         }
 
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<JobDto>> Update(int id, [FromBody] UpdateJobDto dto)
+        {
+            try
+            {
+                var job = await _jobService.UpdateAsync(id, dto);
+                return Ok(job);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _jobService.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("sync")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<SyncResultDto>> SyncJobs()
+        {
+            try
+            {
+                var result = await _jobSyncService.SyncAsync(HttpContext.RequestAborted);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while syncing jobs.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("sync-status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<SyncStatusDto>> SyncStatus()
+        {
+            return Ok(await _jobSyncService.GetStatusAsync());
+        }
+
         #region Index Jobs Embeddings (Admin Only)
         [HttpPost("index-embeddings")]
-        // [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> IndexJobsEmbeddings()
         {
             try
@@ -69,7 +127,7 @@ namespace AICareerCoach.API.Controllers
 
         #region Get Recommendations (User Flow)
         [HttpGet("recommendations")]
-        //[Authorize] 
+        [Authorize]
         public async Task<ActionResult<JobRecommendationResultDto>> GetJobRecommendations()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

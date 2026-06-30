@@ -26,4 +26,16 @@ public class Job
     public DateTime PostedAt { get; set; }
 
     public string? CompanyLogoUrl { get; set; }
+
+    public string? ExternalId { get; set; }
+
+    public string? Source { get; set; } = "Adzuna";
+
+    public string? ExternalUrl { get; set; }
+
+    public string? ContractType { get; set; }
+
+    public string? Category { get; set; }
+
+    public bool IsRemote { get; set; }
 }

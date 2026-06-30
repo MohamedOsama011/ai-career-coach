@@ -8,6 +8,7 @@ namespace AICareerCoach.BLL.DTOs.Interview
         public string TargetRole { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public int QuestionsAsked { get; set; }
+        public int MaxQuestions { get; set; } = 6;
         public int? OverallScore { get; set; }
         public string? LetterGrade { get; set; }
         public string? OverallSummary { get; set; }

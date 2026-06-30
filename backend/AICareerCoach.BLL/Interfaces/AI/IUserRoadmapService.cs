@@ -6,5 +6,7 @@ namespace AICareerCoach.BLL.Interfaces.AI
     {
         Task<UserRoadmapDto> GenerateRoadmapAsync(string userId, GenerateRoadmapRequestDto request);
         Task<UserRoadmapDto?> GetMyRoadmapAsync(string userId);
+        Task<UserRoadmapDto> RescanGapAnalysisAsync(string userId);
+        Task<UserRoadmapDto> AppendWeaknessStepsAsync(string userId, List<RoadmapStepResultDto> newSteps);
     }
 }

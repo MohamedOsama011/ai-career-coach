@@ -6,6 +6,7 @@ export interface InterviewOptionItem {
 export interface InterviewOptionsDto {
   tracks: InterviewOptionItem[];
   difficulties: InterviewOptionItem[];
+  focusAreas?: string[];
 }
 
 export interface StartSessionRequestDto {
@@ -46,6 +47,7 @@ export interface InterviewHistoryItemDto {
   targetRole: string;
   status: string;
   questionsAsked: number;
+  maxQuestions: number;
   overallScore: number | null;
   letterGrade: string | null;
   overallSummary: string | null;
@@ -61,6 +63,10 @@ export interface QuestionAnalysisItemDto {
   improvementSuggestion: string;
 }
 
+export interface HintResponseDto {
+  hint: string;
+}
+
 export interface InterviewScorecardDto {
   overallScore: number;
   letterGrade: string;
@@ -68,4 +74,16 @@ export interface InterviewScorecardDto {
   strengths: string[];
   areasForImprovement: string[];
   questionAnalysis: QuestionAnalysisItemDto[];
+}
+
+export type InterviewStreamEvent =
+  | { type: 'token'; content: string }
+  | { type: 'done' }
+  | { type: 'error'; code: 'fatal' | 'fallback' | 'rate_limit'; message: string };
+
+export interface InterviewStreamCallbacks {
+  onToken: (content: string) => void;
+  onDone: (usedFallback: boolean) => void;
+  onError: (code: string, message: string) => void;
+  onFatal: (message: string) => void;
 }

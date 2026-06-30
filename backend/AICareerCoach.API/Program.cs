@@ -1,8 +1,10 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.BLL.services;
+using AICareerCoach.BLL.Interfaces.External;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
+using AICareerCoach.BLL.Services.External;
 using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
@@ -64,6 +66,11 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddHttpContextAccessor();
 
+
+            builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
+            builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
+            builder.Services.AddScoped<IJobSyncService, JobSyncService>();
+            builder.Services.AddHostedService<JobSyncHostedService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -164,8 +171,8 @@ namespace AICareerCoach.API
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                //await RoleSeeder.SeedAsync(roleManager);
-                await JobSeeder.SeedAsync(context);
+                await RoleSeeder.SeedAsync(roleManager);
+                //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
             }
 

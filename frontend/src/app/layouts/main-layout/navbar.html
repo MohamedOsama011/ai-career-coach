@@ -1,18 +1,7 @@
 <header class="navbar">
-  <div class="navbar-search">
-    <span class="material-icons search-icon">search</span>
-    <input type="text" class="search-input" placeholder="Search..." />
-  </div>
-
   <div class="navbar-actions">
-    <button class="icon-btn" title="Notifications">
-      <span class="material-icons">notifications</span>
+    <button class="avatar-wrapper" (click)="logout()" title="Logout" aria-label="Logout">
+      <span class="material-icons avatar-icon" aria-hidden="true">logout</span>
     </button>
-    <button class="icon-btn" title="Settings">
-      <span class="material-icons">dark_mode</span>
-    </button>
-    <div class="avatar-wrapper" (click)="logout()" title="Logout">
-      <span class="material-icons avatar-icon">logout</span>
-    </div>
   </div>
 </header>

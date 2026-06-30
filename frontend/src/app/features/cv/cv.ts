@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { CvService } from '../../core/services/cv.service';
 import { AiService } from '../../core/services/ai.service';
+import { CareerProfileStore } from '../../core/store/career-profile-store';
+import { CVResponseDto } from '../../core/models/cv.model';
 import { CvFeedback, FeedbackSuggestion } from '../../core/models/cv-feedback.model';
 
 @Component({
@@ -27,16 +29,60 @@ export class Cv implements OnInit, OnDestroy {
   deleteSuccess = signal('');
   private animationTimer: number | null = null;
 
+  showDiff = signal(false);
+  diffCVText = signal('');
+  diffLoading = signal(false);
+  diffError = signal('');
+  dismissedSuggestions = signal<Set<number>>(new Set());
+
   hasCV = computed(() => this.cvs().length > 0);
   fileName = signal('No CV Uploaded');
   lastScanned = signal('-');
+
+  diffSegments = computed<{ start: number; end: number; index: number }[]>(() => {
+    const text = this.diffCVText();
+    const fb = this.feedback();
+    if (!fb || !text) return [];
+    const dismissed = this.dismissedSuggestions();
+    const segments: { start: number; end: number; index: number }[] = [];
+    fb.suggestions.forEach((s, i) => {
+      if (dismissed.has(i)) return;
+      if (!s.originalText) return;
+      const start = text.indexOf(s.originalText);
+      if (start < 0) return;
+      segments.push({ start, end: start + s.originalText.length, index: i });
+    });
+    return segments;
+  });
+
+  diffChunks = computed<{ text: string; highlightIndex: number | null }[]>(() => {
+    const text = this.diffCVText();
+    const segs = this.diffSegments();
+    if (!text) return [];
+    if (segs.length === 0) return [{ text, highlightIndex: null }];
+
+    const chunks: { text: string; highlightIndex: number | null }[] = [];
+    let cursor = 0;
+    for (const seg of segs) {
+      if (seg.start > cursor) {
+        chunks.push({ text: text.slice(cursor, seg.start), highlightIndex: null });
+      }
+      chunks.push({ text: text.slice(seg.start, seg.end), highlightIndex: seg.index });
+      cursor = seg.end;
+    }
+    if (cursor < text.length) {
+      chunks.push({ text: text.slice(cursor), highlightIndex: null });
+    }
+    return chunks;
+  });
 
   private userId = '';
   isDragOver = signal(false);
 
   constructor(
     private cvService: CvService,
-    private aiService: AiService
+    private aiService: AiService,
+    private careerProfileStore: CareerProfileStore
   ) {}
 
   onDragOver(event: DragEvent): void {
@@ -79,12 +125,13 @@ export class Cv implements OnInit, OnDestroy {
     this.cvService.uploadCV(file, this.userId).pipe(
       finalize(() => this.isUploading.set(false))
     ).subscribe({
-      next: () => {
+      next: (response) => {
         this.uploadSuccess.set(true);
         this.fileName.set(file.name);
         this.lastScanned.set(new Date().toLocaleString());
         this.loadCVs();
         this.loadFeedback();
+        this.careerProfileStore.onCvUploaded((response as CVResponseDto).isNew);
         setTimeout(() => this.uploadSuccess.set(false), 3000);
       },
       error: () => {
@@ -122,7 +169,7 @@ export class Cv implements OnInit, OnDestroy {
     this.loadingFeedback.set(true);
     this.feedbackError.set('');
 
-    this.aiService.getCvFeedback(this.userId).pipe(
+    this.aiService.getCvFeedback().pipe(
       finalize(() => this.loadingFeedback.set(false))
     ).subscribe({
       next: (result) => {
@@ -269,6 +316,48 @@ export class Cv implements OnInit, OnDestroy {
     }, 16);
     this.animationTimer = id;
   }
+
+  openDiff(): void {
+    const cvs = this.cvs();
+    if (cvs.length === 0) return;
+    const latestCV = cvs.reduce((latest, current) =>
+      new Date(current.uploadedAt) > new Date(latest.uploadedAt) ? current : latest
+    );
+
+    this.showDiff.set(true);
+    this.diffCVText.set('');
+    this.diffError.set('');
+    this.dismissedSuggestions.set(new Set());
+    this.diffLoading.set(true);
+
+    this.cvService.getCvText(latestCV.cvId).subscribe({
+      next: (res) => {
+        this.diffCVText.set(res.extractedData ?? '');
+        this.diffLoading.set(false);
+      },
+      error: () => {
+        this.diffLoading.set(false);
+        this.diffError.set('Failed to load CV text. Please try again.');
+      }
+    });
+  }
+
+  closeDiff(): void {
+    this.showDiff.set(false);
+    this.diffCVText.set('');
+    this.diffError.set('');
+    this.dismissedSuggestions.set(new Set());
+  }
+
+  dismissSuggestion(index: number): void {
+    this.dismissedSuggestions.update(set => {
+      const next = new Set(set);
+      next.add(index);
+      return next;
+    });
+  }
+
+  trackByIndex = (i: number): number => i;
 
   ngOnDestroy(): void {
     if (this.animationTimer) {

@@ -483,6 +483,10 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+# Windows reserved device names (can appear as phantom untracked files)
+nul
+
 AGENTS.md
+docs/
 
 /docs/mock-interview-implementation-plan.md

@@ -6,6 +6,43 @@
   gap: 32px;
 }
 
+.dashboard-loading-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(37, 99, 235, 0.12);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dashboard-loading-bar__fill {
+  height: 100%;
+  width: 40%;
+  background: #2563EB;
+  animation: dashboard-loading-bar-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes dashboard-loading-bar-slide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(150%); }
+  100% { transform: translateX(350%); }
+}
+
+.dashboard-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;

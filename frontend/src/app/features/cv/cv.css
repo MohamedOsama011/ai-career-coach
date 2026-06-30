@@ -987,3 +987,252 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Review CV Button ─── */
+.review-cv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: #2563EB;
+  border: 1px solid #2563EB;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.review-cv-btn:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.review-cv-btn .material-icons {
+  font-size: 16px;
+}
+
+/* ─── Diff Overlay ─── */
+.diff-overlay {
+  position: fixed;
+  inset: 0;
+  background: #FFFFFF;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.diff-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+.diff-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.diff-icon {
+  font-size: 24px;
+  color: #2563EB;
+}
+
+.diff-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.diff-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diff-close:hover {
+  background: #F3F4F6;
+}
+
+.diff-close .material-icons {
+  font-size: 22px;
+  color: #6B7280;
+}
+
+.diff-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.diff-pane {
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.diff-text-pane {
+  background: #F9FAFB;
+  border-right: 1px solid #E5E7EB;
+  white-space: pre-wrap;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1F2937;
+}
+
+.diff-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6B7280;
+}
+
+.diff-error {
+  color: #DC2626;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.diff-text {
+  font-size: 15px;
+}
+
+.diff-highlight {
+  background: #FEF3C7;
+  border-bottom: 2px solid #D97706;
+  padding: 0 2px;
+  border-radius: 2px;
+  cursor: help;
+  font-weight: 600;
+}
+
+.diff-suggestions-pane {
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.diff-suggestions-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6B7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+}
+
+.diff-suggestion {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.diff-suggestion.has-highlight {
+  border-left: 3px solid #D97706;
+}
+
+.diff-suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.diff-suggestion-header .suggestion-category {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.diff-suggestion-header .priority-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.diff-label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #92400E;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+
+.diff-quote {
+  font-style: italic;
+  color: #4B5563;
+}
+
+.diff-quote.suggested {
+  color: #059669;
+  font-weight: 600;
+}
+
+.diff-original, .diff-suggested, .diff-issue, .diff-recommendation {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+.diff-issue, .diff-recommendation {
+  color: #374151;
+}
+
+.diff-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+  transition: background 0.15s ease;
+}
+
+.diff-apply:hover {
+  background: #059669;
+}
+
+.diff-apply .material-icons {
+  font-size: 14px;
+}
+
+@media (max-width: 1024px) {
+  .diff-body {
+    grid-template-columns: 1fr;
+  }
+  .diff-text-pane {
+    border-right: none;
+    border-bottom: 1px solid #E5E7EB;
+  }
+}

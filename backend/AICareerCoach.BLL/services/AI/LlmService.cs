@@ -37,7 +37,9 @@ namespace AICareerCoach.BLL.Services.AI
                   "category": "<Format|Skills|Experience|Education|Summary>",
                   "issue": "<what is wrong>",
                   "recommendation": "<specific actionable fix>",
-                  "priority": "<High|Medium|Low>"
+                  "priority": "<High|Medium|Low>",
+                  "originalText": "<exact verbatim quote from the CV this suggestion applies to, or empty string>",
+                  "suggestedText": "<the suggested replacement text, or empty string>"
                 }
               ]
             }
@@ -52,6 +54,10 @@ namespace AICareerCoach.BLL.Services.AI
             - Make sure 'overallScore' represents a fair weighted average of the detailed scores.
             - Each sub-score (keywordMatch, impactStatements, formatting, leadershipSignals) must be between 0 and 100.
             - Analyze the CV text carefully and assign realistic values for each sub-score.
+            - For each suggestion, include 'originalText' (exact verbatim quote from the CV that the issue applies to) and 'suggestedText' (the replacement text) WHEN the issue applies to a specific part of the CV.
+            - If the suggestion is general (e.g., 'add more keywords throughout'), leave both 'originalText' and 'suggestedText' as empty strings.
+            - 'originalText' MUST be a verbatim quote that exists in the CV text (character-for-character). Do not paraphrase.
+            - Limit 'originalText' to a single sentence or phrase (max 200 characters).
             """;
 
         public LlmService(IConfiguration config, ILogger<LlmService> logger)
@@ -130,7 +136,7 @@ namespace AICareerCoach.BLL.Services.AI
             OverallSummary = "We couldn't analyze your CV at this moment. Please try again later.",
             Strengths = new() { "System temporary error" },
             MissingKeywords = new(),
-            Suggestions = new() { new() { Category = "System", Issue = reason, Recommendation = "Try again later", Priority = "High" } },
+            Suggestions = new() { new() { Category = "System", Issue = reason, Recommendation = "Try again later", Priority = "High", OriginalText = string.Empty, SuggestedText = string.Empty } },
             FromCache = false,
             GeneratedAt = DateTime.UtcNow
         };

@@ -47,10 +47,18 @@ namespace AICareerCoach.BLL.Services.AI
                 ?? throw new Exception("No CV found. Please upload your CV first.");
 
             var fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "cvs", cv.FilePath);
-            var cvText = _pdfExtractor.ExtractText(fullPath);
 
-            cv.ExtractedData = cvText;
-            await _context.SaveChangesAsync();
+            string cvText;
+            if (string.IsNullOrWhiteSpace(cv.ExtractedData))
+            {
+                cvText = _pdfExtractor.ExtractText(fullPath);
+                cv.ExtractedData = cvText;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                cvText = cv.ExtractedData;
+            }
 
             var cvHash = ComputeHash(cvText);
 

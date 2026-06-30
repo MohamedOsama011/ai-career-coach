@@ -1,0 +1,67 @@
+<div class="modal-overlay" (click)="cancel.emit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <h2>{{ isEdit() ? 'Edit Job' : 'Add Job' }}</h2>
+      <button class="btn-icon" (click)="cancel.emit()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Title *</label>
+        <input type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" required />
+      </div>
+
+      <div class="form-row">
+        <label>Company *</label>
+        <input type="text" [ngModel]="company()" (ngModelChange)="company.set($event)" required />
+      </div>
+
+      <div class="form-row">
+        <label>Description *</label>
+        <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" rows="4" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Required skills (comma-separated)</label>
+        <input type="text" [ngModel]="skillsText()" (ngModelChange)="skillsText.set($event)" placeholder="C#, .NET, SQL Server" />
+      </div>
+
+      <div class="form-row">
+        <label>Location</label>
+        <input type="text" [ngModel]="location()" (ngModelChange)="location.set($event)" placeholder="Cairo, Egypt (Remote)" />
+      </div>
+
+      <div class="form-row-grid">
+        <div class="form-row">
+          <label>Salary (EGP/mo)</label>
+          <input type="number" [ngModel]="salary()" (ngModelChange)="salary.set(+$event)" min="0" />
+        </div>
+        <div class="form-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="isRemote()" (ngModelChange)="isRemote.set($event)" />
+            <span>Remote</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>External URL (optional)</label>
+        <input type="url" [ngModel]="externalUrl()" (ngModelChange)="externalUrl.set($event)" placeholder="https://..." />
+      </div>
+
+      <div class="form-row">
+        <label>Company logo URL (optional)</label>
+        <input type="url" [ngModel]="companyLogoUrl()" (ngModelChange)="companyLogoUrl.set($event)" placeholder="https://..." />
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancel.emit()">Cancel</button>
+      <button class="btn btn-primary" (click)="onSave()" [disabled]="!title() || !company() || !description()">
+        {{ isEdit() ? 'Save changes' : 'Create job' }}
+      </button>
+    </footer>
+  </div>
+</div>
