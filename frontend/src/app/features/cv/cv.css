@@ -1111,6 +1111,9 @@
 
 .diff-text {
   font-size: 15px;
+  white-space: pre-wrap;
+  line-height: 1.8;
+  padding: 4px 0;
 }
 
 .diff-highlight {
@@ -1203,28 +1206,89 @@
   color: #374151;
 }
 
-.diff-apply {
+.diff-applied {
+  background: #DCFCE7;
+  border-bottom: 2px solid #16A34A;
+}
+
+.diff-suggestion-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.diff-apply-btn, .diff-undo, .diff-dismiss {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #10B981;
-  color: #FFFFFF;
-  border: none;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
-  margin-top: 8px;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s ease;
+}
+
+.diff-apply-btn .material-icons,
+.diff-undo .material-icons,
+.diff-dismiss .material-icons {
+  font-size: 14px;
+}
+
+.diff-apply-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.diff-apply-btn:hover {
+  background: #1D4ED8;
+}
+
+.diff-undo {
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.diff-undo:hover {
+  background: #E5E7EB;
+}
+
+.diff-dismiss {
+  background: transparent;
+  color: #6B7280;
+  border: 1px solid #D1D5DB;
+}
+
+.diff-dismiss:hover {
+  background: #F9FAFB;
+  color: #374151;
+}
+
+.diff-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #059669;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
   transition: background 0.15s ease;
 }
 
-.diff-apply:hover {
-  background: #059669;
+.diff-download-btn:hover {
+  background: #047857;
 }
 
-.diff-apply .material-icons {
-  font-size: 14px;
+.diff-download-btn .material-icons {
+  font-size: 18px;
 }
 
 @media (max-width: 1024px) {

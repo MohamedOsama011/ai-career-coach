@@ -368,6 +368,12 @@
         <span class="material-icons diff-icon">edit_note</span>
         <h2>CV Review</h2>
       </div>
+      @if (appliedSuggestions().size > 0) {
+        <button class="diff-download-btn" (click)="downloadModifiedCv()" type="button">
+          <span class="material-icons">download</span>
+          Download CV
+        </button>
+      }
       <button class="diff-close" (click)="closeDiff()" type="button" aria-label="Close review">
         <span class="material-icons">close</span>
       </button>
@@ -384,9 +390,9 @@
           <p class="diff-error">{{ diffError() }}</p>
         } @else {
           <div class="diff-text">
-            @for (chunk of diffChunks(); track $index) {
+            @for (chunk of modifiedChunks(); track $index) {
               @if (chunk.highlightIndex !== null) {
-                <span class="diff-highlight" [attr.data-index]="chunk.highlightIndex">{{ chunk.text }}</span>
+                <span class="diff-highlight" [class.diff-applied]="chunk.isApplied" [attr.data-index]="chunk.highlightIndex">{{ chunk.text }}</span>
               } @else {
                 <span>{{ chunk.text }}</span>
               }
@@ -419,10 +425,23 @@
                 }
                 <p class="diff-issue"><span class="diff-label">Issue</span>{{ s.issue }}</p>
                 <p class="diff-recommendation"><span class="diff-label">Fix</span>{{ s.recommendation }}</p>
-                <button class="diff-apply" (click)="dismissSuggestion(i)" type="button">
-                  <span class="material-icons">check</span>
-                  Mark as reviewed
-                </button>
+                <div class="diff-suggestion-actions">
+                  @if (appliedSuggestions().has(i)) {
+                    <button class="diff-undo" (click)="undoSuggestion(i)" type="button">
+                      <span class="material-icons">undo</span>
+                      Undo
+                    </button>
+                  } @else if (s.originalText && s.suggestedText) {
+                    <button class="diff-apply-btn" (click)="applySuggestion(i)" type="button">
+                      <span class="material-icons">playlist_add_check</span>
+                      Apply
+                    </button>
+                  }
+                  <button class="diff-dismiss" (click)="dismissSuggestion(i)" type="button">
+                    <span class="material-icons">close</span>
+                    Dismiss
+                  </button>
+                </div>
               </div>
             }
           }

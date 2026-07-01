@@ -17,7 +17,17 @@ namespace AICareerCoach.API.Controllers
         private readonly IUserRoadmapService _userRoadmapService;
         private readonly UserManager<User> _userManager;
 
-        public PdfController(
+        [HttpPost("modified-cv")]
+    public IActionResult PostModifiedCv([FromBody] ModifiedCvRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.ModifiedText))
+            return BadRequest(new { message = "modifiedText is required." });
+
+        var pdf = _pdfReportService.GenerateModifiedCvReport(request.ModifiedText);
+        return File(pdf, "application/pdf", "Modified_CV.pdf");
+    }
+
+    public PdfController(
             IPdfReportService pdfReportService,
             ICvFeedbackService cvFeedbackService,
             IUserRoadmapService userRoadmapService,
@@ -67,5 +77,10 @@ namespace AICareerCoach.API.Controllers
             var pdf = _pdfReportService.GenerateRoadmapReport(dto);
             return File(pdf, "application/pdf", $"Roadmap_Report_{userId}.pdf");
         }
+    }
+
+    public class ModifiedCvRequest
+    {
+        public string ModifiedText { get; set; } = "";
     }
 }

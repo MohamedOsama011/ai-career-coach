@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Entities;
 using Microsoft.Extensions.Configuration;
@@ -485,7 +486,7 @@ namespace AICareerCoach.BLL.Services.AI
                 _ => ""
             };
 
-            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, 4000);
+            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, CvConstants.MaxLength);
             var focusSection = BuildFocusAreasSection(summaryContextJson);
             var focusBlock = string.IsNullOrEmpty(focusSection)
                 ? string.Empty
@@ -523,7 +524,7 @@ namespace AICareerCoach.BLL.Services.AI
         private static string BuildScorecardSystemPrompt(
             InterviewTrack track, InterviewDifficulty difficulty, string targetRole, string summaryContextJson, int questionCount)
         {
-            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, 1000);
+            var cvExcerpt = ExtractCvExcerptFromContext(summaryContextJson, CvConstants.MaxLength);
             var focusSection = BuildFocusAreasSection(summaryContextJson);
 
             var cvSection = string.IsNullOrWhiteSpace(cvExcerpt)

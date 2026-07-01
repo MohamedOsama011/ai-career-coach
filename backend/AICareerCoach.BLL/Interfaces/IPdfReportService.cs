@@ -5,7 +5,8 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface IPdfReportService
     {
-        byte[] GenerateCvReport(CvFeedbackDto report);
-        byte[] GenerateRoadmapReport(RoadmapDto roadmap);
+    byte[] GenerateCvReport(CvFeedbackDto report);
+    byte[] GenerateRoadmapReport(RoadmapDto roadmap);
+    byte[] GenerateModifiedCvReport(string modifiedText);
     }
 }

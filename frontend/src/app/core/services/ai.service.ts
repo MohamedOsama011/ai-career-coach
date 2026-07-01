@@ -21,4 +21,8 @@ export class AiService {
   downloadRoadmapReport(): Observable<Blob> {
     return this.http.get(`${this.pdfApi}/roadmap-report`, { responseType: 'blob' });
   }
+
+  downloadModifiedCv(modifiedText: string): Observable<Blob> {
+    return this.http.post(`${this.pdfApi}/modified-cv`, { modifiedText }, { responseType: 'blob' });
+  }
 }

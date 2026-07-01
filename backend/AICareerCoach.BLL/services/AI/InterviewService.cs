@@ -3,6 +3,7 @@ using AICareerCoach.BLL.DTOs.Interview;
 using AICareerCoach.BLL.DTOs.Job;
 using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
@@ -93,8 +94,8 @@ namespace AICareerCoach.BLL.Services.AI
             var track = ParseEnum<InterviewTrack>(request.Track);
             var difficulty = ParseEnum<InterviewDifficulty>(request.Difficulty);
 
-            var cvExcerpt = cv.ExtractedData.Length > 4000
-                ? cv.ExtractedData[..4000]
+            var cvExcerpt = cv.ExtractedData.Length > CvConstants.MaxLength
+                ? cv.ExtractedData[..CvConstants.MaxLength]
                 : cv.ExtractedData;
 
             // Gather personalized context from CV feedback, skills gap, and job
@@ -900,7 +901,7 @@ namespace AICareerCoach.BLL.Services.AI
                 var excerpt = doc.RootElement.TryGetProperty("cvExcerpt", out var el) && el.ValueKind == JsonValueKind.String
                     ? el.GetString() ?? string.Empty
                     : string.Empty;
-                return excerpt.Length > 1000 ? excerpt[..1000] : excerpt;
+                return excerpt.Length > CvConstants.MaxLength ? excerpt[..CvConstants.MaxLength] : excerpt;
             }
             catch (JsonException)
             {

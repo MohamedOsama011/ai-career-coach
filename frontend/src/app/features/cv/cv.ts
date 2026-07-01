@@ -34,13 +34,46 @@ export class Cv implements OnInit, OnDestroy {
   diffLoading = signal(false);
   diffError = signal('');
   dismissedSuggestions = signal<Set<number>>(new Set());
+  appliedSuggestions = signal<Set<number>>(new Set());
 
   hasCV = computed(() => this.cvs().length > 0);
   fileName = signal('No CV Uploaded');
   lastScanned = signal('-');
 
+  /** Normalize raw extracted PDF text for readability. */
+  private static formatCvText(text: string): string {
+    let result = text
+      // 1) Break camelCase: lower→Upper→lower
+      .replace(/([a-z])([A-Z][a-z])/g, '$1 $2')
+      // 2) Break camelCase: lower→Upper (catches trailing acronyms)
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      // 3) Sentence boundary: period + capital
+      .replace(/(\w\.)([A-Z])/g, '$1 $2');
+
+    // 4) Uppercase section headers (standalone)
+    const UPPER_HEADERS =
+      /\b(PROFESSIONAL (?:SUMMARY|EXPERIENCE)|SUMMARY|PROFILE|OBJECTIVE|EDUCATION|EXPERIENCE|SKILLS|PROJECTS|CERTIFICATIONS|TECHNICAL SKILLS|WORK HISTORY|ACHIEVEMENTS|LANGUAGES|INTERESTS|PUBLICATIONS|TRAINING|REFERENCES|INTERNSHIP|RESEARCH)\b/g;
+    result = result.replace(UPPER_HEADERS, '\n$1\n');
+
+    // 5) Mixed-case section headers (now isolated after camelCase breaking)
+    const MIXED_HEADERS =
+      /\b(Professional Summary|Core Competencies|Technical Skills?|Technical Expertise|Professional Experience|Work History|Additional Skills|Certifications?(?:\s*[&]\s*Training)?|Education|Experience|Projects?|Achievements|Languages?|Interests|Publications|Summary|Profile|Objective|Training|References|Internship|Research)\b/gi;
+    result = result.replace(MIXED_HEADERS, '\n$1');
+
+    // 6) Clean up whitespace
+    result = result
+      .replace(/\n +/g, '\n')
+      .replace(/ {3,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    return result;
+  }
+
+  formattedDiffText = computed(() => Cv.formatCvText(this.diffCVText()));
+
   diffSegments = computed<{ start: number; end: number; index: number }[]>(() => {
-    const text = this.diffCVText();
+    const text = this.formattedDiffText();
     const fb = this.feedback();
     if (!fb || !text) return [];
     const dismissed = this.dismissedSuggestions();
@@ -48,15 +81,16 @@ export class Cv implements OnInit, OnDestroy {
     fb.suggestions.forEach((s, i) => {
       if (dismissed.has(i)) return;
       if (!s.originalText) return;
-      const start = text.indexOf(s.originalText);
+      const normOriginal = Cv.formatCvText(s.originalText);
+      const start = text.indexOf(normOriginal);
       if (start < 0) return;
-      segments.push({ start, end: start + s.originalText.length, index: i });
+      segments.push({ start, end: start + normOriginal.length, index: i });
     });
     return segments;
   });
 
   diffChunks = computed<{ text: string; highlightIndex: number | null }[]>(() => {
-    const text = this.diffCVText();
+    const text = this.formattedDiffText();
     const segs = this.diffSegments();
     if (!text) return [];
     if (segs.length === 0) return [{ text, highlightIndex: null }];
@@ -74,6 +108,19 @@ export class Cv implements OnInit, OnDestroy {
       chunks.push({ text: text.slice(cursor), highlightIndex: null });
     }
     return chunks;
+  });
+
+  modifiedChunks = computed<{ text: string; highlightIndex: number | null; isApplied: boolean }[]>(() => {
+    const chunks = this.diffChunks();
+    const suggestions = this.feedback()?.suggestions ?? [];
+    const applied = this.appliedSuggestions();
+    return chunks.map(chunk => {
+      if (chunk.highlightIndex !== null && applied.has(chunk.highlightIndex)) {
+        const s = suggestions[chunk.highlightIndex];
+        return { text: s?.suggestedText ?? chunk.text, highlightIndex: chunk.highlightIndex, isApplied: true };
+      }
+      return { text: chunk.text, highlightIndex: chunk.highlightIndex, isApplied: false };
+    });
   });
 
   private userId = '';
@@ -331,6 +378,7 @@ export class Cv implements OnInit, OnDestroy {
     this.diffCVText.set('');
     this.diffError.set('');
     this.dismissedSuggestions.set(new Set());
+    this.appliedSuggestions.set(new Set());
     this.diffLoading.set(true);
 
     this.cvService.getCvText(latestCV.cvId).subscribe({
@@ -350,6 +398,7 @@ export class Cv implements OnInit, OnDestroy {
     this.diffCVText.set('');
     this.diffError.set('');
     this.dismissedSuggestions.set(new Set());
+    this.appliedSuggestions.set(new Set());
   }
 
   dismissSuggestion(index: number): void {
@@ -357,6 +406,60 @@ export class Cv implements OnInit, OnDestroy {
       const next = new Set(set);
       next.add(index);
       return next;
+    });
+  }
+
+  applySuggestion(index: number): void {
+    this.appliedSuggestions.update(set => {
+      const next = new Set(set);
+      next.add(index);
+      return next;
+    });
+  }
+
+  undoSuggestion(index: number): void {
+    this.appliedSuggestions.update(set => {
+      const next = new Set(set);
+      next.delete(index);
+      return next;
+    });
+  }
+
+  private getModifiedCvText(): string {
+    const text = this.formattedDiffText();
+    const suggestions = this.feedback()?.suggestions ?? [];
+    const applied = this.appliedSuggestions();
+    const replacements: { original: string; suggested: string }[] = [];
+    for (const i of applied) {
+      const s = suggestions[i];
+      if (s?.originalText && s?.suggestedText) {
+        replacements.push({ original: s.originalText, suggested: s.suggestedText });
+      }
+    }
+    replacements.sort((a, b) => text.indexOf(b.original) - text.indexOf(a.original));
+    let result = text;
+    for (const r of replacements) {
+      const pos = result.indexOf(r.original);
+      if (pos >= 0) {
+        result = result.slice(0, pos) + r.suggested + result.slice(pos + r.original.length);
+      }
+    }
+    return result;
+  }
+
+  downloadModifiedCv(): void {
+    const modifiedText = this.getModifiedCvText();
+    if (!modifiedText.trim()) return;
+    this.aiService.downloadModifiedCv(modifiedText).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Modified_CV.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => alert('Failed to download modified CV')
     });
   }
 

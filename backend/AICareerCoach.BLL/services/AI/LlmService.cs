@@ -1,4 +1,5 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -77,7 +78,7 @@ namespace AICareerCoach.BLL.Services.AI
         }
         public async Task<CvFeedbackDto> GetCvFeedbackAsync(string cvText)
         {
-            var trimmedCv = cvText.Length > 8000 ? cvText[..8000] : cvText;
+            var trimmedCv = cvText.Length > CvConstants.MaxLength ? cvText[..CvConstants.MaxLength] : cvText;
 
             var messages = new List<ChatMessage>
             {

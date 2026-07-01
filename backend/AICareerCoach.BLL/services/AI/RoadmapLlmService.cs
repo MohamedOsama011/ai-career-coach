@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Roadmap;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Entities;
 using Microsoft.Extensions.Configuration;
@@ -13,8 +14,8 @@ namespace AICareerCoach.BLL.Services.AI
 {
     public class RoadmapLlmService : IRoadmapLlmService
     {
-        private const int CvTrimLimit = 8000;
-        private const int CvExcerptLimit = 2000;
+        private const int CvTrimLimit = CvConstants.MaxLength;
+        private const int CvExcerptLimit = CvConstants.MaxLength;
 
         private readonly ChatClient _chatClient;
         private readonly ILogger<RoadmapLlmService> _logger;
@@ -88,7 +89,7 @@ namespace AICareerCoach.BLL.Services.AI
             if (weakAreas == null || weakAreas.Count == 0)
                 return new List<RoadmapStepResultDto>();
 
-            var trimmedCv = cvText.Length > 2000 ? cvText[..2000] : cvText;
+            var trimmedCv = cvText.Length > CvConstants.MaxLength ? cvText[..CvConstants.MaxLength] : cvText;
 
             var jsonStructure = """
             {
