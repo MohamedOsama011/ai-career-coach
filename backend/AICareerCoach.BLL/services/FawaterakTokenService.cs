@@ -36,21 +36,27 @@ namespace AICareerCoach.BLL.services
 
             //private const string CacheKey = "FawaterakToken";
             
-            if (cache.TryGetValue("FawaterakToken", out string token))
+            if (cache.TryGetValue("Fawateraktoken", out string token))
             {
                 return token;
 
             }
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                _configuration["Fawaterak:TokenUrl"]);
+               $"{ _configuration["Fawaterak:tokenurl"] }");
 
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            { "grant_type", "client_credentials" },
-            { "client_id", _configuration["Fawaterak:ClientId"]! },
-            { "client_secret", _configuration["Fawaterak:ClientSecret"]! }
-        });
+            var requestBody = new FwateraktokenrequestDTO
+            {
+                grant_type = "client_credentials",
+                client_id = _configuration["Fawaterak:clientid"]!,
+                client_secret = _configuration["Fawaterak:clientsecret"]!,
+                scope = ""
+            };
+
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(requestBody), System.Text.Encoding.UTF8,"application/json"
+                );
+        
 
             var response = await _httpClient.SendAsync(request);
 
@@ -74,7 +80,7 @@ namespace AICareerCoach.BLL.services
             }
             if (tokenResponse.ExpiresIn > 60)
             {
-                cache.Set("FawaterakToken",
+                cache.Set("Fawateraktoken",
                           tokenResponse.AccessToken,
                           TimeSpan.FromSeconds(tokenResponse.ExpiresIn - 60));
             }
@@ -88,9 +94,7 @@ namespace AICareerCoach.BLL.services
 
             return tokenResponse.AccessToken; ;
 
-            //using singlton pattern to store the token and its expiration time it's a semple way
-            //_accessToken = tokenResponse.AccessToken;
-            //_expiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn - 60);
+           
         }
     }
 }

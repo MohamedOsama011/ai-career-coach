@@ -51,7 +51,7 @@ namespace AICareerCoach.API.Controllers
         }
 
 
-        [HttpPost("createfawaterakpaymentlink")]
+        [HttpPost("GettransactionData")]
 
         public async Task<IActionResult> GettransactionData(gettransactionDTO dto)
         {

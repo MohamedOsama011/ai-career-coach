@@ -3,6 +3,7 @@ using AICareerCoach.BLL.DTOs.Fawaterak;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Org.BouncyCastle.Tsp;
@@ -30,10 +31,10 @@ namespace AICareerCoach.BLL.services
             context = _context;
             fawaterakTokenService= _ifa;
         }
-        public async Task<Generalresponse> createpayment(datasendedwhenclickonsubscriptionDTO dto)
+        public async Task<fawaterakresponsepaymentmethodsDTO> createpayment(datasendedwhenclickonsubscriptionDTO dto)
         {
             var url = "";
-            var response = new Generalresponse();
+            var response = new fawaterakresponsepaymentmethodsDTO();
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == dto.userid);
             var plan = await context.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == dto.planid);
             if (plan == null)
@@ -75,52 +76,43 @@ namespace AICareerCoach.BLL.services
                 if (res != null)
                 {
                     response.Success = true;
-                    response.Data = res + usersubscription.Id.ToString();
+                    response.Data = res ;
+                    response.usersubscriptionid = usersubscription.Id.ToString();
                 }
             }
                 return response;
 
-                //    var fawa = new FawaterakDto
-                //    {
-
-                //        first_name = user.UserName,
-                //        last_name = user.FullName,
-                //        email = user.Email,
-                //        phone = user.PhoneNumber,
-                //        cartTotal = plan.Price,
-                //        currency= "EGP",
-                //        cartitems_name = plan.Name,
-                //        cartitems_price = plan.Price,
-                //        cartitems_quantity = 1,
-                //        invoice = payment.InternalTransactionid
-
-                //    };
-
-                //    url = await createfawaterakpayment(fawa);
-                //}
-                //return url;
             }
 
-       public async Task<GetPaymentMethodsResponseDTO> getallpaymentmethods()
+        public async Task<GetPaymentMethodsResponseDTO> getallpaymentmethods()
         {
-            //var accesstoken=await fawaterakTokenService.GetAccessTokenAsync();
-            
-            configuration["Fawaterak:ApiKey"] = await fawaterakTokenService.GetAccessTokenAsync();
+            var client = new HttpClient();
+            var accesstoken =await fawaterakTokenService.GetAccessTokenAsync();
+            Console.WriteLine(accesstoken);
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v2/getPaymentmethods");
-            request.Headers.Authorization =new AuthenticationHeaderValue("Bearer",  configuration["Fawaterak:ApiKey"]);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{configuration["Fawaterak:BaseUrl"]}/api/v3/getTrPaymentmethods");
+            request.Headers.Authorization =new AuthenticationHeaderValue("Bearer",  accesstoken);
             request.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.SendAsync(request);
+
+
+
+            var response = await client.SendAsync(request);
             var result = await response.Content.ReadAsStringAsync();
+
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception("fawaterak error" + result);
             }
 
-            var responseobject = JsonSerializer.Deserialize<GetPaymentMethodsResponseDTO>(result);
-
-            return responseobject;
+            var responseObject =System.Text.Json. JsonSerializer.Deserialize<GetPaymentMethodsResponseDTO>(
+                result,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            return responseObject;
 
            
         }
@@ -131,56 +123,103 @@ namespace AICareerCoach.BLL.services
     .Include(u => u.User).FirstOrDefaultAsync(x => x.Id.ToString() == usersubscriptionid);
 
             var dto = new FawaterakDto();
-                dto.first_name = data.User.UserName;
-                dto.last_name = data.User.FullName;
-                dto.email = data.User.Email;
-                 dto.phone = data.User.PhoneNumber;
-                 dto.cartTotal = data.Subscription.Price;
-            dto.currency = "EGP";
-                dto.cartitems_name = data.Subscription.Name;
-                dto.cartitems_price = data.Subscription.Price;
-                dto.cartitems_quantity = 1;
-                 dto.invoice = data.Payments.FirstOrDefault(p => p.Usersubscriptionid.ToString() == usersubscriptionid).invoicenumber;
-                 dto.payment_method_id = methodid;
- 
+                dto.Customer.FirstName = data.User.UserName;
+                dto.Customer.LastName = data.User.FullName;
+                dto.Customer.Email = data.User.Email;
+                dto.Customer.Phone = data.User.PhoneNumber;
+                dto.CartTotal = data.Subscription.Price;//usersubscription must be used
+            dto.PaymentMethodId =int.Parse( methodid);
+            dto.Currency = "EGP";
+            dto.Lang = "en";
+            dto.DueDate = DateTime.UtcNow;
+            dto.MobileWalletNumber="";
+            dto.TrNumber = "";
+            dto.SendSms = false;
+            dto.SendEmail = false;
+            dto.ListStyle= "horizontal";
+            dto.PayLoad.OrderId = data.Payments.FirstOrDefault().Usersubscriptionid.ToString();// please check again 
+            dto.PayLoad.CustomerReference = data.Userid;
+
+            dto.CartItems = new List<CartItemDto>
+            {
+              new CartItemDto
+                    {
+                        Name = data.Subscription.Name, 
+                        Price = data.Subscription.Price,
+                        Quantity = 1
+                    }
+            };
+
+            dto.DiscountData.Type = "";
+            dto.DiscountData.Value = 0;
+            dto.TaxData.Title = "";
+            dto.TaxData.Value = 0;
+           
+            dto.AuthAndCapture = 0;
+            dto.RedirectionUrls.SuccessUrl = "https://localhost:44313/swagger/index.html";
+            dto.RedirectionUrls.FailUrl=" https://localhost:44313/swagger/index.html";
+            dto.RedirectionUrls.PendingUrl= "https://localhost:44313/swagger/index.html";
+            dto.RedirectionUrls.WebhookUrl= "https://localhost:44313/swagger/index.html";
+
             var pay = await Excutepayment(dto);
             return pay;
         }
         public  async Task<excutepaymentgeneralResponseDTO>  Excutepayment(FawaterakDto Dto)
         {
-            configuration["Fawaterak:ApiKey"] = await fawaterakTokenService.GetAccessTokenAsync();
+            
+            var  accesstoken = await fawaterakTokenService.GetAccessTokenAsync();
 
             var requestbody = new
             {
-                payment_method_id=Dto.payment_method_id,
-                cartTotal = Dto.cartTotal,
-                currency = Dto.currency,
-                invoice_number=Dto.invoice,
+                payment_method_id = Dto.PaymentMethodId,
+                cartTotal = Dto.CartTotal,
+                currency = Dto.Currency,
                 customer = new
                 {
-                    first_name = Dto.first_name,
-                    last_name = Dto.last_name,
-                    email = Dto.email,
-                    phone = Dto.phone,
-                    address = Dto.address
+                    first_name = Dto.Customer.FirstName,
+                    last_name = Dto.Customer.LastName,
+                    email = Dto.Customer.Email,
+                    phone = Dto.Customer.Phone,
+                    address = Dto.Customer.Address
                 },
-                cartItems = new[]
+                cartItems = Dto.CartItems.Select(item => new
                 {
-                    new{
-                    name = Dto.cartitems_name,
-                    price = Dto.cartitems_price,
-                    quantity = Dto.cartitems_quantity,
-                    }
-                    
+                    name = item.Name,
+                    price = item.Price,
+                    quantity = item.Quantity
+                }).ToList(),
+                pay_load = new { order_id = Dto.PayLoad.OrderId , customer_reference = Dto.PayLoad.CustomerReference },
+                redirectionUrls = new
+                {
+                    successUrl = Dto.RedirectionUrls.SuccessUrl,
+                    failUrl = Dto.RedirectionUrls.FailUrl,
+                    pendingUrl = Dto.RedirectionUrls.PendingUrl,
+                    webhookUrl=Dto.RedirectionUrls.WebhookUrl
                 },
-                redirectionUrls=new {
-                successUrl = "https://dev.fawaterk.com/success",
-                failUrl= "https://dev.fawaterk.com/fail",
-                pendingUrl= "https://dev.fawaterk.com/pending"
-     },
+
+                sendEmail = Dto.SendEmail,
+                sendSMS = Dto.SendSms,
+                due_date = Dto.DueDate,
+                tr_number  =Dto.TrNumber,
+                redirectOption = Dto.RedirectOption,
+                authAndCapture=Dto.AuthAndCapture,
+               
+                taxData=new 
+                {
+                    title= Dto.TaxData.Title,
+                    value =Dto.TaxData.Value
+                },
+                discountData=new {
+                    type= Dto.DiscountData.Type,
+                    value= Dto.DiscountData.Value
+                },
+                list_style= Dto.ListStyle,
+                lang= Dto.Lang,
+                mobileWalletNumber= Dto.MobileWalletNumber
+     
             };
-            var  request = new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v2/invoiceInitPay");
-            request.Headers.Add("Authorization", configuration["Fawaterak:ApiKey"]);
+            var  request = new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v3/createTransaction");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accesstoken);
             request.Content = new StringContent(JsonSerializer.Serialize(requestbody), Encoding.UTF8, "application/json");
 
             var response = await httpClient.SendAsync(request);
@@ -219,47 +258,44 @@ namespace AICareerCoach.BLL.services
             //}
             return responseobject;
         }
-        public async Task<FawaterakcreatelinkpaymentResponseDTO> createfawaterakpayment(FawaterakDto Dto)
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<Gettransactionresponse> GettransactionData(gettransactionDTO Dto)
         {
+            var accesstoken = await fawaterakTokenService.GetAccessTokenAsync();
+            Console.WriteLine(accesstoken);
+
             var requestbody = new
             {
-                cartTotal=Dto.cartTotal,
-                currency= Dto.currency,
-                customer = new
-                {
-                   first_name=Dto.first_name,
-                   last_name=Dto.last_name,
-                    email=Dto.email,
-                    phone=Dto.phone,
-                    address=Dto.address
-                },
-                cartItems=new
-                {
-                    name = Dto.cartitems_name,
-                    price = Dto.cartitems_price,
-                    quantity = Dto.cartitems_price
-                },
-  
-               
-                //referenceid = Dto.InternalTransactionID,
-                SucessUrl=$"{configuration["Appsettings:Baseurl"]}/payments/success",
-                failedUrl = $"{configuration["Appsettings:Baseurl"]}/payments/fail",
-                webhookUrl = $"{configuration["Appsettings:Baseurl"]}/payments/webhook"
+                intent_key = Dto.Intentkey
             };
-            var request=new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v2/createInvoiceLink");
-            request.Headers.Add("Authorization", configuration["Fawaterak:ApiKey"]);
-            request.Content=new StringContent(JsonSerializer.Serialize(requestbody),Encoding.UTF8,"application/json");
 
-            var response=await httpClient.SendAsync(request);
-            var result=await response.Content.ReadAsStringAsync();
-            if(!response.IsSuccessStatusCode)
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{configuration["Fawaterak:BaseUrl"]}/api/v3/getTransactionData");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accesstoken);
+            request.Content = new StringContent(JsonSerializer.Serialize(requestbody), Encoding.UTF8, "application/json");
+
+            var response = await httpClient.SendAsync(request);
+            var result = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
             {
-            throw new Exception("fawaterak error"+result);
+                throw new Exception("fawaterak error" + result);
             }
 
-            var responseobject = JsonSerializer.Deserialize<FawaterakcreatelinkpaymentResponseDTO>(result);
+            var responseobject = JsonSerializer.Deserialize<Gettransactionresponse>(result);
 
-            
+
             return responseobject;
 
         }
@@ -275,195 +311,198 @@ namespace AICareerCoach.BLL.services
 
 
 
-        public async Task<Generalresponse> Successwebhook(webhookSuccessDto dto)
-        {
-
-            
-            if (!VerifyWebhookHash(dto))
-            {
-                return new Generalresponse
-                {
-                    Success = false,
-                    Data = "Invalid webhook hash."
-                };
-            }
-
-            var payment = await context.Payments
-                .Include(x => x.UserSubscription)
-                .FirstOrDefaultAsync(x => x.Invoiceid == dto.invoice_id.ToString());
-
-            if (payment == null)
-            {
-                return new Generalresponse
-                {
-                    Success = false,
-                    Data = "Payment not found."
-                };
-            }
-
-            if (payment.Status == "paid")
-            {
-                return new Generalresponse
-                {
-                    Success = true,
-                    Data = "Payment already processed."
-                };
-            }
-
-            payment.Status = "paid";
-            payment.PaymentMethod = dto.payment_method;
-            payment.referenceNumber = dto.referenceNumber;
-
-            payment.UserSubscription.Isactive = true;
-            payment.UserSubscription.Status = "active";
-            payment.UserSubscription.StartDate = DateTime.UtcNow;
-            payment.UserSubscription.Enddate = DateTime.UtcNow.AddMonths(1);
-
-            await context.SaveChangesAsync();
-
-            return new Generalresponse
-            {
-                Success = true,
-                Data = dto
-            };
-        }
-
-        public async Task<Generalresponse> failedwebhook(FailedwebhookDTO dto)
-        {
-            
-            //if(!failedwebhookHash(dto))
-            //{
-            //    return new Generalresponse
-            //    {
-            //        Success = false,
-            //        Data = "3D Secure authentication failed"
-            //    };
-            //}
-            var payment = await context.Payments.Where(p=>p.Invoiceid == dto.invoice_id.ToString()&&p.InvoiceKey == dto.invoice_key).FirstOrDefaultAsync();
-
-            if (payment==null)
-            {
-                return new Generalresponse
-                {
-                    Success = false,
-                    Data = "Invoice not found."
-                };
-            }
-            
-            
-
-            payment.Status = "failed";
-            payment.UserSubscription.Status = "Notactive";
-            payment.UserSubscription.Isactive = false;
-            await context.SaveChangesAsync();
-            return new Generalresponse
-            {
-                Success = true,
-                Data = dto
-            };
-           
-        }
-
-        public async Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto)
-        {
-            
-            
-
-            var response = new Generalresponse();
-            if (!cancelWebhookHash(dto))
-            {
-                response.Success = false;
-                response.Data = "expired link transaction ";
-
-            }
-
-            string invoiceNumber = dto.pay_load?.merchant_reference;
-
-
-            var payment = await context.Payments.Include(x => x.UserSubscription).FirstOrDefaultAsync(x => x.invoicenumber.ToString() == invoiceNumber);
-            if (payment == null)
-            {
-                response.Success = false;
-                response.Data = "payment is not exist";
-            }
-
-            payment.Status = "Expired";
-
-            payment.UserSubscription.Isactive = false;
-            payment.PaymentMethod = dto.paymentMethod;
-            payment.referenceNumber = dto.referenceId;
-            payment.transactionid = dto.transactionId.ToString();
-            payment.transactionkey = dto.transactionKey;
-            await context.SaveChangesAsync();
-            response.Data = dto;
-            response.Success = true;
-            return response;
-        }
-
-        private bool VerifyWebhookHash(webhookSuccessDto dto)
-        {
-            var secretKey = configuration["Fawaterak:SecreteKey"];
-
-            var query=
-                $"InvoiceId={dto.invoice_id}&InvoiceKey={dto.invoice_key}&PaymentMethod={dto.payment_method}";
-
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-
-            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
-
-            var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
-
-            return generatedHash.Equals(dto.hashKey, StringComparison.OrdinalIgnoreCase);
-        }
-        private bool cancelWebhookHash(CancelwebhookDTO dto)
-        {
-            var secretKey = configuration["Fawaterak:SecreteKey"];
-
-            var query =
-                $"referenceId={dto.referenceId}&PaymentMethod={dto.paymentMethod}";
-
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-
-            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
-
-            var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
-
-            return generatedHash.Equals(dto.hashKey, StringComparison.OrdinalIgnoreCase);
-        }
-
-
-        private bool failedwebhookHash(FailedwebhookDTO dto)
-        {
-            var secretKey = configuration["Fawaterak:SecreteKey"];
-            var query =
-                $"InvoiceId={dto.invoice_id}&InvoiceKey={dto.invoice_key}&PaymentMethod={dto.payment_method}";
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
-            var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
-            return generatedHash.Equals(dto.response.gatewayCode, StringComparison.OrdinalIgnoreCase);
-        }
-
-        //public async Task<Generalresponse> Refundedwebhook(ApprovedWebhookDto dto)
+        //public async Task<Generalresponse> Successwebhook(webhookSuccessDto dto)
         //{
+
+
+        //    if (!VerifyWebhookHash(dto))
+        //    {
+        //        return new Generalresponse
+        //        {
+        //            Success = false,
+        //            Data = "Invalid webhook hash."
+        //        };
+        //    }
+
+        //    var payment = await context.Payments
+        //        .Include(x => x.UserSubscription)
+        //        .FirstOrDefaultAsync(x => x.Invoiceid == dto.invoice_id.ToString());
+
+        //    if (payment == null)
+        //    {
+        //        return new Generalresponse
+        //        {
+        //            Success = false,
+        //            Data = "Payment not found."
+        //        };
+        //    }
+
+        //    if (payment.Status == "paid")
+        //    {
+        //        return new Generalresponse
+        //        {
+        //            Success = true,
+        //            Data = "Payment already processed."
+        //        };
+        //    }
+
+        //    payment.Status = "paid";
+        //    payment.PaymentMethod = dto.payment_method;
+        //    payment.referenceNumber = dto.referenceNumber;
+
+        //    payment.UserSubscription.Isactive = true;
+        //    payment.UserSubscription.Status = "active";
+        //    payment.UserSubscription.StartDate = DateTime.UtcNow;
+        //    payment.UserSubscription.Enddate = DateTime.UtcNow.AddMonths(1);
+
+        //    await context.SaveChangesAsync();
+
+        //    return new Generalresponse
+        //    {
+        //        Success = true,
+        //        Data = dto
+        //    };
+        //}
+
+
+
+
+        //public async Task<Generalresponse> failedwebhook(FailedwebhookDTO dto)
+        //{
+
+        //    //if(!failedwebhookHash(dto))
+        //    //{
+        //    //    return new Generalresponse
+        //    //    {
+        //    //        Success = false,
+        //    //        Data = "3D Secure authentication failed"
+        //    //    };
+        //    //}
+        //    var payment = await context.Payments.Where(p=>p.Invoiceid == dto.invoice_id.ToString()&&p.InvoiceKey == dto.invoice_key).FirstOrDefaultAsync();
+
+        //    if (payment==null)
+        //    {
+        //        return new Generalresponse
+        //        {
+        //            Success = false,
+        //            Data = "Invoice not found."
+        //        };
+        //    }
+
+
+
+        //    payment.Status = "failed";
+        //    payment.UserSubscription.Status = "Notactive";
+        //    payment.UserSubscription.Isactive = false;
+        //    await context.SaveChangesAsync();
+        //    return new Generalresponse
+        //    {
+        //        Success = true,
+        //        Data = dto
+        //    };
+
+        //}
+
+        //public async Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto)
+        //{
+
+
+
         //    var response = new Generalresponse();
-        //    var payment = await context.Payments.FirstOrDefaultAsync(x => x.referenceNumber.ToString() == dto.re);
+        //    if (!cancelWebhookHash(dto))
+        //    {
+        //        response.Success = false;
+        //        response.Data = "expired link transaction ";
+
+        //    }
+
+        //    string invoiceNumber = dto.pay_load?.merchant_reference;
+
+
+        //    var payment = await context.Payments.Include(x => x.UserSubscription).FirstOrDefaultAsync(x => x.invoicenumber.ToString() == invoiceNumber);
         //    if (payment == null)
         //    {
         //        response.Success = false;
         //        response.Data = "payment is not exist";
         //    }
 
-        //    payment.Status = "approved";
-        //    payment.GatewayTransactionid = dto.transactionId;
-        //    var subscription = payment.UserSubscription;
-        //    subscription.Isactive = false;
-        //    subscription.StartDate = DateTime.UtcNow;
+        //    payment.Status = "Expired";
+
+        //    payment.UserSubscription.Isactive = false;
+        //    payment.PaymentMethod = dto.paymentMethod;
+        //    payment.referenceNumber = dto.referenceId;
+        //    payment.transactionid = dto.transactionId.ToString();
+        //    payment.transactionkey = dto.transactionKey;
+        //    await context.SaveChangesAsync();
         //    response.Data = dto;
         //    response.Success = true;
-
-
-        //    await context.SaveChangesAsync();
         //    return response;
         //}
+
+        //private bool VerifyWebhookHash(webhookSuccessDto dto)
+        //{
+        //    var secretKey = configuration["Fawaterak:SecreteKey"];
+
+        //    var query=
+        //        $"InvoiceId={dto.invoice_id}&InvoiceKey={dto.invoice_key}&PaymentMethod={dto.payment_method}";
+
+        //    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+
+        //    var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+        //    var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+
+        //    return generatedHash.Equals(dto.hashKey, StringComparison.OrdinalIgnoreCase);
+        //}
+        //private bool cancelWebhookHash(CancelwebhookDTO dto)
+        //{
+        //    var secretKey = configuration["Fawaterak:SecreteKey"];
+
+        //    var query =
+        //        $"referenceId={dto.referenceId}&PaymentMethod={dto.paymentMethod}";
+
+        //    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+
+        //    var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+        //    var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+
+        //    return generatedHash.Equals(dto.hashKey, StringComparison.OrdinalIgnoreCase);
+        //}
+
+
+        //private bool failedwebhookHash(FailedwebhookDTO dto)
+        //{
+        //    var secretKey = configuration["Fawaterak:SecreteKey"];
+        //    var query =
+        //        $"InvoiceId={dto.invoice_id}&InvoiceKey={dto.invoice_key}&PaymentMethod={dto.payment_method}";
+        //    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+        //    var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
+        //    var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+        //    return generatedHash.Equals(dto.response.gatewayCode, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        ////public async Task<Generalresponse> Refundedwebhook(ApprovedWebhookDto dto)
+        ////{
+        ////    var response = new Generalresponse();
+        ////    var payment = await context.Payments.FirstOrDefaultAsync(x => x.referenceNumber.ToString() == dto.re);
+        ////    if (payment == null)
+        ////    {
+        ////        response.Success = false;
+        ////        response.Data = "payment is not exist";
+        ////    }
+
+        ////    payment.Status = "approved";
+        ////    payment.GatewayTransactionid = dto.transactionId;
+        ////    var subscription = payment.UserSubscription;
+        ////    subscription.Isactive = false;
+        ////    subscription.StartDate = DateTime.UtcNow;
+        ////    response.Data = dto;
+        ////    response.Success = true;
+
+
+        ////    await context.SaveChangesAsync();
+        ////    return response;
+        ////}
     }
 }

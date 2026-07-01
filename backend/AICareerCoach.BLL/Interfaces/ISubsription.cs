@@ -14,7 +14,7 @@ namespace AICareerCoach.BLL.Interfaces
         Task<Generalresponse> Get(string id);
         void CreateSubscription(SubscriptionDTO subscription);
         void  DeleteSubscription(Subscription subscription);
-        Task<Generalresponse> UpdateSubscription(string id);
+        Task<Generalresponse> UpdateSubscription(SubscriptionDTO dTO,string id);
 
     }
 }

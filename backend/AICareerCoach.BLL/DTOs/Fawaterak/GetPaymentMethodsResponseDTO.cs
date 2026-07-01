@@ -1,25 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
-namespace AICareerCoach.BLL.DTOs.Fawaterak
+public class GetPaymentMethodsResponseDTO
 {
-    public class GetPaymentMethodsResponseDTO
-    {
-        public string status { get; set; }
+    [JsonPropertyName("status")]
+    public string Status { get; set; }
 
-        public Data data { get; set; }
-    }
-        public class Data
-        {
-            public int paymentId { get; set; }
-            public string name_en { get; set; }
-            public string name_ar { get; set; }
-            public bool redirect { get; set; }
-            public string logo { get; set; }
-            
-        }
-    }
+    [JsonPropertyName("vendorSettingsData")]
+    public VendorSettingsData VendorSettingsData { get; set; }
 
+    [JsonPropertyName("data")]
+    public List<PaymentMethodDto> Data { get; set; }
+}
+
+public class VendorSettingsData
+{
+    [JsonPropertyName("custome_iframe_title")]
+    public string? CustomIframeTitle { get; set; }
+}
+
+public class PaymentMethodDto
+{
+    [JsonPropertyName("payment_method_id")]
+    public int PaymentMethodId { get; set; }
+
+    [JsonPropertyName("name_en")]
+    public string NameEn { get; set; }
+
+    [JsonPropertyName("name_ar")]
+    public string NameAr { get; set; }
+
+    // Keep as string because the API returns "true"/"false"
+    [JsonPropertyName("redirect")]
+    public string Redirect { get; set; }
+
+    [JsonPropertyName("logo")]
+    public string Logo { get; set; }
+}

@@ -27,7 +27,7 @@ namespace AICareerCoach.BLL.services
         public async Task<Generalresponse> Getall()
         {
             var response= new Generalresponse();
-            List<Subscription>? list = baserepo.Getall();
+            List<Subscription>? list =  baserepo.Getall();
 
             if (list?.Count <= 0)
             {
@@ -75,35 +75,50 @@ namespace AICareerCoach.BLL.services
             aICareerCoachDbContext.SaveChanges();
 
         }
-        public async void Update(SubscriptionDTO subscription,string id)
+        public async Task<Generalresponse> UpdateSubscription(SubscriptionDTO subscription,string id)
         {
+            var response = new Generalresponse();
             var sub=await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x=>x.Id.ToString()==id);
+            if(sub==null)
+            {
+                return new Generalresponse
+                {
+                    Success = false,
+                    Data= "subscription not found"
+                };
+            }
+
                 sub.Price= subscription.Price;
                 sub.Name= subscription.Name;
             baserepo.Update(sub);
             aICareerCoachDbContext.SaveChanges();
+            return new Generalresponse
+            {
+                Success = true,
+                Data = "updated successfuly"
+            };
 
         }
-        public async Task<Generalresponse> UpdateSubscription( string id)
-        { 
-            var response = new Generalresponse();
-            var sub = await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == id);
-            if (sub == null)
-            {
-                response.Success = false;
-                response.Data = "subscription not found";
-            }
-            else
-            {
-                var newsub=new SubscriptionDTO();
-                newsub.Price= sub.Price;
-                newsub.Name= sub.Name;
-                Update(newsub,id);
-                response.Success = true;
-                response.Data = "updated asuccessfuly";
-            }
-            return response;
-        }
+        //public async Task<Generalresponse> UpdateSubscription( string id)
+        //{ 
+        //    var response = new Generalresponse();
+        //    var sub = await aICareerCoachDbContext.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == id);
+        //    if (sub == null)
+        //    {
+        //        response.Success = false;
+        //        response.Data = "subscription not found";
+        //    }
+        //    else
+        //    {
+        //        var newsub=new SubscriptionDTO();
+        //        newsub.Price= sub.Price;
+        //        newsub.Name= sub.Name;
+        //        Update(newsub,id);
+        //        response.Success = true;
+        //        response.Data = "updated asuccessfuly";
+        //    }
+        //    return response;
+        //}
 
         
     }
