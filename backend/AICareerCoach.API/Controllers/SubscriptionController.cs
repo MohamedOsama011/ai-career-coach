@@ -55,9 +55,9 @@ namespace AICareerCoach.API.Controllers
 
         [HttpPut("Update/{id}")]
 
-        public async Task<IActionResult> Update(string id)
+        public async Task<IActionResult> Update(string id, SubscriptionDTO subscription)
         {
-            var sub=await subsription.UpdateSubscription(id);
+            var sub=await subsription.UpdateSubscription(subscription, id);
             return Ok( sub);
         }
 

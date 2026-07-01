@@ -1,4 +1,5 @@
-﻿using AICareerCoach.BLL.DTOs.Fawaterak;
+﻿using AICareerCoach.BLL.DTOs;
+using AICareerCoach.BLL.DTOs.Fawaterak;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Http;
@@ -49,28 +50,37 @@ namespace AICareerCoach.API.Controllers
 
         }
 
-        [HttpPost("successwebhook")]
 
-        public async Task<IActionResult> Successwebhook(webhookSuccessDto dto)
+        [HttpPost("createfawaterakpaymentlink")]
+
+        public async Task<IActionResult> GettransactionData(gettransactionDTO dto)
         {
-            var result = await ifawaterak.Successwebhook(dto);
+            var result = await ifawaterak.GettransactionData(dto);
             return Ok(result);
         }
 
+        //[HttpPost("successwebhook")]
 
-        [HttpPost("failedwebhook")]
-        public async Task<IActionResult> failedwebhook(FailedwebhookDTO dto)
-        {
-            var result=await ifawaterak.failedwebhook(dto);
-            return BadRequest(result);
-        }
+        //public async Task<IActionResult> Successwebhook(webhookSuccessDto dto)
+        //{
+        //    var result = await ifawaterak.Successwebhook(dto);
+        //    return Ok(result);
+        //}
 
-        [HttpPost("Cancelwebhook")]
-        public async Task<IActionResult> Cancelwebhook(CancelwebhookDTO dto)
-        {
-            var res = await ifawaterak.Cancelwebhook(dto);
-            return Ok(res);
-        }
+
+        //[HttpPost("failedwebhook")]
+        //public async Task<IActionResult> failedwebhook(FailedwebhookDTO dto)
+        //{
+        //    var result=await ifawaterak.failedwebhook(dto);
+        //    return BadRequest(result);
+        //}
+
+        //[HttpPost("Cancelwebhook")]
+        //public async Task<IActionResult> Cancelwebhook(CancelwebhookDTO dto)
+        //{
+        //    var res = await ifawaterak.Cancelwebhook(dto);
+        //    return Ok(res);
+        //}
 
 
 
