@@ -1,6 +1,7 @@
+using AICareerCoach.API.Controllers;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
-using AICareerCoach.BLL.Interfaces.External;
+using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.External;
@@ -62,11 +63,14 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<Iusersubscription, UsersubscriptionService>();
 
-            builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
-            builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
-            builder.Services.AddScoped<IJobSyncService, JobSyncService>();
-            builder.Services.AddHostedService<JobSyncHostedService>();
+
+            builder.Services.AddScoped<ISubsription,SubscriptionService>();
+            builder.Services.AddHttpClient<Ifawaterak,FawaterakService>();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -104,6 +108,33 @@ namespace AICareerCoach.API
                     policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
                           .AllowAnyMethod());
+            });
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Enter your JWT token"
+                });
+
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
             });
 
             builder.Services.AddControllers();

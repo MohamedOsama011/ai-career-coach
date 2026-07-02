@@ -167,6 +167,9 @@ namespace AICareerCoach.DAL.Data
         public DbSet<JobRecommendationCache> JobRecommendationCaches { get; set; }
         public DbSet<UserRoadmap> UserRoadmaps { get; set; }
         public DbSet<RoadmapTemplateEmbedding> RoadmapTemplateEmbeddings { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet <UserSubscription> UserSubscriptions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
         public DbSet<JobSyncLog> JobSyncLogs { get; set; }
     }
 }

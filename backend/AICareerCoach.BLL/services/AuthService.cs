@@ -96,7 +96,8 @@ namespace AICareerCoach.BLL.Services
                 FullName = user.FullName,
                 Email = user.Email,
                 Roles = roles,
-                refreshToken =refreshtoken
+                refreshToken =refreshtoken,
+                id=user.Id
 			};
         }
 
