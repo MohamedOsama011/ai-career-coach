@@ -22,7 +22,7 @@ namespace AICareerCoach.API.Controllers
             userManager = _userManager;
         }
 
-        [HttpGet("getallpaymentmethods")]
+        [HttpGet("getallpaymentmethods/{id}")]
         
         public async Task<IActionResult> createpayment(string planid)
         {
@@ -59,13 +59,13 @@ namespace AICareerCoach.API.Controllers
             return Ok(result);
         }
 
-        //[HttpPost("successwebhook")]
+        [HttpPost("successwebhook")]
 
-        //public async Task<IActionResult> Successwebhook(webhookSuccessDto dto)
-        //{
-        //    var result = await ifawaterak.Successwebhook(dto);
-        //    return Ok(result);
-        //}
+        public async Task<IActionResult> Successwebhook(webhookSuccessDto dto)
+        {
+            var result = await ifawaterak.Successwebhook(dto);
+            return Ok(result);
+        }
 
 
         //[HttpPost("failedwebhook")]

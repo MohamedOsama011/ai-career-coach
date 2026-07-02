@@ -45,7 +45,7 @@ namespace AICareerCoach.API.Controllers
         }
 
 
-        [HttpPost("create")]
+        [HttpPost("Create")]
         
         public async Task Create(SubscriptionDTO sub)
         {
