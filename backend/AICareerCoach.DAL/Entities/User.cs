@@ -16,8 +16,6 @@ namespace AICareerCoach.DAL.Models
 
         public ICollection<CV> CVs { get; set; } = new HashSet<CV>();
 
-        public ICollection<mockInterview>? Interviews { get; set; } = new HashSet<mockInterview>();
-
         public virtual ICollection<RefreshToken>? RefreshTokens { get; set; } = new HashSet<RefreshToken>();
         public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; }= new HashSet<UserSubscription>();
     }

@@ -1,0 +1,30 @@
+using AICareerCoach.BLL.DTOs.Interview;
+using AICareerCoach.BLL.DTOs.Roadmap;
+
+namespace AICareerCoach.BLL.Interfaces.AI
+{
+    public interface IInterviewService
+    {
+        Task<InterviewOptionsDto> GetOptionsAsync(string userId);
+        Task<InterviewSessionDto> StartSessionAsync(string userId, StartSessionRequestDto request);
+        Task<InterviewSessionDto?> GetActiveSessionAsync(string userId);
+        Task<InterviewSessionDto> SubmitAnswerAsync(string userId, int sessionId, SubmitAnswerRequestDto request);
+        Task<InterviewScorecardDto> GetScorecardAsync(string userId, int sessionId);
+        Task<List<InterviewHistoryItemDto>> GetHistoryAsync(string userId);
+        Task<UserRoadmapDto> ConvertScorecardToRoadmapAsync(string userId, int sessionId);
+        Task DeleteSessionAsync(string userId, int sessionId);
+        Task<HintResponseDto> GetHintAsync(string userId, int sessionId);
+
+        /// <summary>
+        /// Streaming variant of <see cref="SubmitAnswerAsync"/>. Persists the
+        /// candidate's answer in TX 1, runs the LLM stream outside any
+        /// transaction, then persists the final question + turn bump in TX 2.
+        /// Yields SSE events: token / done / error / fatal (Phase E, E.3).
+        /// </summary>
+        IAsyncEnumerable<StreamTokenDto> SubmitAnswerStreamAsync(
+            string userId,
+            int sessionId,
+            SubmitAnswerRequestDto request,
+            CancellationToken cancellationToken = default);
+    }
+}

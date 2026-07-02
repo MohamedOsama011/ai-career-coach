@@ -25,5 +25,9 @@ export class Sidebar {
     { path: '/profile', label: 'Profile', icon: 'person' },
   ];
 
+  adminNavItems: NavItem[] = [
+    { path: '/admin/jobs', label: 'Jobs Management', icon: 'admin_panel_settings' },
+  ];
+
   constructor(public authService: AuthService) {}
 }

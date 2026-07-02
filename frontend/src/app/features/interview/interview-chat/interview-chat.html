@@ -1,0 +1,299 @@
+<div class="chat-view">
+  <header class="session-status-bar">
+    <div class="status-left">
+      <div class="ai-avatar-sm" aria-hidden="true">
+        <span class="material-icons">smart_toy</span>
+      </div>
+      <div class="status-meta">
+        <span class="ai-name">AI Interviewer</span>
+        <span class="status-sep" aria-hidden="true">·</span>
+        <span class="status-role">{{ displayRole() }}</span>
+        <span class="status-sep" aria-hidden="true">·</span>
+        <span class="status-track">{{ trackLabel(session()?.track) }}</span>
+        <span class="status-sep" aria-hidden="true">·</span>
+        <span class="status-difficulty">{{ session()?.difficulty }}</span>
+      </div>
+    </div>
+    <div class="status-right">
+      <div class="session-timer" aria-label="Session elapsed time">
+        <span class="material-icons timer-icon" aria-hidden="true">schedule</span>
+        <span class="timer-elapsed" aria-label="Elapsed">{{ elapsedDisplay() }}</span>
+        <span class="timer-remaining" aria-label="Estimated time remaining">{{ remainingDisplay() }}</span>
+      </div>
+      <button class="end-btn" (click)="onExit()" aria-label="End session and return to dashboard">
+        <span class="material-icons" aria-hidden="true">logout</span>
+        <span class="end-label">End session</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="progress-section" aria-label="Interview progress">
+    <div class="progress-header">
+      <span class="progress-question">Question <strong>{{ questionsAsked() }}</strong> of {{ maxQuestions() }}</span>
+      <app-interview-progress
+      [current]="questionsAsked()"
+      [max]="maxQuestions()"
+      [isCompleted]="isCompleted()">
+    </app-interview-progress>
+      <span class="progress-encouragement">{{ encouragementMessage() }}</span>
+    </div>
+    
+  </section>
+
+  <section class="question-card" [class.expanded]="isQuestionExpanded()" aria-labelledby="current-question-label">
+    <div
+      class="question-card-header"
+      role="button"
+      tabindex="0"
+      [attr.aria-expanded]="isQuestionExpanded()"
+      [attr.aria-controls]="'question-body-' + session()?.id"
+      (click)="toggleQuestionCard()"
+      (keydown.enter)="toggleQuestionCard()"
+      (keydown.space)="$event.preventDefault(); toggleQuestionCard()">
+      <span id="current-question-label" class="question-card-label">Question {{ questionsAsked() }}</span>
+      <span class="expand-btn" aria-hidden="true">
+        <span class="material-icons">{{ isQuestionExpanded() ? 'expand_less' : 'expand_more' }}</span>
+      </span>
+    </div>
+    
+  </section>
+
+  <section class="transcript-section" aria-label="Interview transcript">
+    <div class="transcript-card">
+      <div class="transcript-header">
+        <div class="transcript-title">
+          <span class="material-icons" aria-hidden="true">smart_toy</span>
+          <span>AI Interviewer</span>
+          @if (isBotTyping() && !showStreamingBubble()) {
+            <span class="thinking-pill" role="status" aria-live="polite">
+              <span class="typing-dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </span>
+              <span>thinking</span>
+            </span>
+          }
+        </div>
+        @if (canGoBack()) {
+          <button class="review-btn" (click)="viewPrevious()" [attr.aria-pressed]="isViewingPast()">
+            @if (isViewingPast()) {
+              <span class="material-icons" aria-hidden="true">visibility</span>
+              <span>Reviewing answers</span>
+            } @else {
+              <span class="material-icons" aria-hidden="true">history</span>
+              <span>Review answers</span>
+            }
+          </button>
+        }
+      </div>
+
+      @if (isViewingPast()) {
+        <div class="review-toolbar" role="toolbar" aria-label="Question history navigation">
+          <button class="history-btn" (click)="viewPrevious()" [disabled]="(viewingTurnIndex() ?? 0) <= 1" aria-label="Previous question">
+            <span class="material-icons" aria-hidden="true">chevron_left</span>
+            <span>Previous</span>
+          </button>
+          <span class="review-label" [class.live]="!isViewingPast()">
+            <span class="material-icons read-only-icon" aria-hidden="true">visibility</span>
+            <span>Turn {{ viewingTurnIndex() }} of {{ questionsAsked() }}</span>
+          </span>
+          <button class="history-btn" (click)="viewNext()" aria-label="Next question">
+            <span>Next</span>
+            <span class="material-icons" aria-hidden="true">chevron_right</span>
+          </button>
+          <button class="back-to-live-btn" (click)="backToLive()" aria-label="Return to live view">
+            Back to live
+          </button>
+        </div>
+      }
+
+      <div #transcriptDialogue class="transcript-dialogue" role="log" aria-live="polite" aria-label="Interview transcript" [class.read-only]="isViewingPast()" (scroll)="onScroll()">
+        @if (isViewingPast()) {
+          <div class="read-only-banner" role="status">
+            <span class="material-icons" aria-hidden="true">visibility</span>
+            <span>Read-only view · you're reviewing a previous question. Use the toolbar to navigate, or <button class="banner-link" (click)="backToLive()">return to live</button>.</span>
+          </div>
+        }
+
+        @for (msg of displayedMessages(); track msg.id) {
+          <div class="message-wrapper message-enter" [class]="messageSender(msg.role)">
+            <div class="avatar" [class]="messageSender(msg.role)" aria-hidden="true">
+              @if (messageSender(msg.role) === 'bot') {
+                <span class="material-icons robot-icon">smart_toy</span>
+              } @else {
+                <span class="avatar-initials">{{ userInitials() }}</span>
+              }
+            </div>
+            <div class="message-body">
+              @if (isFirstBotMessage(msg.id)) {
+                <span class="sender-tag bot">AI Interviewer</span>
+              } @else if (messageSender(msg.role) === 'user') {
+                <span class="sender-tag user">{{ userName() }}</span>
+              }
+              <div class="bubble" [class]="messageSender(msg.role)">
+                <div class="bubble-content" [innerHTML]="renderMessage(msg.content)"></div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (streamingBubble(); as bubble) {
+          @if (!isViewingPast()) {
+            <div class="message-wrapper bot streaming message-enter">
+              <div class="avatar bot" aria-hidden="true">
+                <span class="material-icons robot-icon">smart_toy</span>
+              </div>
+              <div class="message-body">
+                <span class="sender-tag bot">AI Interviewer</span>
+                <div class="bubble bot">
+                  <div class="bubble-content" [innerHTML]="renderStreamingMessage(bubble.text)"></div>
+                  <span class="streaming-cursor" aria-hidden="true">▍</span>
+                  @if (bubble.usedFallback) {
+                    <span class="fallback-badge" title="AI is temporarily unavailable; using a generic question">Backup question</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        }
+
+        <div #scrollAnchor></div>
+
+        @if (hasNewContentBelow() && !isNearBottom()) {
+          <button class="scroll-to-bottom-btn" (click)="onScrollToBottom()" aria-label="Scroll to bottom">
+            <span class="material-icons" aria-hidden="true">arrow_downward</span>
+            <span>New message</span>
+          </button>
+        }
+
+        @if (isCompleted()) {
+          <div class="completion-banner" role="status" aria-live="assertive">
+            <span class="material-icons" aria-hidden="true">celebration</span>
+            <span class="completion-text">All questions answered! Great work.</span>
+            <button class="view-scorecard-btn" (click)="onLoadScorecard()" aria-label="View scorecard report">
+              View Scorecard Report
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="error-box chat-error" role="alert">
+          <span class="material-icons error-icon" aria-hidden="true">error_outline</span>
+          <span class="error-text">{{ error() }}</span>
+          <button class="error-retry-btn" (click)="onRetryLastAnswer()" [disabled]="isBotTyping()">
+            <span class="material-icons" aria-hidden="true">refresh</span>
+            Retry
+          </button>
+        </div>
+      }
+<div class="question-card-body" [id]="'question-body-' + session()?.id">
+      
+      <div class="question-actions">
+        <button
+          class="hint-btn"
+          (click)="requestHint()"
+          [disabled]="hintLoading() || isCompleted() || isViewingPast()"
+          aria-live="polite">
+          @if (hintLoading()) {
+            <span class="material-icons spin" aria-hidden="true">refresh</span>
+            <span>Getting hint…</span>
+          } @else {
+            <span class="material-icons" aria-hidden="true">lightbulb</span>
+            <span>Stuck? Get a hint</span>
+          }
+        </button>
+      </div>
+      @if (hintVisible() && hint()) {
+        <div class="hint-box" role="status" aria-live="polite">
+          <div class="hint-header">
+            <span class="material-icons hint-icon" aria-hidden="true">lightbulb</span>
+            <span>Hint</span>
+            <button class="hint-close" (click)="dismissHint()" aria-label="Dismiss hint">
+              <span class="material-icons" aria-hidden="true">close</span>
+            </button>
+          </div>
+          <p class="hint-text">{{ hint() }}</p>
+        </div>
+      }
+      @if (hintError()) {
+        <div class="hint-error" role="alert">
+          <span class="material-icons" aria-hidden="true">error_outline</span>
+          {{ hintError() }}
+        </div>
+      }
+    </div>
+      @if (!isViewingPast()) {
+        <div class="composer">
+          @if (sttSupported()) {
+            <button
+              class="mic-btn"
+              [class.recording]="isRecording()"
+              [class.error]="sttError()"
+              (click)="toggleRecording()"
+              [attr.aria-label]="isRecording() ? 'Stop recording' : 'Start voice input'"
+              [attr.aria-pressed]="isRecording()"
+              [disabled]="isBotTyping() || isCompleted()">
+              <span class="material-icons" aria-hidden="true">{{ isRecording() ? 'stop' : 'mic' }}</span>
+            </button>
+          }
+          <textarea
+            #answerTextarea
+            class="answer-textarea"
+            placeholder="Share your thinking here..."
+            aria-label="Your answer"
+            [maxlength]="hardCap"
+            [ngModel]="inputText()"
+            (ngModelChange)="onInputTextChange($event)"
+            (keydown)="onKeydown($event)"
+            [disabled]="isBotTyping() || isCompleted()"
+            rows="1">
+          </textarea>
+          @if (ttsSupported()) {
+            <button
+              class="tts-btn"
+              [class.active]="ttsEnabled()"
+              (click)="toggleTts()"
+              [attr.aria-label]="ttsEnabled() ? 'Disable voice output' : 'Enable voice output'"
+              [attr.aria-pressed]="ttsEnabled()">
+              <span class="material-icons" aria-hidden="true">{{ ttsEnabled() ? 'volume_up' : 'volume_off' }}</span>
+            </button>
+          }
+          <button class="send-btn" (click)="onSendMessage()" [disabled]="!inputText().trim() || isBotTyping() || isCompleted() || isAtHardCap()" aria-label="Send answer">
+            <span class="send-label">Send</span>
+            <span class="material-icons" aria-hidden="true">send</span>
+          </button>
+        </div>
+        <div class="composer-meta" aria-live="polite">
+          <span class="char-counter"
+                [class.warn]="isOverSoftCap()"
+                [class.danger]="isAtHardCap()"
+                [attr.aria-label]="'Character count ' + charCount() + ' of ' + hardCap">
+            {{ charCount() }}/{{ hardCap }}
+          </span>
+          <span class="input-hint">Enter for a new line · Ctrl+Enter to send</span>
+          @if (isRecording()) {
+            <span class="recording-indicator" role="status">
+              <span class="recording-dot"></span>
+              <span>Listening...</span>
+            </span>
+          }
+          @if (isSpeaking()) {
+            <span class="speaking-indicator" role="status">
+              <span class="material-icons" aria-hidden="true">volume_up</span>
+              <span>Speaking...</span>
+            </span>
+          }
+          @if (sttError()) {
+            <span class="stt-error" role="alert">{{ sttError() }}</span>
+          }
+          @if (draftSaved()) {
+            <span class="draft-saved" role="status">
+              <span class="material-icons" aria-hidden="true">cloud_done</span>
+              Draft saved
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+</div>

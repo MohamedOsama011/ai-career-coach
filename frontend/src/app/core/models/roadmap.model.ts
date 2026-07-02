@@ -39,6 +39,14 @@ export interface RoadmapStepResultDto {
   duration: string | null;
 }
 
+export interface TemplateSnapshotDto {
+  id: number;
+  track: string;
+  title: string;
+  description: string;
+  steps: RoadmapStepDto[];
+}
+
 export interface UserRoadmapDto {
   id: number;
   targetRole: string;
@@ -46,6 +54,11 @@ export interface UserRoadmapDto {
   steps: RoadmapStepResultDto[];
   gapAnalysis: SkillsCategoryDto[];
   createdAt: string;
+  matchScore?: number;
+  templateSnapshot?: TemplateSnapshotDto;
+  currentSeniority?: string;
+  targetSeniority?: string;
+  seniorityGap?: string;
 }
 
 export interface GenerateRoadmapRequestDto {

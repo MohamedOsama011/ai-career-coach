@@ -2,41 +2,13 @@
   height: 70px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 32px;
   background: var(--brand-card);
   border-bottom: 1px solid var(--brand-border);
   position: sticky;
   top: 0;
   z-index: 50;
-}
-
-.navbar-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #F3F4F6;
-  border-radius: 8px;
-  padding: 8px 16px;
-  width: 320px;
-}
-
-.search-icon {
-  font-size: 20px;
-  color: var(--brand-text-secondary);
-}
-
-.search-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  color: var(--brand-text);
-  width: 100%;
-}
-
-.search-input::placeholder {
-  color: var(--brand-text-secondary);
 }
 
 .navbar-actions {
@@ -69,6 +41,8 @@
   align-items: center;
   gap: 8px;
   padding: 6px 12px 6px 6px;
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -77,6 +51,7 @@
 
 .avatar-wrapper:hover {
   background: #F3F4F6;
+  border-color: var(--brand-border);
 }
 
 .avatar-icon {

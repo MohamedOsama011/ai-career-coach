@@ -109,7 +109,7 @@
 
               <div class="description-row">
                 <p class="recommendation-description">{{ job.description }}</p>
-                <button class="apply-btn" (click)="onApply(job.title, job.company)" type="button">Apply</button>
+                <button class="apply-btn" (click)="applyToRecommendation(job)" type="button">Apply</button>
               </div>
               <div class="explanation-box" [class.expanded]="isExplanationExpanded(job.jobId)">
                 <button class="explanation-toggle" (click)="toggleExplanation(job.jobId)" type="button">
@@ -121,6 +121,25 @@
                   <p class="explanation-text">{{ job.matchExplanation }}</p>
                 }
               </div>
+
+              @if (job.missingSkills && job.missingSkills.length > 0) {
+                <div class="missing-skills-box">
+                  <div class="missing-skills-header">
+                    <span class="material-icons">school</span>
+                    <span class="missing-skills-label">Skills to develop</span>
+                  </div>
+                  <div class="missing-skills-pills">
+                    @for (skill of job.missingSkills; track skill) {
+                      <span class="skill-pill">{{ skill }}</span>
+                    }
+                  </div>
+                  <a class="view-skills-link"
+                     [routerLink]="['/skills']"
+                     [queryParams]="{ fromJob: job.title, highlight: job.missingSkills.join(',') }">
+                    View in Skills Gap →
+                  </a>
+                </div>
+              }
               </article>
             }
           </div>
@@ -192,13 +211,15 @@
                 [title]="job.title"
                 [company]="job.company"
                 [location]="job.location"
-                [salary]="job.salary"
+                [salary]="displaySalary(job.salary)"
                 [skills]="job.requiredSkills"
                 [logoInitials]="job.logoInitials"
                 [companyLogoUrl]="job.companyLogoUrl ?? ''"
                 [saved]="isSaved(job.id)"
+                [isRemote]="job.isRemote ?? false"
+                [source]="job.source"
                 (saveToggled)="toggleSave(job.id)"
-                (applied)="onApply(job.title, job.company)"
+                (applied)="applyToJob(job)"
               />
             } @empty {
               <div class="state-box">
@@ -208,6 +229,21 @@
               </div>
             }
           </div>
+
+          @if (totalPages() > 1 && filteredJobs().length > 0) {
+            <div class="pagination-bar">
+              <span class="pagination-info">{{ rangeStart() }}–{{ rangeEnd() }} of {{ totalCount() }} jobs</span>
+              <div class="pagination-controls">
+                <button class="pagination-btn" [class.disabled]="currentPage() <= 1" (click)="prevPage()" type="button" [disabled]="currentPage() <= 1">
+                  <span class="material-icons">chevron_left</span> Prev
+                </button>
+                <span class="pagination-page">Page {{ currentPage() }} of {{ totalPages() }}</span>
+                <button class="pagination-btn" [class.disabled]="currentPage() >= totalPages()" (click)="nextPage()" type="button" [disabled]="currentPage() >= totalPages()">
+                  Next <span class="material-icons">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          }
         }
       </section>
     }

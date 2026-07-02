@@ -13,6 +13,34 @@ namespace AICareerCoach.DAL.Data
             : base(options)
         {
         }
+
+        /// <summary>
+        /// Auto-touches <see cref="InterviewSession.UpdatedAt"/> on any Modified
+        /// InterviewSession entry so status transitions are always timestamped
+        /// even if a call site forgets to set it (Phase 6, M4). Added entries
+        /// rely on the entity's field initializer.
+        /// </summary>
+        public override int SaveChanges()
+        {
+            TouchUpdatedAt();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            TouchUpdatedAt();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void TouchUpdatedAt()
+        {
+            foreach (var entry in ChangeTracker.Entries<InterviewSession>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -23,6 +51,11 @@ namespace AICareerCoach.DAL.Data
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
                 );
+
+            builder.Entity<Job>()
+                .HasIndex(j => new { j.ExternalId, j.Source })
+                .IsUnique()
+                .HasFilter("[ExternalId] IS NOT NULL");
 
             builder.Entity<RoadmapTemplateEmbedding>()
                 .Property(e => e.Embedding)
@@ -43,13 +76,85 @@ namespace AICareerCoach.DAL.Data
                 entity.Property(r => r.TemplateTrack).HasMaxLength(128);
                 entity.HasIndex(r => new { r.UserId, r.CreatedAt });
             });
+
+            ConfigureInterviewEntities(builder);
+
+            builder.Entity<JobSyncLog>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.ErrorMessages).HasMaxLength(-1);
+                e.HasIndex(x => x.SyncedAt);
+            });
+        }
+
+        /// <summary>
+        /// Registers the normalized interview model (Session → Messages,
+        /// Session 1:0..1 Scorecard). Session→User is unidirectional
+        /// (no collection navigation on <see cref="User"/>) like Job→JobEmbedding.
+        /// Enums stored as readable strings (cf. RoadmapStep.Level).
+        /// </summary>
+        private static void ConfigureInterviewEntities(ModelBuilder builder)
+        {
+            builder.Entity<InterviewSession>(e =>
+            {
+                e.Property(s => s.UserId).HasMaxLength(450);
+                e.Property(s => s.TargetRole).HasMaxLength(256);
+                e.Property(s => s.SummaryContextJson).HasMaxLength(-1);
+
+                e.Property(s => s.Track).HasConversion<string>().HasMaxLength(32);
+                e.Property(s => s.Difficulty).HasConversion<string>().HasMaxLength(32);
+                e.Property(s => s.Status).HasConversion<string>().HasMaxLength(32);
+
+                e.Property(s => s.RowVersion).IsRowVersion();
+
+                e.HasOne(s => s.User)
+                    .WithMany()
+                    .HasForeignKey(s => s.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(s => s.UserId);
+                e.HasIndex(s => new { s.UserId, s.Status });
+            });
+
+            builder.Entity<InterviewMessage>(e =>
+            {
+                e.Property(m => m.Role).HasConversion<string>().HasMaxLength(32);
+
+                e.HasOne(m => m.Session)
+                    .WithMany(s => s.Messages)
+                    .HasForeignKey(m => m.SessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(m => m.SessionId);
+                e.HasIndex(m => new { m.SessionId, m.TurnNumber });
+            });
+
+            builder.Entity<InterviewScorecard>(e =>
+            {
+                e.Property(c => c.LetterGrade).HasMaxLength(8);
+                e.Property(c => c.OverallSummary).HasMaxLength(-1);
+                e.Property(c => c.StrengthsJson).HasMaxLength(-1);
+                e.Property(c => c.ImprovementsJson).HasMaxLength(-1);
+                e.Property(c => c.QuestionAnalysisJson).HasMaxLength(-1);
+
+                e.HasOne(c => c.Session)
+                    .WithOne(s => s.Scorecard)
+                    .HasForeignKey<InterviewScorecard>(c => c.SessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(c => c.SessionId).IsUnique();
+            });
         }
 
         public DbSet<Roadmap> Roadmaps { get; set; }
 
         public DbSet<RoadmapStep> RoadmapSteps { get; set; }
 
-        public DbSet<mockInterview> Interviews { get; set; }
+        public DbSet<InterviewSession> InterviewSessions { get; set; }
+
+        public DbSet<InterviewMessage> InterviewMessages { get; set; }
+
+        public DbSet<InterviewScorecard> InterviewScorecards { get; set; }
 
         public DbSet<Job> Jobs { get; set; }
 
@@ -65,5 +170,6 @@ namespace AICareerCoach.DAL.Data
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet <UserSubscription> UserSubscriptions { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<JobSyncLog> JobSyncLogs { get; set; }
     }
 }

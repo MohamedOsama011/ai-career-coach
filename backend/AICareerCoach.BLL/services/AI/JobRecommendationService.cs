@@ -138,8 +138,11 @@ namespace AICareerCoach.BLL.Services.AI
                 Location = mj.JobEntity.Location,
                 MatchScore = mj.Percentage,
                 MatchExplanation = aiExplanations.TryGetValue(mj.JobEntity.Id, out var explanation)
-                    ? explanation
-                    : "Your background matches the essential criteria for this role."
+                    ? explanation.Explanation
+                    : "Your background matches the essential criteria for this role.",
+                MissingSkills = aiExplanations.TryGetValue(mj.JobEntity.Id, out var missing)
+                    ? missing.MissingSkills
+                    : new List<string>()
             }).ToList();
 
             var resultDto = new JobRecommendationResultDto

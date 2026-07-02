@@ -18,6 +18,12 @@
             Reupload CV
           }
         </button>
+        @if (feedback()) {
+          <button class="review-cv-btn" (click)="openDiff()">
+            <span class="material-icons">edit_note</span>
+            Review CV
+          </button>
+        }
       </div>
     }
   </header>
@@ -350,3 +356,74 @@
   }
   }
 </div>
+
+@if (showDiff()) {
+  <div class="diff-overlay">
+    <div class="diff-header">
+      <div class="diff-header-left">
+        <span class="material-icons diff-icon">edit_note</span>
+        <h2>CV Review</h2>
+      </div>
+      <button class="diff-close" (click)="closeDiff()" type="button" aria-label="Close review">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="diff-body">
+      <div class="diff-pane diff-text-pane">
+        @if (diffLoading()) {
+          <div class="diff-loading">
+            <span class="spinner"></span>
+            <p>Loading CV text…</p>
+          </div>
+        } @else if (diffError()) {
+          <p class="diff-error">{{ diffError() }}</p>
+        } @else {
+          <div class="diff-text">
+            @for (chunk of diffChunks(); track $index) {
+              @if (chunk.highlightIndex !== null) {
+                <span class="diff-highlight" [attr.data-index]="chunk.highlightIndex">{{ chunk.text }}</span>
+              } @else {
+                <span>{{ chunk.text }}</span>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="diff-pane diff-suggestions-pane">
+        @if (feedback(); as fb) {
+          <h3 class="diff-suggestions-title">Suggestions ({{ fb.suggestions.length - dismissedSuggestions().size }}/{{ fb.suggestions.length }})</h3>
+          @for (s of fb.suggestions; track $index; let i = $index) {
+            @if (!dismissedSuggestions().has(i)) {
+              <div class="diff-suggestion" [class.has-highlight]="!!s.originalText">
+                <div class="diff-suggestion-header">
+                  <span class="suggestion-category">{{ s.category }}</span>
+                  <span class="priority-badge {{ priorityClass(s.priority) }}">{{ s.priority }}</span>
+                </div>
+                @if (s.originalText) {
+                  <p class="diff-original">
+                    <span class="diff-label">Original</span>
+                    <span class="diff-quote">"{{ s.originalText }}"</span>
+                  </p>
+                }
+                @if (s.suggestedText) {
+                  <p class="diff-suggested">
+                    <span class="diff-label">Suggested</span>
+                    <span class="diff-quote suggested">"{{ s.suggestedText }}"</span>
+                  </p>
+                }
+                <p class="diff-issue"><span class="diff-label">Issue</span>{{ s.issue }}</p>
+                <p class="diff-recommendation"><span class="diff-label">Fix</span>{{ s.recommendation }}</p>
+                <button class="diff-apply" (click)="dismissSuggestion(i)" type="button">
+                  <span class="material-icons">check</span>
+                  Mark as reviewed
+                </button>
+              </div>
+            }
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

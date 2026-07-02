@@ -1,0 +1,33 @@
+<div class="step-indicator">
+  <div class="step-dots" role="list" aria-label="Interview progress">
+    @for (step of stepArray(); track step) {
+      <div class="step-dot-wrapper">
+        <div class="step-dot"
+             [class]="stepClass(step)"
+             [attr.aria-current]="step === current() ? 'step' : null"
+             [attr.aria-label]="'Question ' + step + ' of ' + max() + ', ' + stepClass(step)">
+        </div>
+        @if (step < max()) {
+          <div class="step-line" [class.completed]="step < current()"></div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- <div class="progress-bar" role="progressbar"
+       [attr.aria-valuenow]="percent()"
+       aria-valuemin="0"
+       aria-valuemax="100"
+       aria-label="Interview completion percentage">
+    <div class="progress-bar-fill" [style.width.%]="percent()"></div>
+  </div> -->
+
+  <!-- @if (isCompleted()) {
+    <span class="step-label">Completed · {{ max() }} questions</span>
+  } @else {
+    <span class="step-label">
+      Question <strong class="step-current-number">{{ current() }}</strong> of {{ max() }}
+      <span class="step-percent">· {{ percent() }}% complete</span>
+    </span>
+  }
+</div> -->

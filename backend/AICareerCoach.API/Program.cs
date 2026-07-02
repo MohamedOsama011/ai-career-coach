@@ -4,12 +4,14 @@ using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
+using AICareerCoach.BLL.Services.External;
 using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -58,6 +60,8 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
             builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
             builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
+            builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
             builder.Services.AddScoped<Iusersubscription, UsersubscriptionService>();
 
@@ -86,6 +90,16 @@ namespace AICareerCoach.API
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                 };
+            });
+
+            // Fail-closed default: every endpoint requires an authenticated user
+            // unless it explicitly opts out via [AllowAnonymous]. Individual
+            // controllers may still add role requirements on top of this.
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
             });
 
             builder.Services.AddCors(options =>
@@ -148,8 +162,8 @@ namespace AICareerCoach.API
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                //await RoleSeeder.SeedAsync(roleManager);
-                await JobSeeder.SeedAsync(context);
+                await RoleSeeder.SeedAsync(roleManager);
+                //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
             }
 

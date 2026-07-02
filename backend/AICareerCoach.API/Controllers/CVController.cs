@@ -1,8 +1,12 @@
 ﻿using AICareerCoach.BLL.DTOs.CV;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.DAL.Data;
+using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -13,12 +17,18 @@ namespace AICareerCoach.API.Controllers
         private readonly ICVService _cvService;
         private readonly IConfiguration _config;
         private readonly UserManager<User> _userManager;
+        private readonly AICareerCoachDbContext _context;
 
-        public CVController(ICVService cvService, IConfiguration config, UserManager<User> userManager)
+        public CVController(
+            ICVService cvService,
+            IConfiguration config,
+            UserManager<User> userManager,
+            AICareerCoachDbContext context)
         {
             _cvService = cvService;
             _config = config;
             _userManager = userManager;
+            _context = context;
         }
 
 
@@ -78,23 +88,40 @@ namespace AICareerCoach.API.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("File is required");
             
-            var cv = await _cvService.UploadCVAsync(
+            var result = await _cvService.UploadCVAsync(
                 file.OpenReadStream(),
                 file.FileName,
                 effectiveUserId);
 
-            var fileName = Path.GetFileName(cv.FilePath);
+            var fileName = Path.GetFileName(result.Cv.FilePath);
             var baseUrl = _config["AppSettings:BaseUrl"];
 
             return Ok(new CVResponseDto
             {
-                CVId = cv.CVId,
-                UserId = cv.UserId,
-                UploadedAt = cv.UploadedAt,
-                FileName = Path.GetFileName(cv.FilePath) ?? "Unknown.pdf",
+                CVId = result.Cv.CVId,
+                UserId = result.Cv.UserId,
+                UploadedAt = result.Cv.UploadedAt,
+                FileName = Path.GetFileName(result.Cv.FilePath) ?? "Unknown.pdf",
 
-                DownloadUrl = $"{baseUrl}/cvs/{fileName}"
+                DownloadUrl = $"{baseUrl}/cvs/{fileName}",
+                IsNew = result.IsNew
             });
+        }
+
+        [HttpGet("{cvId}/text")]
+        [Authorize]
+        public async Task<IActionResult> GetCvText(int cvId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var cv = await _context.Set<CV>()
+                .FirstOrDefaultAsync(c => c.CVId == cvId && c.UserId == user.Id);
+            if (cv == null)
+                return NotFound(new { message = "CV not found." });
+
+            return Ok(new { extractedData = cv.ExtractedData ?? string.Empty });
         }
 
         [HttpGet("user/{userId}")]
@@ -109,7 +136,8 @@ namespace AICareerCoach.API.Controllers
                 UploadedAt = cv.UploadedAt,
                 UserId = cv.UserId,
                 FileName = Path.GetFileName(cv.FilePath),
-                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}"
+                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}",
+                IsNew = false
             });
 
             return Ok(result);

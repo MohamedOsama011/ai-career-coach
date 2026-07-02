@@ -65,6 +65,10 @@ export class AuthService{
         return stored ? JSON.parse(stored) : [];
     }
 
+    isAdmin(): boolean {
+        return this.getRoles().includes('Admin');
+    }
+
     logout(): void {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userFullName');

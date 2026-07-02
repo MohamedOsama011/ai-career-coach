@@ -17,5 +17,10 @@ namespace AICareerCoach.BLL.DTOs.Job
         public decimal Salary { get; set; }
         public DateTime PostedAt { get; set; }
         public string? CompanyLogoUrl { get; set; }
+        public string? ExternalUrl { get; set; }
+        public string? ContractType { get; set; }
+        public bool IsRemote { get; set; }
+        public string? Category { get; set; }
+        public string? Source { get; set; }
     }
 }

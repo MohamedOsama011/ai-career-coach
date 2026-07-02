@@ -1,0 +1,109 @@
+<header class="interview-header">
+  <div class="header-left">
+    <span class="lab-label">AI INTERVIEW LAB</span>
+    <h1 class="page-title">Scorecard Report</h1>
+    <p class="page-subtitle">
+      {{ trackLabel(session()?.track ?? viewedScorecardMeta()?.track ?? '') }}
+      · {{ session()?.difficulty ?? viewedScorecardMeta()?.difficulty }}
+      · {{ displayRole() }}
+    </p>
+  </div>
+  <div class="header-right">
+    <button class="print-btn" (click)="onPrintScorecard()" aria-label="Print scorecard">
+      <span class="material-icons" aria-hidden="true">print</span>
+      Print
+    </button>
+    <button class="start-session-btn" (click)="onNewSession()">
+      <span class="material-icons" aria-hidden="true">refresh</span>
+      New Session
+    </button>
+  </div>
+</header>
+
+@if (scorecard(); as sc) {
+  <div class="scorecard-section">
+    <app-card class="scorecard-summary">
+      <div class="summary-grade">
+        <span class="grade-value">{{ sc.letterGrade }}</span>
+        <span class="grade-score">{{ sc.overallScore }}/100</span>
+      </div>
+      <p class="summary-text">{{ sc.overallSummary }}</p>
+    </app-card>
+
+    <div class="stat-cards-row">
+      <app-stat-card label="Overall Score" [value]="sc.overallScore + '/100'" icon="score" />
+      <app-stat-card label="Grade" [value]="sc.letterGrade" icon="grade" color="var(--brand-success)" />
+      <app-stat-card label="Questions" [value]="sc.questionAnalysis.length + '/' + (session()?.maxQuestions ?? viewedScorecardMeta()?.maxQuestions ?? 6)" icon="quiz" />
+    </div>
+
+    <div class="scorecard-lists">
+      <app-card class="list-card">
+        <h3 class="list-title">Strengths</h3>
+        <ul class="list-items">
+          @for (s of sc.strengths; track s) {
+            <li><span class="material-icons list-icon positive" aria-hidden="true">check_circle</span> {{ s }}</li>
+          }
+        </ul>
+      </app-card>
+
+      <app-card class="list-card">
+        <h3 class="list-title">Areas for Improvement</h3>
+        <ul class="list-items">
+          @for (a of sc.areasForImprovement; track a) {
+            <li><span class="material-icons list-icon negative" aria-hidden="true">arrow_upward</span> {{ a }}</li>
+          }
+        </ul>
+      </app-card>
+    </div>
+
+    <div class="question-analysis">
+      <div class="question-analysis-header">
+        <h2 class="analysis-title">Question Analysis</h2>
+        <div class="convert-actions">
+          <button class="convert-btn" (click)="onConvertToRoadmap()" [disabled]="converting()" aria-label="Convert scorecard weak areas to roadmap steps">
+            @if (converting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Converting...</span>
+            } @else {
+              <span class="material-icons" aria-hidden="true">auto_awesome</span>
+              <span>Convert to roadmap steps</span>
+            }
+          </button>
+          @if (convertError()) {
+            <p class="convert-error" role="alert">{{ convertError() }}</p>
+          }
+        </div>
+      </div>
+      
+      
+      @for (qa of sc.questionAnalysis; track qa; let i = $index) {
+        <app-card class="analysis-card">
+          <div class="analysis-header">
+            <span class="analysis-number">Q{{ i + 1 }}</span>
+            <app-badge [text]="qa.rating" [variant]="ratingVariant(qa.rating)" />
+          </div>
+          <div class="analysis-pair">
+            <div class="analysis-item">
+              <span class="analysis-label">Question</span>
+              <p class="analysis-text">{{ qa.question }}</p>
+            </div>
+            <div class="analysis-item">
+              <span class="analysis-label">Your Answer</span>
+              <p class="analysis-text">{{ qa.answer }}</p>
+            </div>
+          </div>
+          <div class="analysis-item">
+            <span class="analysis-label">Explanation</span>
+            <p class="analysis-text">{{ qa.explanation }}</p>
+          </div>
+          <div class="analysis-item">
+            <span class="analysis-label">Suggestion</span>
+            <p class="analysis-text suggestion">{{ qa.improvementSuggestion }}</p>
+          </div>
+        </app-card>
+      }
+    </div>
+
+    
+  </div>
+}
