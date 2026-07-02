@@ -156,7 +156,7 @@ namespace AICareerCoach.BLL.services
             dto.TaxData.Value = 0;
            
             dto.AuthAndCapture = 0;
-            dto.RedirectionUrls.SuccessUrl = "https://localhost:44313/swagger/index.html";
+            dto.RedirectionUrls.SuccessUrl = "https://localhost:44313/api/Fawaterak/successwebhook";
             dto.RedirectionUrls.FailUrl=" https://localhost:44313/swagger/index.html";
             dto.RedirectionUrls.PendingUrl= "https://localhost:44313/swagger/index.html";
             dto.RedirectionUrls.WebhookUrl= "https://localhost:44313/swagger/index.html";
@@ -292,7 +292,7 @@ namespace AICareerCoach.BLL.services
             {
                 throw new Exception("fawaterak error" + result);
             }
-
+            Console.WriteLine(result);
             var responseobject = JsonSerializer.Deserialize<Gettransactionresponse>(result);
 
 
@@ -311,58 +311,80 @@ namespace AICareerCoach.BLL.services
 
 
 
-        //public async Task<Generalresponse> Successwebhook(webhookSuccessDto dto)
-        //{
+        public async Task<Generalresponse> Successwebhook(webhookSuccessDto dto)
+        {
 
 
-        //    if (!VerifyWebhookHash(dto))
-        //    {
-        //        return new Generalresponse
-        //        {
-        //            Success = false,
-        //            Data = "Invalid webhook hash."
-        //        };
-        //    }
+            if (!VerifyWebhookHash(dto))
+            {
+                return new Generalresponse
+                {
+                    Success = false,
+                    Data = "Invalid webhook hash."
+                };
+            }
 
-        //    var payment = await context.Payments
-        //        .Include(x => x.UserSubscription)
-        //        .FirstOrDefaultAsync(x => x.Invoiceid == dto.invoice_id.ToString());
+            var payment = await context.Payments
+                .Include(x => x.UserSubscription)
+                .FirstOrDefaultAsync(x => x.intentkey == dto.TransactionKey.ToString());
 
-        //    if (payment == null)
-        //    {
-        //        return new Generalresponse
-        //        {
-        //            Success = false,
-        //            Data = "Payment not found."
-        //        };
-        //    }
+            if (payment == null)
+            {
+                return new Generalresponse
+                {
+                    Success = false,
+                    Data = "Payment not found."
+                };
+            }
 
-        //    if (payment.Status == "paid")
-        //    {
-        //        return new Generalresponse
-        //        {
-        //            Success = true,
-        //            Data = "Payment already processed."
-        //        };
-        //    }
+            if (payment.Status == "paid")
+            {
+                return new Generalresponse
+                {
+                    Success = true,
+                    Data = "Payment already processed."
+                };
+            }
 
-        //    payment.Status = "paid";
-        //    payment.PaymentMethod = dto.payment_method;
-        //    payment.referenceNumber = dto.referenceNumber;
+            payment.Status = "paid";
+            payment.PaymentMethod = dto.PaymentMethod;
+            payment.transactionid = dto.TransactionId.ToString();
 
-        //    payment.UserSubscription.Isactive = true;
-        //    payment.UserSubscription.Status = "active";
-        //    payment.UserSubscription.StartDate = DateTime.UtcNow;
-        //    payment.UserSubscription.Enddate = DateTime.UtcNow.AddMonths(1);
 
-        //    await context.SaveChangesAsync();
+            payment.UserSubscription.Isactive = true;
+            payment.UserSubscription.Status = "active";
+            payment.UserSubscription.StartDate = DateTime.UtcNow;
+           
+            payment.UserSubscription.Enddate = DateTime.UtcNow.AddMonths(1);
 
-        //    return new Generalresponse
-        //    {
-        //        Success = true,
-        //        Data = dto
-        //    };
-        //}
+            await context.SaveChangesAsync();
+
+            return new Generalresponse
+            {
+                Success = true,
+                Data = dto
+            };
+        }
+        private  bool VerifyWebhookHash(webhookSuccessDto dto)
+
+        {
+            var accesstoken =  fawaterakTokenService.GetAccessTokenAsync();
+
+            var secretKey = configuration["Fawaterak:SecreteKey"];
+
+            var query =
+                $"TransactionId={dto.TransactionId}&TransactionKey={dto.TransactionKey}&PaymentMethod={dto.PaymentMethod}";
+
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+
+            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+            var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+
+            return generatedHash.Equals(dto.HashKey, StringComparison.OrdinalIgnoreCase);
+        }
+
+
 
 
 

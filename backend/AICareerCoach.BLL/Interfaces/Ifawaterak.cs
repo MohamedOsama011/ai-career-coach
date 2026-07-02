@@ -15,9 +15,9 @@ namespace AICareerCoach.BLL.Interfaces
         Task<object> Envoicecalling(string methodid, string usersubscriptionid);
         Task<GetPaymentMethodsResponseDTO> getallpaymentmethods();
         Task<excutepaymentgeneralResponseDTO> Excutepayment(FawaterakDto fawaterakDto);
-        Task<Gettransactionresponse> GettransactionData(gettransactionDTO fawaterakDto); 
+        Task<Gettransactionresponse> GettransactionData(gettransactionDTO fawaterakDto);
 
-        //Task<Generalresponse> Successwebhook(webhookSuccessDto dto);    
+        Task<Generalresponse> Successwebhook(webhookSuccessDto dto);
         //Task<Generalresponse> failedwebhook(FailedwebhookDTO dto);
         //Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto);
 

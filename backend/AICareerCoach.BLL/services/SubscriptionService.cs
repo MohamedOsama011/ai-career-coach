@@ -27,8 +27,7 @@ namespace AICareerCoach.BLL.services
         public async Task<Generalresponse> Getall()
         {
             var response= new Generalresponse();
-            List<Subscription>? list =  baserepo.Getall();
-
+            List<Subscription>? list=baserepo.Getall();
             if (list?.Count <= 0)
             {
                 response.Data = "there isn't any subscription yet";

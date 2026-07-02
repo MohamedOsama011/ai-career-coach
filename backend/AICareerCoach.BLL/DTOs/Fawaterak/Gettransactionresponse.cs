@@ -53,7 +53,7 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public string PaymentMethod { get; set; } = string.Empty;
 
         [JsonPropertyName("pay_load")]
-        public PaymentPayloadDto PayLoad { get; set; } = new();
+        public object PayLoad { get; set; } = new();
 
         [JsonPropertyName("due_date")]
         public string DueDate { get; set; } = string.Empty;
