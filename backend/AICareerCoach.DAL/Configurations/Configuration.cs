@@ -55,9 +55,9 @@ namespace AICareerCoach.DAL.Configurations
                 builder.Property(u => u.Status).HasDefaultValue("pending");
                 builder.Property(p => p.invoicenumber).IsRequired(false);
                 builder.Property(p => p.PaymentMethod).IsRequired(false);
-                builder.Property(p => p.Invoiceid).IsRequired(false);
-                builder.Property(p => p.InvoiceKey).IsRequired(false);
-                builder.Property(p => p.referenceNumber).IsRequired(false);
+                builder.Property(p => p.intentkey).IsRequired(false);
+                //builder.Property(p => p.InvoiceKey).IsRequired(false);
+                //builder.Property(p => p.referenceNumber).IsRequired(false);
                 builder.Property(p => p.transactionid).IsRequired(false);
                 builder.Property(p => p.transactionkey).IsRequired(false);
 

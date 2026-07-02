@@ -10,14 +10,14 @@ namespace AICareerCoach.DAL.Entities
     public class UserSubscription
     {
         public int Id { get; set; }
-        public string Userid { get; set; }
-        public int Subscriptionid { get; set; }
+        public string? Userid { get; set; }
+        public int? Subscriptionid { get; set; }
         public bool Isactive { get; set; }=false;
-        public DateTime StartDate { get; set; }
-        public DateTime Enddate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? Enddate { get; set; }
         public int Quantity { get; set; }
 
-        public string Status { get; set; } = "pending";
+        public string? Status { get; set; } = "pending";
         public virtual User? User { get; set; }
         public virtual Subscription? Subscription { get; set; }
 

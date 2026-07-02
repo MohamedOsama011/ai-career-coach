@@ -11,17 +11,18 @@ namespace AICareerCoach.DAL.Entities
     {
         [Key]
         public int Id { get; set; }
-        public string Status { get; set; }
+        public string? Status { get; set; }
         public int? Usersubscriptionid { get; set; }
         public decimal Amount { get; set; }
         
+        
         public string? invoicenumber { get; set; }//=usersubscriotionid
-        public string? Invoiceid { get; set; } = null;
-        public string? InvoiceKey { get; set; }
+        public string? intentkey { get; set; } = null;//transactionkey
+        
         public string? PaymentMethod { get; set; }
-        public string referenceNumber { get; set; }
-        public string transactionid { get; set; }
-        public string transactionkey { get; set; }
+        //public string? referenceNumber { get; set; }
+        public string? transactionid { get; set; }
+        public string? transactionkey { get; set; }
 
 
 

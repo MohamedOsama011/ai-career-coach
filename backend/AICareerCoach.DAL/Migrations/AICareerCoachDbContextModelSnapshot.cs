@@ -193,35 +193,25 @@ namespace AICareerCoach.DAL.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("InvoiceKey")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Invoiceid")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Usersubscriptionid")
                         .HasColumnType("int");
 
+                    b.Property<string>("intentkey")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("invoicenumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("referenceNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("transactionid")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("transactionkey")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -365,7 +355,6 @@ namespace AICareerCoach.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
@@ -436,7 +425,7 @@ namespace AICareerCoach.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Enddate")
+                    b.Property<DateTime?>("Enddate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("Isactive")
@@ -445,18 +434,16 @@ namespace AICareerCoach.DAL.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Subscriptionid")
+                    b.Property<int?>("Subscriptionid")
                         .HasColumnType("int");
 
                     b.Property<string>("Userid")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -815,15 +802,11 @@ namespace AICareerCoach.DAL.Migrations
                 {
                     b.HasOne("AICareerCoach.DAL.Entities.Subscription", "Subscription")
                         .WithMany("Subscriptions")
-                        .HasForeignKey("Subscriptionid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Subscriptionid");
 
                     b.HasOne("AICareerCoach.DAL.Models.User", "User")
                         .WithMany("UserSubscriptions")
-                        .HasForeignKey("Userid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Userid");
 
                     b.Navigation("Subscription");
 
