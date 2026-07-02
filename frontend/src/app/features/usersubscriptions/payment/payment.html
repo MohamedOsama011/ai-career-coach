@@ -1,0 +1,32 @@
+
+<h2>Choose Payment Method</h2>
+
+<div class="cards">
+
+@for(method of paymentMethods;track method.payment_method_id){
+
+<div class="card">
+
+<img
+[src]="method.logo"
+width="80">
+
+<h3>
+
+{{method.name_en}}
+
+</h3>
+
+<button
+
+(click)="pay(method.payment_method_id)">
+
+Pay
+
+</button>
+
+</div>
+
+}
+
+</div>

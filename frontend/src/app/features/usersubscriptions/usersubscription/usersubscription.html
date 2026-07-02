@@ -1,0 +1,35 @@
+<div class="container">
+
+    <div class="header">
+
+        <h2>Subscriptions</h2>
+
+    </div>
+
+    <div class="cards">
+
+        @for (plan of plans; track plan.id) {
+
+        <div class="card">
+
+            <h3>{{ plan.name }}</h3>
+
+            <p>
+                Price :
+                <strong>{{ plan.price }}</strong>
+            </p>
+            <button
+                    class="view"
+                    (click)="goToPaymentMethods(plan.id)">
+
+                    subscripe
+
+                </button>
+
+        </div>
+
+        }
+
+    </div>
+
+</div>

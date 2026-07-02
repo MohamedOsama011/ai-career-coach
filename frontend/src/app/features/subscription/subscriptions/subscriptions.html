@@ -1,0 +1,64 @@
+<div class="container">
+
+    <div class="header">
+
+        <h2>Subscriptions</h2>
+
+        <button
+            class="create-btn"
+            (click)="goToCreate()">
+
+            Create Subscription
+
+        </button>
+
+    </div>
+
+    <div class="cards">
+<!-- @if(plan) -->
+        @for (plan of plans; track plan.id) {
+
+        <div class="card">
+
+            <h3>{{ plan.name }}</h3>
+
+            <p>
+                Price :
+                <strong>{{ plan.price }}</strong>
+            </p>
+
+            <div class="buttons">
+
+                <button
+                    class="view"
+                    (click)="goToView(plan.id)">
+
+                    View
+
+                </button>
+
+                <button
+                    class="update"
+                    (click)="goToUpdate(plan.id)">
+
+                    Update
+
+                </button>
+
+                <button
+                    class="delete"
+                    (click)="deletePlan(plan.id)">
+
+                    Delete
+
+                </button>
+
+            </div>
+
+        </div>
+
+        }
+
+    </div>
+
+</div>
