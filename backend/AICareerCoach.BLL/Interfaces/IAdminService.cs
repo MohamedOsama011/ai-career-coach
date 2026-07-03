@@ -24,5 +24,6 @@ namespace AICareerCoach.BLL.Interfaces
 
         Task<bool> DeleteCVAsync(int id);
         Task<DownloadCVDto?> DownloadCVAsync(int id);
+        Task<List<UserManagementDto>> GetUserManagement();
     }
 }

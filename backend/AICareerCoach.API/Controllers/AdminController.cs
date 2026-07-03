@@ -103,6 +103,15 @@ namespace AICareerCoach.API.Controllers
             {
                 return BadRequest(ex.ToString());
             }
-        }   
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("user-management")]
+        public async Task<IActionResult> GetUserManagement()
+        {
+            var result = await _adminService.GetUserManagement();
+
+            return Ok(result);
+        }
     }
 }

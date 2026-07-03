@@ -192,6 +192,42 @@ namespace AICareerCoach.BLL.services
                 FileName = Path.GetFileName(cv.FilePath)
             };
         }
+        public async Task<List<UserManagementDto>> GetUserManagement()
+        {
+            var users = await _userManager.Users.ToListAsync();
+
+            var result = new List<UserManagementDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                result.Add(new UserManagementDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    CareerGoal = user.CareerGoal,
+
+                    Role = roles.FirstOrDefault() ?? "User",
+
+                    HasCv = await _context.CVs
+                        .AnyAsync(c => c.UserId == user.Id),
+
+                    InterviewsCount = await _context.Interviews
+                        .CountAsync(i => i.UserId == user.Id),
+
+                    // For now
+                    Plan = "Free",
+                    PaymentStatus = "Free",
+                    AmountPaid = 0,
+
+                    CreatedAt = user.CreatedAt
+                });
+            }
+
+            return result;
+        }
     }
 }
 

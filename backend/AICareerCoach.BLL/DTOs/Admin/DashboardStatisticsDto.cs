@@ -17,6 +17,14 @@ namespace AICareerCoach.BLL.DTOs.Admin
             public int CVs { get; set; }
 
             public int Interviews { get; set; }
+
+            public decimal Revenue { get; set; }
+
+            public int Payments { get; set; }
+
+            public int SuccessfulPayments { get; set; }
+
+            public int PendingPayments { get; set; }
         }
     }
 }
