@@ -47,4 +47,5 @@ export interface ProfileResponse {
   createdAt: string;
   cvCount: number;
   roles: string[];
+  hasCV?: boolean;
 }
