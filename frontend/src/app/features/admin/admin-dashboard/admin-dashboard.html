@@ -1,0 +1,406 @@
+<div class="admin-dashboard">
+
+  <div class="container-fluid">
+    
+<div class="page-header">
+
+  <div>
+
+    <h2 class="page-title">
+      Admin Dashboard
+    </h2>
+
+    <p class="page-subtitle">
+      Manage users, CVs, interviews and system statistics
+    </p>
+
+  </div>
+
+  <div class="header-actions">
+
+    <span class="last-sync">
+      Last Sync:
+      {{ lastSync | date:'dd MMM yyyy, hh:mm a' }}
+    </span>
+
+            <app-button
+              variant="info"
+              label="Sync Jobs"
+              (clicked)="syncJobs()">
+            </app-button>
+
+  </div>
+
+</div>
+
+    <div class="stats-grid">
+
+<app-stat-card
+    label="Users"
+    [value]="(statistics.users || 0).toString()"
+    icon="group">
+</app-stat-card>
+
+<app-stat-card
+    label="Admins"
+    [value]="(statistics.admins || 0).toString()"
+    icon="admin_panel_settings">
+</app-stat-card>
+
+<app-stat-card
+    label="Cvs"
+    [value]="(statistics.cVs || 0).toString()"
+    icon="description">
+</app-stat-card>
+
+  <app-stat-card
+      label="Interviews"
+      [value]="(statistics.interviews || 0).toString()"
+      icon="record_voice_over">
+  </app-stat-card>
+
+
+
+</div>
+
+<div class="charts-grid">
+
+<app-card>
+
+  <h4 class="section-title">
+    <span class="material-icons">pie_chart</span>
+    User Roles
+  </h4>
+
+  <canvas id="rolesChart"></canvas>
+
+</app-card>
+
+<app-card>
+
+  <h4 class="section-title">
+    <span class="material-icons">bar_chart</span>
+    System Statistics
+  </h4>
+
+  <canvas id="statsChart"></canvas>
+
+</app-card>
+
+
+</div>
+
+
+
+<app-card>
+      <div class="table-header">
+
+        <h4 class="section-title">
+
+    <span class="material-icons">
+        group
+    </span>
+
+    Users
+
+    <span class="count-badge">
+
+        {{users.length}}
+
+    </span>
+
+</h4>
+
+      </div>
+
+      <table class="table table-hover align-middle">
+
+        <thead>
+
+          <tr>
+
+            <th>Name</th>
+
+            <th>Email</th>
+
+            <th>Career Goal</th>
+
+            <th>Role</th>
+
+            <th class="text-center">
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let user of pagedUsers()">
+
+            <td>
+
+              <strong>{{user.fullName}}</strong>
+
+            </td>
+
+            <td>{{user.email}}</td>
+
+            <td>
+
+              {{user.careerGoal || '-'}}
+
+            </td>
+
+            
+
+<td>
+  <app-badge
+    [text]="user.role"
+    [variant]="user.role === 'Admin' ? 'success' : 'info'">
+  </app-badge>
+</td>
+
+            
+
+            <td class="actions">
+
+<app-button
+    variant="danger"
+    (clicked)="deleteUser(user.id)">
+    Delete
+</app-button>
+
+  <app-button
+      *ngIf="user.role == 'User'"
+      variant="success"
+      label="Make Admin"
+      (clicked)="changeRole(user.id,'Admin')">
+  </app-button>
+
+  <app-button
+      *ngIf="user.role == 'Admin'"
+      variant="warning"
+      label="Remove Admin"
+      (clicked)="changeRole(user.id,'User')">
+  </app-button>
+
+</td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+</app-card>
+
+
+<app-card>
+
+    <div class="table-header">
+
+        <h4 class="section-title">
+
+            <span class="material-icons">
+                manage_accounts
+            </span>
+
+            User Management
+
+            <span class="count-badge">
+                {{userManagement.length}}
+            </span>
+
+        </h4>
+
+    </div>
+
+    <table class="table table-hover">
+
+        <thead>
+
+        <tr>
+
+            <th>Name</th>
+
+            <th>Email</th>
+
+            <th>Plan</th>
+
+            <th>Payment</th>
+
+            <th>CV</th>
+
+            <th>Interviews</th>
+
+            <th>Joined</th>
+
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let user of userManagement">
+
+            <td>{{user.fullName}}</td>
+
+            <td>{{user.email}}</td>
+
+ 
+
+            <td>
+
+                <app-badge
+                    [text]="user.plan"
+                    variant="default">
+                </app-badge>
+
+            </td>
+
+            <td>
+
+                <app-badge
+                    [text]="user.paymentStatus"
+                    [variant]="
+                        user.paymentStatus=='Paid'
+                        ? 'success'
+                        : user.paymentStatus=='Pending'
+                        ? 'warning'
+                        : 'default'
+                    ">
+                </app-badge>
+
+            </td>
+
+            <td>
+
+                <app-badge
+                    [text]="user.hasCv ? 'Uploaded' : 'No CV'"
+                    [variant]="user.hasCv ? 'success' : 'danger'">
+                </app-badge>
+
+            </td>
+
+            <td>
+
+                {{user.interviewsCount}}
+
+            </td>
+
+
+                {{user.createdAt | date:'dd/MM/yyyy'}}
+
+
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</app-card>
+
+<app-card>
+
+    <div class="table-header">
+
+        <h4 class="section-title">
+
+    <span class="material-icons">
+        description
+    </span>
+
+    CV Management
+
+    <span class="count-badge">
+
+        {{cvs.length}}
+
+    </span>
+
+</h4>
+
+    </div>
+
+    <table class="table table-hover align-middle">
+
+        <thead>
+
+            <tr>
+
+                <th>User</th>
+
+                <th>Email</th>
+
+                <th>File Name</th>
+
+                <th>Upload Date</th>
+
+                <th width="180">
+                    Action
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody *ngIf="cvs.length > 0; else noCVs">
+
+    <tr *ngFor="let cv of cvs">
+
+        <td>{{cv.userName}}</td>
+        <td>{{cv.userEmail}}</td>
+        <td>{{cv.fileName}}</td>
+        <td>{{cv.uploadDate | date:'dd/MM/yyyy'}}</td>
+
+<td class="actions">
+
+<app-button
+    variant="info"
+    label="Download"
+    (clicked)="downloadCV(cv.id)">
+</app-button>
+
+<app-button
+    variant="danger"
+    (clicked)="deleteCV(cv.id)">
+    Delete
+</app-button>
+
+</td>
+
+    </tr>
+
+</tbody>
+
+<ng-template #noCVs>
+
+<tbody>
+
+<tr>
+
+<td colspan="5" class="text-center py-5">
+
+No CV Found
+
+</td>
+
+</tr>
+
+</tbody>
+
+</ng-template>
+
+    </table>
+
+</app-card>
+
+  </div>
+
+
+  
+</div>

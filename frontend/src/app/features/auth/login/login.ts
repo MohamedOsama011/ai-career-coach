@@ -41,8 +41,26 @@ export class Login {
       next: (response) => {
         this.authService.saveToken(response.token);
         this.authService.saveUserInfo(response.fullName, this.email, response.roles);
+        // this.router.navigate(['/dashboard']);
+
+      const roles = response.roles ?? [];
+
+      this.authService.saveToken(response.token);
+      this.authService.saveUserInfo(
+        response.fullName,
+        this.email,
+        roles
+      );
+
+      if (roles.includes('Admin')) {
+          this.router.navigate(['/admin']);
+      } else {
         this.router.navigate(['/dashboard']);
+      }
+
       },
+
+      
       error: (error) => {
         console.error('Login failed:', error);
         console.error('Error body:', JSON.stringify(error.error));

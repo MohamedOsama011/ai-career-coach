@@ -4,32 +4,34 @@
   </div>
 
   <div class="sidebar-nav">
-    @for (item of navItems; track item.path) {
-      <a
-        class="nav-item"
-        [routerLink]="item.path"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
-      >
-        <span class="material-icons nav-icon">{{ item.icon }}</span>
-        <span class="nav-label">{{ item.label }}</span>
-      </a>
-    }
 
-    @if (authService.isAdmin()) {
-      <h3 class="nav-section">Admin</h3>
-      @for (item of adminNavItems; track item.path) {
-        <a
-          class="nav-item"
-          [routerLink]="item.path"
-          routerLinkActive="active"
-        >
-          <span class="material-icons nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
-        </a>
-      }
-    }
-  </div>
+@for (item of navItems; track item.path) {
+
+  @if (
+      (!item.adminOnly || authService.getRoles().includes('Admin')) &&
+      (!item.userOnly || !authService.getRoles().includes('Admin'))
+  ) {
+
+    <a
+      class="nav-item"
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }">
+
+      <span class="material-icons nav-icon">
+        {{ item.icon }}
+      </span>
+
+      <span class="nav-label">
+        {{ item.label }}
+      </span>
+
+    </a>
+
+  }
+
+}
+</div>
 
   <div class="sidebar-footer">
     <div class="user-info">

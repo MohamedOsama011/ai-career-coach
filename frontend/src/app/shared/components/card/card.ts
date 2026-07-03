@@ -11,6 +11,7 @@ import { Component } from '@angular/core';
       border: 1px solid var(--brand-border);
       border-radius: 16px;
       padding: 24px;
+      margin: 10px;
     }
   `],
 })

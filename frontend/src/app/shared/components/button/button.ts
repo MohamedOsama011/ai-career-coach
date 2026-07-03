@@ -2,7 +2,7 @@ import { Component, input, output, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-export type ButtonVariant = 'primary' | 'stroked' | 'danger';
+export type ButtonVariant = 'primary' | 'stroked' | 'danger' | 'success'| 'warning'| 'info';
 
 @Component({
   selector: 'app-button',
@@ -34,8 +34,53 @@ export type ButtonVariant = 'primary' | 'stroked' | 'danger';
           <mat-spinner diameter="16" />
         }
         <ng-content />
-      </button>
+      </button> }
+@else if (variant() === 'success') {
+  <button
+    mat-flat-button
+    class="app-btn app-btn-success"
+    [disabled]="disabled() || loading()"
+    (click)="clicked.emit()"
+  >
+    @if (loading()) {
+      <mat-spinner diameter="16" />
     } @else {
+      {{ label() }}
+    }
+  </button>
+}
+
+@else if (variant() === 'warning') {
+  <button
+    mat-flat-button
+    class="app-btn app-btn-warning"
+    [disabled]="disabled() || loading()"
+    (click)="clicked.emit()"
+  >
+    @if (loading()) {
+      <mat-spinner diameter="16" />
+    } @else {
+      {{ label() }}
+    }
+  </button>
+}
+
+@else if (variant() === 'info') {
+  <button
+    mat-flat-button
+    class="app-btn app-btn-info"
+    [disabled]="disabled() || loading()"
+    (click)="clicked.emit()"
+  >
+    @if (loading()) {
+      <mat-spinner diameter="16" />
+    } @else {
+      {{ label() }}
+    }
+  </button>
+}
+
+     @else {
       <button
         mat-flat-button
         class="app-btn app-btn-danger"
@@ -72,6 +117,35 @@ export type ButtonVariant = 'primary' | 'stroked' | 'danger';
       --mat-outlined-button-label-text-color: #1D4ED8 !important;
     }
 
+.app-btn-success {
+  --mat-filled-button-container-color: #16A34A !important;
+  --mat-filled-button-label-text-color: #fff !important;
+}
+
+.app-btn-success:hover:not([disabled]) {
+  --mat-filled-button-container-color: #15803D !important;
+}
+
+.app-btn-warning {
+  --mat-filled-button-container-color: #F59E0B !important;
+  --mat-filled-button-label-text-color: #fff !important;
+}
+
+.app-btn-warning:hover:not([disabled]) {
+  --mat-filled-button-container-color: #D97706 !important;
+}
+
+.app-btn-info {
+  --mat-filled-button-container-color: #2563EB !important;
+  --mat-filled-button-label-text-color: white !important;
+
+
+}
+
+.app-btn-info:hover:not([disabled]) {
+  --mat-filled-button-container-color: #1D4ED8 !important;
+}
+
     .app-btn-danger {
       --mat-filled-button-container-color: #EF4444 !important;
       --mat-filled-button-label-text-color: white !important;
@@ -86,4 +160,6 @@ export class Button {
   disabled = input(false);
   loading = input(false);
   clicked = output<void>();
+
+  label = input<string>('');
 }
