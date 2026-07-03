@@ -65,6 +65,8 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
+            builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
 
             builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
             builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
