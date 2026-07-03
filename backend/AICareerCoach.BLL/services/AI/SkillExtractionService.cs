@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI;
 using OpenAI.Chat;
+using ChatMessage = OpenAI.Chat.ChatMessage;
 using System;
 using System.ClientModel;
 using System.Collections.Generic;

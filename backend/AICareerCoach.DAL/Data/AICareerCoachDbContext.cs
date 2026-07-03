@@ -78,6 +78,7 @@ namespace AICareerCoach.DAL.Data
             });
 
             ConfigureInterviewEntities(builder);
+            ConfigureChatEntities(builder);
 
             builder.Entity<JobSyncLog>(e =>
             {
@@ -146,6 +147,48 @@ namespace AICareerCoach.DAL.Data
             });
         }
 
+        /// <summary>
+        /// Registers the chat-assistant conversation model (Session → Messages).
+        /// Session→User is unidirectional (no collection navigation on
+        /// <see cref="User"/>) like InterviewSession. Enums stored as
+        /// readable strings (cf. InterviewMessage.Role). <see cref="ChatSession.UpdatedAt"/>
+        /// is NOT auto-touched here — the service sets it manually per the
+        /// locked decision to avoid generalizing the override.
+        /// </summary>
+        private static void ConfigureChatEntities(ModelBuilder builder)
+        {
+            builder.Entity<ChatSession>(e =>
+            {
+                e.Property(s => s.UserId).HasMaxLength(450);
+                e.Property(s => s.Title).HasMaxLength(256);
+
+                e.HasOne(s => s.User)
+                    .WithMany()
+                    .HasForeignKey(s => s.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(s => s.UserId);
+                e.HasIndex(s => new { s.UserId, s.UpdatedAt });
+            });
+
+            builder.Entity<ChatMessage>(e =>
+            {
+                e.Property(m => m.Role).HasConversion<string>().HasMaxLength(32);
+                e.Property(m => m.Content).HasMaxLength(-1);
+                e.Property(m => m.ToolCallsJson).HasMaxLength(-1);
+                e.Property(m => m.ToolCallId).HasMaxLength(64);
+                e.Property(m => m.ToolName).HasMaxLength(64);
+
+                e.HasOne(m => m.Session)
+                    .WithMany(s => s.Messages)
+                    .HasForeignKey(m => m.SessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(m => m.SessionId);
+                e.HasIndex(m => new { m.SessionId, m.OrderIndex });
+            });
+        }
+
         public DbSet<Roadmap> Roadmaps { get; set; }
 
         public DbSet<RoadmapStep> RoadmapSteps { get; set; }
@@ -168,5 +211,7 @@ namespace AICareerCoach.DAL.Data
         public DbSet<UserRoadmap> UserRoadmaps { get; set; }
         public DbSet<RoadmapTemplateEmbedding> RoadmapTemplateEmbeddings { get; set; }
         public DbSet<JobSyncLog> JobSyncLogs { get; set; }
+        public DbSet<ChatSession> ChatSessions { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
     }
 }
