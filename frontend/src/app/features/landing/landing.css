@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #F8FAFC;
+  background: var(--brand-bg);
 }
 
 .landing-nav {
@@ -10,14 +10,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 48px;
-  background: #FFFFFF;
-  border-bottom: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border-bottom: 1px solid var(--brand-border);
 }
 
 .logo-text {
   font-size: 20px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   letter-spacing: -0.5px;
 }
 
@@ -28,18 +28,18 @@
 
 .btn-outline {
   padding: 8px 20px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--brand-border);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--brand-text);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .btn-outline:hover {
-  border-color: #D1D5DB;
-  background: #F9FAFB;
+  border-color: var(--brand-border);
+  background: var(--brand-card-hover);
 }
 
 .btn-large {
@@ -49,11 +49,11 @@
 
 .btn-primary {
   padding: 8px 20px;
-  background: #2563EB;
+  background: var(--brand-primary);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--brand-on-primary);
   text-decoration: none;
   transition: background 0.2s ease;
   border: none;
@@ -64,7 +64,7 @@
 }
 
 .btn-primary:hover {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .hero-section {
@@ -77,7 +77,7 @@
 .hero-title {
   font-size: 48px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 20px 0;
   letter-spacing: -1px;
   line-height: 1.1;
@@ -85,7 +85,7 @@
 
 .hero-subtitle {
   font-size: 18px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   line-height: 1.6;
   margin: 0 0 40px 0;
 }
@@ -107,7 +107,7 @@
 .section-title {
   font-size: 28px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   text-align: center;
   margin: 0 0 48px 0;
 }
@@ -119,22 +119,22 @@
 }
 
 .feature-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   border-radius: 16px;
   padding: 32px;
   transition: all 0.2s ease;
 }
 
 .feature-card:hover {
-  border-color: #D1D5DB;
+  border-color: var(--brand-border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   transform: translateY(-2px);
 }
 
 .feature-icon {
   font-size: 24px;
-  color: #2563EB;
+  color: var(--brand-primary);
   margin-bottom: 16px;
   display: block;
 }
@@ -142,13 +142,13 @@
 .feature-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 8px 0;
 }
 
 .feature-card p {
   font-size: 14px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -156,8 +156,8 @@
 .landing-footer {
   text-align: center;
   padding: 32px 48px;
-  border-top: 1px solid #E5E7EB;
-  color: #9CA3AF;
+  border-top: 1px solid var(--brand-border);
+  color: var(--brand-text-secondary);
   font-size: 13px;
 }
 

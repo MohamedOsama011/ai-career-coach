@@ -1,7 +1,7 @@
 .confirm-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,23 +63,23 @@
 
 .confirm-modal-btn.confirm {
   background: var(--brand-primary);
-  color: #FFFFFF;
+  color: var(--brand-on-primary);
   border-color: var(--brand-primary);
 }
 
 .confirm-modal-btn.confirm:hover {
-  background: #1D4ED8;
-  border-color: #1D4ED8;
+  background: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
 }
 
 .confirm-modal-btn.confirm.danger {
-  background: #DC2626;
-  border-color: #DC2626;
+  background: var(--brand-danger);
+  border-color: var(--brand-danger);
 }
 
 .confirm-modal-btn.confirm.danger:hover {
-  background: #B91C1C;
-  border-color: #B91C1C;
+  background: var(--brand-danger);
+  border-color: var(--brand-danger);
 }
 
 .confirm-modal-btn:disabled {

@@ -39,13 +39,13 @@
 }
 
 .form-group input::placeholder {
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
 }
 
 .error-message {
   padding: 10px 14px;
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
   border-radius: 8px;
   font-size: 13px;
   margin-bottom: 16px;
@@ -70,7 +70,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover:not(:disabled) {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 button[type="submit"]:disabled {

@@ -1,4 +1,5 @@
 using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.External;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -107,7 +108,7 @@ namespace AICareerCoach.BLL.Services.External
                 ExternalId = r.Id ?? string.Empty,
                 Title = r.Title ?? string.Empty,
                 Company = r.Company?.Display_name ?? string.Empty,
-                Description = r.Description ?? string.Empty,
+                Description = HtmlHelper.StripHtml(r.Description),
                 Location = r.Location?.Display_name ?? string.Empty,
                 SalaryMin = r.SalaryMin ?? 0m,
                 SalaryMax = r.SalaryMax ?? 0m,

@@ -1,5 +1,8 @@
 <header class="navbar">
   <div class="navbar-actions">
+    <button class="icon-btn" (click)="themeService.toggle()" [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'" title="Toggle theme">
+      <span class="material-icons" aria-hidden="true">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+    </button>
     <button class="avatar-wrapper" (click)="logout()" title="Logout" aria-label="Logout">
       <span class="material-icons avatar-icon" aria-hidden="true">logout</span>
     </button>

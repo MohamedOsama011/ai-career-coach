@@ -1,5 +1,6 @@
 ﻿using AICareerCoach.BLL.DTOs.Common;
 using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
@@ -132,7 +133,7 @@ namespace AICareerCoach.BLL.Services
             Id = job.Id,
             Title = job.Title,
             Company = job.Company,
-            Description = job.Description,
+            Description = HtmlHelper.StripHtml(job.Description),
             RequiredSkills = JsonSerializer.Deserialize<List<string>>(job.RequiredSkills) ?? new(),
             Location = job.Location,
             Salary = job.Salary,

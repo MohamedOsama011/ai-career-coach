@@ -74,28 +74,28 @@ import { Card } from '../card/card';
       align-items: center;
       gap: 24px;
       padding: 24px;
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
+      background: var(--brand-card);
+      border: 1px solid var(--brand-border);
       border-radius: 16px;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .job-card-container:hover {
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      border-color: #D1D5DB;
+      box-shadow: var(--shadow-sm);
+      border-color: var(--brand-border);
       transform: translateY(-2px);
     }
     .company-logo {
       width: 52px;
       height: 52px;
-      border: 1px solid #E5E7EB;
+      border: 1px solid var(--brand-border);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 14px;
       font-weight: 700;
-      color: #4B5563;
-      background: #FFFFFF;
+      color: var(--brand-text-secondary);
+      background: var(--brand-card);
       letter-spacing: 0.5px;
     }
     .company-logo-img {
@@ -112,13 +112,13 @@ import { Card } from '../card/card';
     .job-title {
       font-size: 18px;
       font-weight: 700;
-      color: #111827;
+      color: var(--brand-text);
       margin: 0 0 6px 0;
       line-height: 1.2;
     }
     .job-meta {
       font-size: 14px;
-      color: #6B7280;
+      color: var(--brand-text-secondary);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -133,8 +133,8 @@ import { Card } from '../card/card';
     .remote-badge {
       display: inline-block;
       padding: 2px 8px;
-      background: #DCFCE7;
-      color: #166534;
+      background: var(--brand-success-bg);
+      color: var(--brand-success);
       font-size: 11px;
       font-weight: 600;
       border-radius: 9999px;
@@ -143,8 +143,8 @@ import { Card } from '../card/card';
     .source-chip {
       display: inline-block;
       padding: 2px 8px;
-      background: #F1F5F9;
-      color: #475569;
+      background: var(--brand-bg);
+      color: var(--brand-text-secondary);
       font-size: 11px;
       font-weight: 600;
       border-radius: 9999px;
@@ -152,11 +152,11 @@ import { Card } from '../card/card';
     .location-icon {
       font-size: 14px;
       vertical-align: middle;
-      color: #9CA3AF;
+      color: var(--brand-text-secondary);
       margin-right: 2px;
     }
     .dot {
-      color: #9CA3AF;
+      color: var(--brand-text-secondary);
     }
     .skills-area {
       display: flex;
@@ -166,18 +166,18 @@ import { Card } from '../card/card';
       align-items: center;
     }
     .skill-tag {
-      background: #F3F4F6;
+      background: var(--brand-bg);
       border-radius: 6px;
       padding: 4px 8px;
       font-size: 12px;
-      color: #374151;
+      color: var(--brand-text);
       font-weight: 500;
       line-height: 1;
     }
     .salary-area {
       font-size: 16px;
       font-weight: 600;
-      color: #111827;
+      color: var(--brand-text);
       text-align: left;
     }
     .actions-area {
@@ -187,7 +187,7 @@ import { Card } from '../card/card';
     }
     .bookmark-btn {
       background: none;
-      border: 1px solid #E5E7EB;
+      border: 1px solid var(--brand-border);
       border-radius: 8px;
       width: 38px;
       height: 38px;
@@ -195,22 +195,22 @@ import { Card } from '../card/card';
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: #6B7280;
+      color: var(--brand-text-secondary);
       transition: all 0.2s ease;
     }
     .bookmark-btn:hover {
-      background: #F9FAFB;
-      border-color: #D1D5DB;
-      color: #374151;
+      background: var(--brand-card-hover);
+      border-color: var(--brand-border);
+      color: var(--brand-text);
     }
     .bookmark-btn.is-saved {
-      color: #2563EB;
-      border-color: #BFDBFE;
-      background: #EFF6FF;
+      color: var(--brand-primary);
+      border-color: var(--brand-primary-bg);
+      background: var(--brand-primary-bg);
     }
     .apply-btn {
-      background: #2563EB;
-      color: #FFFFFF;
+      background: var(--brand-primary);
+      color: var(--brand-on-primary);
       border: none;
       border-radius: 8px;
       padding: 8px 22px;
@@ -220,7 +220,7 @@ import { Card } from '../card/card';
       transition: background 0.2s ease;
     }
     .apply-btn:hover {
-      background: #1D4ED8;
+      background: var(--brand-primary-hover);
     }
 
     @media (max-width: 1024px) {
