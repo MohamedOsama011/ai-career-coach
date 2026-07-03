@@ -3,13 +3,10 @@ using System.Security.Claims;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using AICareerCoach.DAL.Entities;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -18,14 +15,14 @@ namespace AICareerCoach.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
-        private readonly AICareerCoachDbContext _context;
 
-        public AuthController(IAuthService authService, UserManager<User> userManager, AICareerCoachDbContext context)
+        public AuthController(IAuthService authService, IUserService userService, UserManager<User> userManager)
         {
             _authService = authService;
+            _userService = userService;
             _userManager = userManager;
-            _context = context;
         }
 
         [HttpPost("register")]
@@ -115,22 +112,19 @@ namespace AICareerCoach.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
 
-            var cvCount = await _context.Set<CV>()
-                .CountAsync(c => c.UserId == user!.Id);
-
-            var roles = await _userManager.GetRolesAsync(user!);
-
-            return Ok(new
+            try
             {
-                fullName = user!.FullName,
-                email = user.Email,
-                careerGoal = user.CareerGoal,
-                createdAt = user.CreatedAt,
-                cvCount,
-                roles
-            });
+                var profile = await _userService.GetProfileAsync(userId);
+                return Ok(profile);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [Authorize]
