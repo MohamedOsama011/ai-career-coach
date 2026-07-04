@@ -1,0 +1,14 @@
+<div class="container">
+    <div class="header">
+        <h2>Subscription Plans</h2>
+        <button class="add-btn" (click)="navigateToCreate()">+ Add Plan</button>
+    </div>
+    <div class="plans-grid">
+        @for (plan of plans; track plan.id) {
+            <div class="plan-card">
+                <h3>{{ plan.name }}</h3>
+                <p class="price">${{ plan.price }}</p>
+            </div>
+        }
+    </div>
+</div>

@@ -79,12 +79,62 @@ namespace AICareerCoach.DAL.Data
 
             ConfigureInterviewEntities(builder);
             ConfigureChatEntities(builder);
+            ConfigurePaymentEntities(builder);
 
             builder.Entity<JobSyncLog>(e =>
             {
                 e.HasKey(x => x.Id);
                 e.Property(x => x.ErrorMessages).HasMaxLength(-1);
                 e.HasIndex(x => x.SyncedAt);
+            });
+        }
+
+        private static void ConfigurePaymentEntities(ModelBuilder builder)
+        {
+            builder.Entity<Subscription>(e =>
+            {
+                e.Property(s => s.Name).HasMaxLength(256);
+
+                e.HasMany(s => s.UserSubscriptions)
+                    .WithOne(us => us.Subscription)
+                    .HasForeignKey(us => us.SubscriptionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<UserSubscription>(e =>
+            {
+                e.Property(us => us.UserId).HasMaxLength(450);
+                e.Property(us => us.Status).HasMaxLength(32);
+
+                e.HasOne(us => us.User)
+                    .WithMany(u => u.UserSubscriptions)
+                    .HasForeignKey(us => us.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(us => us.Subscription)
+                    .WithMany(s => s.UserSubscriptions)
+                    .HasForeignKey(us => us.SubscriptionId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasIndex(us => us.UserId);
+            });
+
+            builder.Entity<Payment>(e =>
+            {
+                e.Property(p => p.Status).HasMaxLength(32);
+                e.Property(p => p.IntentKey).HasMaxLength(256);
+                e.Property(p => p.InvoiceNumber).HasMaxLength(256);
+                e.Property(p => p.TransactionId).HasMaxLength(256);
+                e.Property(p => p.TransactionKey).HasMaxLength(256);
+                e.Property(p => p.PaymentMethod).HasMaxLength(128);
+
+                e.HasOne(p => p.UserSubscription)
+                    .WithMany(us => us.Payments)
+                    .HasForeignKey(p => p.UserSubscriptionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(p => p.IntentKey);
+                e.HasIndex(p => p.UserSubscriptionId);
             });
         }
 
@@ -213,5 +263,9 @@ namespace AICareerCoach.DAL.Data
         public DbSet<JobSyncLog> JobSyncLogs { get; set; }
         public DbSet<ChatSession> ChatSessions { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<UserSubscription> UserSubscriptions { get; set; }
     }
 }

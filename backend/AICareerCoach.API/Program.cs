@@ -74,6 +74,12 @@ namespace AICareerCoach.API
             builder.Services.AddHostedService<JobSyncHostedService>();
             builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
+            builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
+            builder.Services.AddHttpClient<IFawaterakService, FawaterakService>();
+            builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
+            builder.Services.AddMemoryCache();
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

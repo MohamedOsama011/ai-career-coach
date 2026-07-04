@@ -35,6 +35,8 @@ export const routes: Routes = [
       { path: 'interview', canActivate: [cvGuard], loadComponent: () => import('./features/interview').then(m => m.InterviewShell) },
       { path: 'skills', canActivate: [cvGuard], loadComponent: () => import('./features/skills/skills').then(m => m.Skills) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
+      { path: 'subscriptions', loadComponent: () => import('./features/subscription/subscriptions/subscriptions').then(m => m.Subscriptions) },
+      { path: 'create-subscription', loadComponent: () => import('./features/subscription/create-subscription/create-subscription').then(m => m.CreateSubscription) },
       { path: 'admin', canActivate: [adminGuard], children: [
         { path: 'jobs', loadComponent: () => import('./features/admin/jobs-admin/jobs-admin').then(m => m.JobsAdmin) },
       ]},
