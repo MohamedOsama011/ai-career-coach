@@ -1,6 +1,9 @@
 <div class="container">
 
     <h2>Subscription Details</h2>
+ <p>Loading = {{ loading }}</p>
+    <p>Name = {{ plan.name }}</p>
+    <p>Price = {{ plan.price }}</p>
 
     @if(loading){
         <p>Loading...</p>

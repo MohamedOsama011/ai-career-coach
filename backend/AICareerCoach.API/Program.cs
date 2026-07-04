@@ -95,12 +95,12 @@ namespace AICareerCoach.API
             // Fail-closed default: every endpoint requires an authenticated user
             // unless it explicitly opts out via [AllowAnonymous]. Individual
             // controllers may still add role requirements on top of this.
-            builder.Services.AddAuthorization(options =>
-            {
-                options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-            });
+            //builder.Services.AddAuthorization(options =>
+            //{
+            //    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            //        .RequireAuthenticatedUser()
+            //        .Build();
+            //});
 
             builder.Services.AddCors(options =>
             {
@@ -109,33 +109,33 @@ namespace AICareerCoach.API
                           .AllowAnyHeader()
                           .AllowAnyMethod());
             });
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Enter your JWT token"
-                });
+    //        builder.Services.AddSwaggerGen(c =>
+    //        {
+    //            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    //            {
+    //                Name = "Authorization",
+    //                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+    //                Scheme = "bearer",
+    //                BearerFormat = "JWT",
+    //                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    //                Description = "Enter your JWT token"
+    //            });
 
-                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-            });
+    //            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    //{
+    //    {
+    //        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    //        {
+    //            Reference = new Microsoft.OpenApi.Models.OpenApiReference
+    //            {
+    //                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+    //                Id = "Bearer"
+    //            }
+    //        },
+    //        Array.Empty<string>()
+    //    }
+    //});
+    //        });
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();

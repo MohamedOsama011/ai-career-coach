@@ -25,10 +25,10 @@ export class Subscriptions implements OnInit {
 
   loadPlans(): void {
     this.subscriptionService.getSubscriptions().subscribe({
-      next: (response: getallsubscriptionresponse) => {
+      next: (response) => {
         this.plans = response.data;
       },
-      error: (err:any) => { console.error(err);
+      error: (err) => { console.error(err);
 alert("Failed to load subscriptions.");}
 });
 }
@@ -48,21 +48,21 @@ const confirmDelete = confirm("Are you sure you want to delete this subscription
       .subscribe({next: () => {
         alert("Subscription deleted successfully.");
         this.loadPlans();},
-        error:(err:any) => {console.error(err);alert("Delete failed.") }
+        error:(err) => {console.error(err);alert("Delete failed.") }
 
       });
 
   }
 
   goToCreate(): void {
-    this.router.navigate(['/subscriptions/create']);
+    this.router.navigate(['create-subscription']);
   }
   goToView(id: number): void {
-    this.router.navigate(['/subscriptions/view', id]);
+    this.router.navigate(['view-subscription', id]);
   }
 
   goToUpdate(id: number): void {
-    this.router.navigate(['/subscriptions/update', id]);
+    this.router.navigate(['update-subscription', id]);
   }
 
 }

@@ -315,7 +315,7 @@ namespace AICareerCoach.BLL.services
         {
 
 
-            if (!VerifyWebhookHash(dto))
+            if (!await VerifyWebhookHash(dto))
             {
                 return new Generalresponse
                 {
@@ -365,10 +365,10 @@ namespace AICareerCoach.BLL.services
                 Data = dto
             };
         }
-        private  bool VerifyWebhookHash(webhookSuccessDto dto)
+        private  async Task<bool> VerifyWebhookHash(webhookSuccessDto dto)
 
         {
-            var accesstoken =  fawaterakTokenService.GetAccessTokenAsync();
+            var accesstoken = await fawaterakTokenService.GetAccessTokenAsync();
 
             // var secretKey = configuration["Fawaterak:SecreteKey"];
 

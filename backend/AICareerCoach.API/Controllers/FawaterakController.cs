@@ -22,17 +22,16 @@ namespace AICareerCoach.API.Controllers
             userManager = _userManager;
         }
 
-        [HttpGet("getallpaymentmethods/{id}")]
+        [HttpGet("getallpaymentmethods/{planid}")]
         
-        public async Task<IActionResult> createpayment(string planid)
+        public async Task<IActionResult> getallpaymentmethods([FromRoute]string planid)
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return Unauthorized("User is not authenticated.");
             }
-
-            var dto = new datasendedwhenclickonsubscriptionDTO
+          var dto = new datasendedwhenclickonsubscriptionDTO
             {
                 planid = planid,
                 userid = user.Id.ToString() // Re
@@ -43,7 +42,7 @@ namespace AICareerCoach.API.Controllers
 
         [HttpPost("envoicepaymet")]
         
-        public async Task<IActionResult>  excuteenvoice(string methodid,string usersubscriptionid)
+        public async Task<IActionResult> envoicepaymet(string methodid,string usersubscriptionid)
         {
             var result=await ifawaterak.Envoicecalling(methodid,usersubscriptionid) ;
             return Ok(result);

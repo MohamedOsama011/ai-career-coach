@@ -36,15 +36,17 @@ export const routes: Routes = [
       { path: 'interview', canActivate: [cvGuard], loadComponent: () => import('./features/interview').then(m => m.InterviewShell) },
       { path: 'skills', canActivate: [cvGuard], loadComponent: () => import('./features/skills/skills').then(m => m.Skills) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
-      { path: 'admin', canActivate: [adminGuard], children: [
-        { path: 'jobs', loadComponent: () => import('./features/admin/jobs-admin/jobs-admin').then(m => m.JobsAdmin) },
-      ]},
-    ],
-  },
-  {path:'subscriptions',loadComponent:()=>import('./features/subscription/subscriptions/subscriptions').then((as)=>as.Subscriptions),pathMatch: 'prefix'},
-  {path:'create-subscription',loadComponent:()=>import('./features/subscription/create-subscription/create-subscription').then((c)=>c.CreateSubscription)},
-  {path:'update-subscription/:id',loadComponent:()=>import('./features/subscription/update-subscription/update-subscription').then(u=>u.UpdateSubscriptionComponent)},
-  {path:'view-subscription/id',loadComponent:()=>import('./features/subscription/view-subscription/view-subscription').then(v=>v.ViewSubscriptionComponent)},
+      { path: 'admin', canActivate: [adminGuard], children: [{ path: 'jobs', loadComponent: () => import('./features/admin/jobs-admin/jobs-admin').then(m => m.JobsAdmin) },]},
+      {path:'subscriptions',loadComponent:()=>import('./features/subscription/subscriptions/subscriptions').then((as)=>as.Subscriptions),pathMatch: 'prefix'},
+      {path:'create-subscription',loadComponent:()=>import('./features/subscription/create-subscription/create-subscription').then((c)=>c.CreateSubscription)},
+      {path:'update-subscription/:id',loadComponent:()=>import('./features/subscription/update-subscription/update-subscription').then(u=>u.UpdateSubscriptionComponent)},
+      {path:'view-subscription/:id',loadComponent:()=>import('./features/subscription/view-subscription/view-subscription').then(v=>v.ViewSubscriptionComponent)},
+
+      {path:'usersubscriptions',loadComponent:()=>import('./features/usersubscriptions/usersubscription/usersubscription').then((as)=>as.Usersubscription),pathMatch: 'prefix'},
+      {path:'payment-methods/:id',loadComponent:()=>import('./features/usersubscriptions/payment/payment').then((as)=>as.Payment)},
+
+
+    ],},
   
   { path: '**', redirectTo: '' },
     

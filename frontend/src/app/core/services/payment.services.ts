@@ -9,13 +9,13 @@ import{getallallpaymentmethods,Excutepaymentresponse} from'../models/payment.mod
 export class PaymentServices {
   private http = inject(HttpClient);
 
-private apiUrl = 'https://localhost:44313/api/Fawaterak';
+private apiUrl = 'https://localhost:7222/api/Fawaterak';
 
 getallpaymentmethods(id:string):Observable<getallallpaymentmethods>{
-return this.http.get<getallallpaymentmethods>(`${this.apiUrl}/createpayment/${id}`)
+return this.http.get<getallallpaymentmethods>(`${this.apiUrl}/getallpaymentmethods/${id}`);
 }
 excutepayment(methodid:string,usersubid:string):Observable<Excutepaymentresponse>{
-  return this.http.post<Excutepaymentresponse>(`${this.apiUrl}/envoicepaymet/${methodid}/${usersubid}`,{})
+  return this.http.post<Excutepaymentresponse>(`${this.apiUrl}/envoicepaymet?methodid=${methodid}&usersubscriptionid=${usersubid}`,{})
 }
 }
 

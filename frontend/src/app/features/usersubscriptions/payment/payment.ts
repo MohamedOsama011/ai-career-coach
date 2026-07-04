@@ -34,6 +34,7 @@ export class Payment implements OnInit{
     if(id){
 
       this.subscriptionId=id;
+      console.log('Subscription id:', id);
 
       this.loadPaymentMethods();
 

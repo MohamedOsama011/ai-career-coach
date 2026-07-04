@@ -1,21 +1,17 @@
-export  interface getallsubscriptionresponse 
-{
-    status: string;
-    data: SubscriptionPlan[];
-    usersubscriptionid:string;
+export interface getallsubscriptionresponse {
+  success: boolean;
+  data: SubscriptionPlan[];
 }
 
 export interface SubscriptionPlan {
   id: number;
   name: string;
-    price: number;
-    usersubscriptions:UserSubscriptions[];
-}
-export interface UserSubscriptions {
-  // Add properties when the API starts returning subscription data.
-  anything:object;
+  price: number;
+  subscriptions: UserSubscription[];
 }
 
+export interface UserSubscription {
+}
 
 export interface createSubscriptionResponse
 {
@@ -24,7 +20,10 @@ export interface createSubscriptionResponse
 }
 
 
-
+export interface getonesubscriptionresponse {
+  success: boolean;
+  data: SubscriptionPlan;
+}
 
 export interface updateSubscriptionResponse
 {

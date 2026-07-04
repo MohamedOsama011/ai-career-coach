@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { SubscriptionServices } from '../../../core/services/subscription.services';
-import {createSubscriptionResponse} from '../../../core/models/getallsubscriptionresponse.models';
+import {createSubscriptionResponse, getonesubscriptionresponse,SubscriptionPlan} from '../../../core/models/getallsubscriptionresponse.models';
 
 @Component({
   selector: 'app-view-subscription',
@@ -14,13 +14,7 @@ import {createSubscriptionResponse} from '../../../core/models/getallsubscriptio
 })
 export class ViewSubscriptionComponent implements OnInit {
 
-  plan: createSubscriptionResponse = {
-
-    name: '',
-
-    price: 0
-
-  };
+  plan: SubscriptionPlan={name:'',price:0,subscriptions:[],id:0}; ;
 
   loading = true;
 
@@ -52,8 +46,10 @@ export class ViewSubscriptionComponent implements OnInit {
       .getbyid(id)
       .subscribe({
 
-        next: (res:createSubscriptionResponse) => {
-          this.plan = res;
+        next: (res) => {
+          console.log(res);
+          console.log(res.data);
+          this.plan = res.data;
           this.loading = false;
         },
 

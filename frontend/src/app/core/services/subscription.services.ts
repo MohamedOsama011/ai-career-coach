@@ -1,7 +1,7 @@
 import { Injectable ,inject} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { getallsubscriptionresponse ,createSubscriptionResponse, updateSubscriptionResponse} from '../models/getallsubscriptionresponse.models';
+import { getallsubscriptionresponse ,createSubscriptionResponse, updateSubscriptionResponse,getonesubscriptionresponse} from '../models/getallsubscriptionresponse.models';
 @Injectable({
   providedIn: 'root',
 })
@@ -11,7 +11,7 @@ export class SubscriptionServices {
   private http = inject(HttpClient);
 
 
-private apiUrl = 'https://localhost:44313/api/subscription';
+private apiUrl = 'https://localhost:7222/api/subscription';
 
 getSubscriptions(): Observable<getallsubscriptionresponse> {
     return this.http.get<getallsubscriptionresponse>(`${this.apiUrl}/Getall`);
@@ -33,8 +33,8 @@ updateSubscription(id: string,body: createSubscriptionResponse): Observable<upda
 return this.http.put<updateSubscriptionResponse>(`${this.apiUrl}/Update/${id}`,body);
   }
 
-  getbyid(subscriptionId: string): Observable<createSubscriptionResponse> {
-    return this.http.get<createSubscriptionResponse>(`${this.apiUrl}/getsubscription/${subscriptionId}`);
+  getbyid(subscriptionId: string): Observable<getonesubscriptionresponse> {
+    return this.http.get<getonesubscriptionresponse>(`${this.apiUrl}/getsubscription/${subscriptionId}`);
   }
 }
 
