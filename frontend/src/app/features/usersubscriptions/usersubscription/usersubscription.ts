@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './usersubscription.css',
 })
 
-export class Usersubscription implements OnInit ,OnDestroy {
+export class Usersubscription implements OnInit  {
 
   
   constructor(private  Subscription:SubscriptionServices,private router: Router) {}

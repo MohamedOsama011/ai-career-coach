@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { PaymentServices } from '../../core/services/payment.services';
+import { PaymentServices } from '../../../core/services/payment.services';
 
-import { Details ,getallallpaymentmethods} from '../../core/models/payment.model';
+import { Details ,getallallpaymentmethods} from '../../../core/models/payment.model';
 
 @Component({
   selector: 'app-payment',

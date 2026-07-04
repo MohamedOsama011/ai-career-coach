@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SubscriptionServices } from '../../core/services/subscription.services';
+import { SubscriptionServices } from '../../../core/services/subscription.services';
 
 import {
   createSubscriptionResponse
-} from '../../core/models/getallsubscriptionresponse.models';
+} from '../../../core/models/getallsubscriptionresponse.models';
 
 @Component({
   selector: 'app-update-subscription',

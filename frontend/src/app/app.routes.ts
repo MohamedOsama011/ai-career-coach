@@ -4,7 +4,8 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { cvGuard } from './core/guards/cv.guard';
 import { redirectIfLoggedIn } from './core/guards/redirect-if-logged-in.guard';
-
+// import {Subscriptions}  from './features/subscription/subscriptions/subscriptions';
+// import{CreateSubscription} from './features/subscription/create-subscription/create-subscription';
 export const routes: Routes = [
   {
     path: '',
@@ -40,5 +41,11 @@ export const routes: Routes = [
       ]},
     ],
   },
+  {path:'subscriptions',loadComponent:()=>import('./features/subscription/subscriptions/subscriptions').then((as)=>as.Subscriptions),pathMatch: 'prefix'},
+  {path:'create-subscription',loadComponent:()=>import('./features/subscription/create-subscription/create-subscription').then((c)=>c.CreateSubscription)},
+  {path:'update-subscription/:id',loadComponent:()=>import('./features/subscription/update-subscription/update-subscription').then(u=>u.UpdateSubscriptionComponent)},
+  {path:'view-subscription/id',loadComponent:()=>import('./features/subscription/view-subscription/view-subscription').then(v=>v.ViewSubscriptionComponent)},
+  
   { path: '**', redirectTo: '' },
+    
 ];

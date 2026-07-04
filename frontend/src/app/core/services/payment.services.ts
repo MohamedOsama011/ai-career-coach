@@ -15,7 +15,7 @@ getallpaymentmethods(id:string):Observable<getallallpaymentmethods>{
 return this.http.get<getallallpaymentmethods>(`${this.apiUrl}/createpayment/${id}`)
 }
 excutepayment(methodid:string,usersubid:string):Observable<Excutepaymentresponse>{
-  return this.http.post<Excutepaymentresponse>(`${this.apiUrl}/envoicepaymet/${methodid}/${usersubid}`)
+  return this.http.post<Excutepaymentresponse>(`${this.apiUrl}/envoicepaymet/${methodid}/${usersubid}`,{})
 }
 }
 

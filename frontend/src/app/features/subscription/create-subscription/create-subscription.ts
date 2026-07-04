@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
+import { FormsModule } from '@angular/forms';
 import { createSubscriptionResponse } from '../../../core/models/getallsubscriptionresponse.models';
 import { SubscriptionServices } from '../../../core/services/subscription.services';
 
 
 @Component({
   selector: 'app-create-subscription',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './create-subscription.html',
   styleUrl: './create-subscription.css',
 })

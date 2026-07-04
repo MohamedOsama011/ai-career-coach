@@ -2,17 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
-import { SubscriptionServices } from '../../core/services/subscription.services';
-import {SubscriptionPlan,getallsubscriptionresponse} from '../../core/models/getallsubscriptionresponse.models';
+import { SubscriptionServices } from '../../../core/services/subscription.services';
+import {SubscriptionPlan,getallsubscriptionresponse} from '../../../core/models/getallsubscriptionresponse.models';
 
 @Component({
   selector: 'app-subscriptions',
   standalone: true,
   imports: [CommonModule,RouterLink],
+  templateUrl: './subscriptions.html',
+  styleUrl: './subscriptions.css'
 })
 export class Subscriptions implements OnInit {
 
-  plans: SubscriptionPlan[]|string = [];
+  plans: SubscriptionPlan[] = [];
 
   constructor(
     private subscriptionService: SubscriptionServices,

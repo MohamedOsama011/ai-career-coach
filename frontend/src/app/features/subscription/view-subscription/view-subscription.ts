@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SubscriptionServices } from '../../core/services/subscription.services';
-import {createSubscriptionResponse} from '../../core/models/getallsubscriptionresponse.models';
+import { SubscriptionServices } from '../../../core/services/subscription.services';
+import {createSubscriptionResponse} from '../../../core/models/getallsubscriptionresponse.models';
 
 @Component({
   selector: 'app-view-subscription',

@@ -23,6 +23,8 @@ export class Sidebar {
     { path: '/interview', label: 'Interview Lab', icon: 'record_voice_over' },
     { path: '/skills', label: 'Skills Gap', icon: 'assessment' },
     { path: '/profile', label: 'Profile', icon: 'person' },
+    {path:'/subscriptions',label:'Subscriptions',icon:'subscriptions'},
+    {path:'usersubscriptions',label:'User Subscriptions',icon:'subscriptions'}
   ];
 
   adminNavItems: NavItem[] = [

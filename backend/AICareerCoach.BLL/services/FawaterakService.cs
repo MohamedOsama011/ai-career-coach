@@ -370,12 +370,12 @@ namespace AICareerCoach.BLL.services
         {
             var accesstoken =  fawaterakTokenService.GetAccessTokenAsync();
 
-            var secretKey = configuration["Fawaterak:SecreteKey"];
+            // var secretKey = configuration["Fawaterak:SecreteKey"];
 
             var query =
                 $"TransactionId={dto.TransactionId}&TransactionKey={dto.TransactionKey}&PaymentMethod={dto.PaymentMethod}";
 
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(accesstoken));
 
             var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
 
