@@ -18,7 +18,7 @@ export class Usersubscription implements OnInit  {
   constructor(private  Subscription:SubscriptionServices,private router: Router) {}
   
   // subscriptions:signal<getallsubscriptionresponse['data']> = signal([]);
-  plans: SubscriptionPlan[] = []; 
+  plans=signal< SubscriptionPlan[] >([]); 
   
     ngOnInit(): void {
       this.loadPlans();
@@ -27,8 +27,8 @@ export class Usersubscription implements OnInit  {
     loadPlans() {
       this.Subscription.getSubscriptions().subscribe({
         next: (response:getallsubscriptionresponse) => {
-          this.plans = response.data;
-          console.log(this.plans);
+          this.plans .set( response.data);
+          console.log(this.plans());
         },
         error: (err:any) => {
           console.error(err);

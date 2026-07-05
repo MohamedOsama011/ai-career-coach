@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit ,signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
@@ -17,7 +17,7 @@ export class Payment implements OnInit{
   subscriptionId!:string;
   usersubid!:string;
 
-  paymentMethods:Details[]=[];
+  paymentMethods=signal<Details[]>([]);
 
   constructor(
 
@@ -49,7 +49,7 @@ export class Payment implements OnInit{
     .subscribe({
       next:(res:getallallpaymentmethods)=>{
 
-        this.paymentMethods=res.data.data;
+        this.paymentMethods.set(res.data.data);
       this.usersubid=res.usersubscriptionid;
       },
 

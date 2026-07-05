@@ -1,5 +1,4 @@
 export interface getallsubscriptionresponse {
-  success: boolean;
   data: SubscriptionPlan[];
 }
 
@@ -7,6 +6,9 @@ export interface SubscriptionPlan {
   id: number;
   name: string;
   price: number;
+  Description:string;
+  Createdatat:Date;
+  
   subscriptions: UserSubscription[];
 }
 
@@ -17,11 +19,12 @@ export interface createSubscriptionResponse
 {
    name:string;
     price:number;
+    Description:string;
 }
 
 
 export interface getonesubscriptionresponse {
-  success: boolean;
+  
   data: SubscriptionPlan;
 }
 

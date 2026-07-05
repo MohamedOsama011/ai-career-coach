@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,7 @@ import {SubscriptionPlan,getallsubscriptionresponse} from '../../../core/models/
 })
 export class Subscriptions implements OnInit {
 
-  plans: SubscriptionPlan[] = [];
+  plans=signal< SubscriptionPlan[]> ( []);
 
   constructor(
     private subscriptionService: SubscriptionServices,
@@ -26,19 +26,14 @@ export class Subscriptions implements OnInit {
   loadPlans(): void {
     this.subscriptionService.getSubscriptions().subscribe({
       next: (response) => {
-        this.plans = response.data;
+        this.plans .set( response.data);
       },
       error: (err) => { console.error(err);
 alert("Failed to load subscriptions.");}
 });
 }
 
-// planisstring(s:object):boolean{
-//   typeof(s)==String?return true :return false
-// if (typeof(s)==String)
-//   return true
-// return false
-// }
+
 
   deletePlan(id: number): void {
 const confirmDelete = confirm("Are you sure you want to delete this subscription?");

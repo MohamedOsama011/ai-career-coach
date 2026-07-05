@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -14,9 +14,9 @@ import {createSubscriptionResponse, getonesubscriptionresponse,SubscriptionPlan}
 })
 export class ViewSubscriptionComponent implements OnInit {
 
-  plan: SubscriptionPlan={name:'',price:0,subscriptions:[],id:0}; ;
-
-  loading = true;
+  plan=signal<SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,Description:'',Createdatat:new Date});
+ 
+  loading =signal(true);
 
   constructor(
 
@@ -49,8 +49,8 @@ export class ViewSubscriptionComponent implements OnInit {
         next: (res) => {
           console.log(res);
           console.log(res.data);
-          this.plan = res.data;
-          this.loading = false;
+          this.plan.set( res.data);
+          this.loading.set(false);
         },
 
         error: (err:any) => 

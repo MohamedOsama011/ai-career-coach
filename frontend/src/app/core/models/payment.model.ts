@@ -1,6 +1,5 @@
 export  interface getallallpaymentmethods
 {
-    status: string;
     data: SubscriptionPlan;
     usersubscriptionid:string;
 }

@@ -1,17 +1,15 @@
 <div class="container">
 
     <h2>Subscription Details</h2>
- <p>Loading = {{ loading }}</p>
-    <p>Name = {{ plan.name }}</p>
-    <p>Price = {{ plan.price }}</p>
 
-    @if(loading){
+    @if(loading()){
         <p>Loading...</p>
     }
     @else{
         <div class="card">
-            <h3>{{plan.name}}</h3>
-            <p><strong>Price :</strong>{{plan.price}}</p>
+            <h3>{{plan().name}}</h3>
+            <p><strong>Price :</strong>{{plan().price}}</p>
+            <p><strong>Description:</strong>{{plan().Description}}</p>
             <button class="back-btn"(click)="back()"> Back</button>
         </div>
     }

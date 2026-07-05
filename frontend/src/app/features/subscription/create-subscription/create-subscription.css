@@ -56,7 +56,7 @@ input{
 
 .create-btn{
 
-    background:#198754;
+    /* background:#198754; */
 
     color:white;
 
@@ -67,12 +67,15 @@ input{
     border-radius:5px;
 
     cursor:pointer;
+    border:1px solid black;
+
 
 }
 
 .cancel-btn{
 
-    background:#dc3545;
+    /* background:#dc3545; */
+    border:1px solid black;
 
     color:white;
 

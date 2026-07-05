@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component ,signal} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { createSubscriptionResponse } from '../../../core/models/getallsubscriptionresponse.models';
@@ -19,7 +19,8 @@ constructor(
 
 plans:createSubscriptionResponse={
   name:"",
-  price:0
+  price:0,
+  Description:''
 }
 
 create(): void

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,9 +20,10 @@ export class UpdateSubscriptionComponent implements OnInit {
 
   newplan: createSubscriptionResponse = {
     name: '',
-    price: 0
+    price: 0,
+    Description:''
   };
-plan: SubscriptionPlan={name:'',price:0,subscriptions:[],id:0}; ;
+plan=signal< SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,Description:'',Createdatat:new Date}); 
   loading = true;
 
   constructor(
@@ -51,12 +52,14 @@ plan: SubscriptionPlan={name:'',price:0,subscriptions:[],id:0}; ;
         next: (response) => {
           console.log(response);
           console.log(response.data);
-          this.plan = response.data;
+          this.plan .set( response.data);
           console.log(this.plan);
-          this.newplan.name = this.plan.name;
+          this.newplan.name = this.plan().name;
           console.log(this.newplan.name);
-          this.newplan.price = this.plan.price;
+          this.newplan.price = this.plan().price;
           console.log(this.newplan.price);
+          this.newplan.Description=this.plan().Description;
+          console.log(this.newplan.Description)
           this.loading = false;
         },
 

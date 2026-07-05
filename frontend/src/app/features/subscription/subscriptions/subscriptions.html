@@ -16,7 +16,7 @@
 
     <div class="cards">
 <!-- @if(plan) -->
-        @for (plan of plans; track plan.id) {
+        @for (plan of plans(); track plan.id) {
 
         <div class="card">
 
@@ -25,6 +25,10 @@
             <p>
                 Price :
                 <strong>{{ plan.price }}</strong>
+            </p>
+            <p>
+                Description :
+                <strong>{{ plan.Description }}</strong>
             </p>
 
             <div class="buttons">
