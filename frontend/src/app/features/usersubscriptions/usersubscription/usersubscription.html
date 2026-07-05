@@ -31,5 +31,66 @@
         }
 
     </div>
+<br>
+<hr><hr>
+<br><br>
+<h2>your subscription</h2>
+   <table class="table">
+    <thead>
+        <tr>
+            <th>Subscription</th>
+            <th>Status</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @for (usersub of usersubscription(); track usersub.id) {
+        <tr>
+            <td>{{ usersub.subscriptionName }}</td>
+            <td>{{ usersub.status }}</td>
+            <td>{{ usersub.startDate || '-' }}</td>
+            <td>{{ usersub.endDate || '-' }}</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+
+
+
+
+    <br>
+<hr><hr>
+<br><br>
+<h2>your payments</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>subscriptionName</th>
+            <th>subscriptionStatus</th>
+            <th>paymentStatus</th>
+            <th>paidAt</th>
+        </tr>
+    </thead>
+
+    <tbody>
+          @for (userpay of userpayments(); track userpay.id) {
+            <tr>
+            <td>{{ userpay.subscriptionName }}</td>
+            <td>{{ userpay.subscriptionStatus }}</td>
+            <td>{{ userpay.paymentStatus || '-' }}</td>
+            <td>{{ userpay.paidAt || '-' }}</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+    
+
+      
+
+  
 
 </div>

@@ -20,7 +20,7 @@ constructor(
 plans:createSubscriptionResponse={
   name:"",
   price:0,
-  Description:''
+  description:''
 }
 
 create(): void

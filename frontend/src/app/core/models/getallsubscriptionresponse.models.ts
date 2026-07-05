@@ -6,9 +6,9 @@ export interface SubscriptionPlan {
   id: number;
   name: string;
   price: number;
-  Description:string;
-  Createdatat:Date;
-  
+  description:string;
+  createdatat:Date;
+  updatedat:Date|null
   subscriptions: UserSubscription[];
 }
 
@@ -19,7 +19,7 @@ export interface createSubscriptionResponse
 {
    name:string;
     price:number;
-    Description:string;
+    description:string;
 }
 
 
@@ -32,4 +32,25 @@ export interface updateSubscriptionResponse
 {
 success:string;
 data:object;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface Usersubscripions{
+   id: number;
+  subscriptionName: string;
+  status: string;
+  startDate: Date | null;
+  endDate: Date | null; Id:string
+
 }

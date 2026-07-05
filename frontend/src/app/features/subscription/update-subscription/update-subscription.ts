@@ -21,9 +21,9 @@ export class UpdateSubscriptionComponent implements OnInit {
   newplan: createSubscriptionResponse = {
     name: '',
     price: 0,
-    Description:''
+    description:''
   };
-plan=signal< SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,Description:'',Createdatat:new Date}); 
+plan=signal< SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,description:'',createdatat:new Date,updatedat:null}); 
   loading = true;
 
   constructor(
@@ -58,8 +58,8 @@ plan=signal< SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,Descriptio
           console.log(this.newplan.name);
           this.newplan.price = this.plan().price;
           console.log(this.newplan.price);
-          this.newplan.Description=this.plan().Description;
-          console.log(this.newplan.Description)
+          this.newplan.description=this.plan().description;
+          console.log(this.newplan.description)
           this.loading = false;
         },
 

@@ -14,7 +14,7 @@ import {createSubscriptionResponse, getonesubscriptionresponse,SubscriptionPlan}
 })
 export class ViewSubscriptionComponent implements OnInit {
 
-  plan=signal<SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,Description:'',Createdatat:new Date});
+  plan=signal<SubscriptionPlan>({name:'',price:0,subscriptions:[],id:0,description:'',createdatat:new Date,updatedat:null});
  
   loading =signal(true);
 
