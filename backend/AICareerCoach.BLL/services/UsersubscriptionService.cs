@@ -39,6 +39,7 @@ namespace AICareerCoach.BLL.services
         .Include(u => u.Subscription)
         .Select(u => new UsersubresponseDTO
         {
+            Id = u.Id,
             SubscriptionName = u.Subscription!.Name,
             Status = u.Status!,
             StartDate = u.StartDate,

@@ -9,8 +9,8 @@ namespace AICareerCoach.BLL.DTOs
     public class UsersubresponseDTO
     {
        
-            //public int Id { get; set; }
-            public string SubscriptionName { get; set; }
+            public int Id { get; set; }
+        public string SubscriptionName { get; set; }
             public string Status { get; set; }
             public DateTime? StartDate { get; set; }
             public DateTime? EndDate { get; set; }

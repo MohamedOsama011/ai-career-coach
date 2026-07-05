@@ -41,6 +41,7 @@ namespace AICareerCoach.BLL.services
                     us => us.Payments.DefaultIfEmpty(),
                     (us, payment) => new PaymentDTO
                     {
+                        Id=payment.Id,
                         SubscriptionName = us.Subscription.Name,
                         SubscriptionStatus = us.Status,
                         PaymentStatus = payment.Status,

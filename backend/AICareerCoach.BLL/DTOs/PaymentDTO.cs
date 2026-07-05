@@ -8,6 +8,7 @@ namespace AICareerCoach.BLL.DTOs
 {
     public  class PaymentDTO
     {
+        public  int Id { get; set; }
         public string SubscriptionName { get; set; }
         public string SubscriptionStatus { get; set; }
         public string PaymentStatus { get; set; }

@@ -22,8 +22,8 @@ namespace AICareerCoach.API.Controllers
         }
 
 
-        [HttpGet("getallpaymentsbyid")] 
-        public async Task<IActionResult> getallpaymentsbyid()
+        [HttpGet("getalluserpayments")]
+        public async Task<IActionResult> getalluserpayments()
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
