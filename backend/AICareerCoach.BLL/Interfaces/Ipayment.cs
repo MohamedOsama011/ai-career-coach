@@ -10,13 +10,13 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface Ipayment
     {
-        Task<string> createpayment(string planid, string userid);
+        Task<List<PaymentDTO>> Getallpaymentsbyid(string userid);
 
-        Task<Generalresponse> Handlewebhook(webhookDto webhookDto);
-        Task<Generalresponse> Successwebhook(webhookSuccessDto dto);
-        Task<Generalresponse> failedwebhook(FailedwebhookDTO dto);
-        Task<Generalresponse> Approvedwebhook(ApprovedWebhookDto dto);
-        Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto);
+        //Task<Generalresponse> Handlewebhook(webhookDto webhookDto);
+        //Task<Generalresponse> Successwebhook(webhookSuccessDto dto);
+        //Task<Generalresponse> failedwebhook(FailedwebhookDTO dto);
+        //Task<Generalresponse> Approvedwebhook(ApprovedWebhookDto dto);
+        //Task<Generalresponse> Cancelwebhook(CancelwebhookDTO dto);
 
 
         //Task <Generalresponse>  Gerbyuserid(string userid);

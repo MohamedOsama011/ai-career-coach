@@ -11,8 +11,14 @@ namespace AICareerCoach.DAL.Entities
     {
         [Key]
         public int Id { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public decimal Price { get; set; }
+        public DateTime Createdatat { get; set; }
+        
+        public DateTime?updatedat { get; set; }
+
+        public string Description { get; set; }
+
 
 
         public virtual ICollection<UserSubscription>? Subscriptions { get; set; }=new HashSet<UserSubscription>();

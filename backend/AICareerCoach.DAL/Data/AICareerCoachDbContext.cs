@@ -44,6 +44,8 @@ namespace AICareerCoach.DAL.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.ApplyConfigurationsFromAssembly(typeof(AICareerCoachDbContext).Assembly);
+
 
             builder.Entity<JobEmbedding>()
                 .Property(e => e.Embedding)

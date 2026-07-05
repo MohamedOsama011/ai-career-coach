@@ -104,12 +104,11 @@ namespace AICareerCoach.BLL.Services
         public async Task<Generalresponse> addrole(string role)
         {
             if (await _roleManager.RoleExistsAsync(role))
-                return new Generalresponse { Success = false, Data = "role already exist" };
+                return new Generalresponse {  Data = "role already exist" };
 
             var result = await _roleManager.CreateAsync(new IdentityRole(role));
             return new Generalresponse
             {
-                Success = result.Succeeded,
                 Data = result.Succeeded ? "role created" : result.Errors
             };
         }
@@ -118,12 +117,12 @@ namespace AICareerCoach.BLL.Services
         {
             var user = await _userManager.FindByEmailAsync(role.Email);
             if (user == null)
-                return new Generalresponse { Success = false, Data = "user not exist" };
+                return new Generalresponse {  Data = "user not exist" };
 
             var result = await _userManager.AddToRoleAsync(user, role.role);
             return new Generalresponse
             {
-                Success = result.Succeeded,
+                //Success = result.Succeeded,
                 Data = result.Succeeded ? "added successfuly" : result.Errors
             };
         }
@@ -173,12 +172,12 @@ namespace AICareerCoach.BLL.Services
             {
                 token.IsRevoked = true;
                 await _context.SaveChangesAsync();
-                res.Success = true;
+                //res.Success = true;
                 res.Data = "logout successfuly";
             }
             else
             {
-                res.Success = false;
+                //res.Success = false;
                 res.Data = "token is not valid";
             }
             return res;
@@ -188,14 +187,14 @@ namespace AICareerCoach.BLL.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
-                return new Generalresponse { Success = false, Data = "user is not exist" };
+                return new Generalresponse {  Data = "user is not exist" };
 
             var tokens = await _context.RefreshTokens
                 .Where(r => r.Userid == id.ToString() && !r.IsRevoked)
                 .ToListAsync();
 
             if (tokens.Count == 0)
-                return new Generalresponse { Success = false, Data = "user already not login" };
+                return new Generalresponse { Data = "user already not login" };
 
             foreach (var token in tokens)
             {
@@ -204,7 +203,7 @@ namespace AICareerCoach.BLL.Services
             }
 
             await _context.SaveChangesAsync();
-            return new Generalresponse { Success = true, Data = "logout to all machines successfuly" };
+            return new Generalresponse {  Data = "logout to all machines successfuly" };
         }
 
         public async Task ForgotPassword(ForgotPassword forgotPassword)
@@ -224,12 +223,12 @@ namespace AICareerCoach.BLL.Services
         {
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
             if (user == null)
-                return new Generalresponse { Success = false, Data = "user not found" };
+                return new Generalresponse {  Data = "user not found" };
 
             var result = await _userManager.ResetPasswordAsync(user, resetPassword.token, resetPassword.Password);
             return new Generalresponse
             {
-                Success = result.Succeeded,
+                //Success = result.Succeeded,
                 Data = result.Succeeded ? "password reset successfuly" : result.Errors
             };
         }
@@ -237,16 +236,16 @@ namespace AICareerCoach.BLL.Services
         public async Task<Generalresponse> changepassword(User user, CangePassword cangePassword)
         {
             if (cangePassword.NewPassword != cangePassword.ConfirmNewPassword)
-                return new Generalresponse { Success = false, Data = "new password and confirm password do not match" };
+                return new Generalresponse {  Data = "new password and confirm password do not match" };
 
             var oldPasswordCorrect = await _userManager.CheckPasswordAsync(user, cangePassword.OldPassword);
             if (!oldPasswordCorrect)
-                return new Generalresponse { Success = false, Data = "old password is wrong" };
+                return new Generalresponse {  Data = "old password is wrong" };
 
             var result = await _userManager.ChangePasswordAsync(user, cangePassword.OldPassword, cangePassword.NewPassword);
             return new Generalresponse
             {
-                Success = result.Succeeded,
+                //Success = result.Succeeded,
                 Data = result.Succeeded ? "password updated successfuly" : "something went wrong"
             };
         }
@@ -277,7 +276,7 @@ namespace AICareerCoach.BLL.Services
 
             return new Generalresponse
             {
-                Success = true,
+                //Success = true,
                 Data = roleNames
             };
 
@@ -288,9 +287,9 @@ namespace AICareerCoach.BLL.Services
         {
             var roles = await _userManager.GetRolesAsync(user1);
             if (roles.Count > 0)
-                return new Generalresponse { Success = true, Data = roles };
+                return new Generalresponse { Data = roles };
 
-            return new Generalresponse { Success = true, Data = "user doesnt have any roles yet" };
+            return new Generalresponse {  Data = "user doesnt have any roles yet" };
         }
 
        public async Task<Generalresponse> Changeuserrole(User user,string role)
@@ -312,7 +311,7 @@ namespace AICareerCoach.BLL.Services
 				await _userManager.AddToRoleAsync(user, role);
 				await _context.SaveChangesAsync();
 			}
-            response.Success = true;
+            //response.Success = true;
             response.Data = "role changed successfuly";
             return response;
         }

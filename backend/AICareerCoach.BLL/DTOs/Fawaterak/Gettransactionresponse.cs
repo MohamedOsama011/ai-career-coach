@@ -28,7 +28,7 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public string CustomerEmail { get; set; } = string.Empty;
 
         [JsonPropertyName("commission")]
-        public decimal Commission { get; set; }
+        public decimal?Commission { get; set; }
 
         [JsonPropertyName("transaction_created_at")]
         public string TransactionCreatedAt { get; set; } = string.Empty;
@@ -41,25 +41,25 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public string? PaidAt { get; set; }
 
         [JsonPropertyName("status_text")]
-        public string StatusText { get; set; } = string.Empty;
+        public string?StatusText { get; set; } = string.Empty;
 
         [JsonPropertyName("total")]
-        public decimal Total { get; set; }
+        public decimal?Total { get; set; }
 
         [JsonPropertyName("currency")]
-        public string Currency { get; set; } = string.Empty;
+        public string?Currency { get; set; } = string.Empty;
 
         [JsonPropertyName("payment_method")]
-        public string PaymentMethod { get; set; } = string.Empty;
+        public string?PaymentMethod { get; set; } = string.Empty;
 
         [JsonPropertyName("pay_load")]
-        public object PayLoad { get; set; } = new();
+        public object?PayLoad { get; set; } = new();
 
         [JsonPropertyName("due_date")]
         public string DueDate { get; set; } = string.Empty;
 
         [JsonPropertyName("transaction_link")]
-        public string TransactionLink { get; set; } = string.Empty;
+        public string?TransactionLink { get; set; } = string.Empty;
 
         [JsonPropertyName("transaction_history")]
         public List<TransactionHistoryDto> TransactionHistory { get; set; } = new();
@@ -68,7 +68,7 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
     public class PaymentPayloadDto
     {
         [JsonPropertyName("order_id")]
-        public string OrderId { get; set; } = string.Empty;
+        public string?OrderId { get; set; } = string.Empty;
     }
 
     public class TransactionHistoryDto
@@ -77,7 +77,7 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public PaymentMethodDto Method { get; set; } = new();
 
         [JsonPropertyName("amount")]
-        public string Amount { get; set; } = string.Empty;
+        public string?Amount { get; set; } = string.Empty;
 
         [JsonPropertyName("currency")]
         public string Currency { get; set; } = string.Empty;
@@ -86,19 +86,19 @@ namespace AICareerCoach.BLL.DTOs.Fawaterak
         public string Status { get; set; } = string.Empty;
 
         [JsonPropertyName("reference")]
-        public string Reference { get; set; } = string.Empty;
+        public string?Reference { get; set; } = string.Empty;
 
         [JsonPropertyName("date")]
-        public string Date { get; set; } = string.Empty;
+        public string?Date { get; set; } = string.Empty;
     }
 
     public class PaymentMethodDto
     {
         [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
+        public string?Name { get; set; } = string.Empty;
 
         [JsonPropertyName("logo")]
-        public string Logo { get; set; } = string.Empty;
+        public string?Logo { get; set; } = string.Empty;
     }
 }
 

@@ -9,6 +9,6 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface Iusersubscription
     {
-        Task<Generalresponse> getallbyuserid(string userid);
+        Task<List<UsersubresponseDTO>> getallbyuserid(string userid);
     }
 }

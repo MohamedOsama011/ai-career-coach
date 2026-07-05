@@ -31,12 +31,10 @@ namespace AICareerCoach.BLL.services
             if (list?.Count <= 0)
             {
                 response.Data = "there isn't any subscription yet";
-                response.Success = false;
             }
             else
             { 
                 response.Data = list;
-                response.Success = true;
             }
             return response;
         }
@@ -47,13 +45,11 @@ namespace AICareerCoach.BLL.services
             var subscription = baserepo.GetbyId(int.Parse(id));
             if(subscription == null)
             {
-                response.Success = false;
                 response.Data = "no such subscription";
 
             }
             else
             {
-                response.Success=true;
                 response.Data = subscription;
             }
             return response;
@@ -63,6 +59,9 @@ namespace AICareerCoach.BLL.services
             var newsub=new Subscription();
             newsub.Name = subscription.Name;
             newsub.Price= subscription.Price;
+            newsub.Createdatat=DateTime.Now;
+           
+            newsub.Description= subscription.Description;
             baserepo.Add(newsub);
             aICareerCoachDbContext.SaveChanges();
 
@@ -82,18 +81,18 @@ namespace AICareerCoach.BLL.services
             {
                 return new Generalresponse
                 {
-                    Success = false,
                     Data= "subscription not found"
                 };
             }
 
                 sub.Price= subscription.Price;
                 sub.Name= subscription.Name;
+            sub.Description= subscription.Description;
+            sub.updatedat= DateTime.Now;
             baserepo.Update(sub);
             aICareerCoachDbContext.SaveChanges();
             return new Generalresponse
             {
-                Success = true,
                 Data = "updated successfuly"
             };
 

@@ -16,11 +16,11 @@ namespace AICareerCoach.DAL.Entities
         public DateTime? StartDate { get; set; }
         public DateTime? Enddate { get; set; }
         public int Quantity { get; set; }
-
         public string? Status { get; set; } = "pending";
+
+
         public virtual User? User { get; set; }
         public virtual Subscription? Subscription { get; set; }
-
         public virtual ICollection<Payment>? Payments { get; set; }= new List<Payment>();
 
 

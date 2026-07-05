@@ -33,19 +33,17 @@ namespace AICareerCoach.BLL.services
         }
         public async Task<fawaterakresponsepaymentmethodsDTO> createpayment(datasendedwhenclickonsubscriptionDTO dto)
         {
-            var url = "";
+            //var url = "";
             var response = new fawaterakresponsepaymentmethodsDTO();
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == dto.userid);
             var plan = await context.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == dto.planid);
             if (plan == null)
             {
-                response.Success = false;
                 response.Data = "subscription not found";
             }
             else if (user == null)
             {
-                response.Success = false;
-                response.Data = "user not found not found";
+                response.Data = "user not found ";
             }
             else
             {
@@ -55,8 +53,6 @@ namespace AICareerCoach.BLL.services
                     Subscriptionid = int.Parse(dto.planid),
                     Isactive = false,
                     Status = "pending",
-                    
-
                 };
                 await context.AddAsync(usersubscription);
                 await context.SaveChangesAsync();
@@ -66,6 +62,14 @@ namespace AICareerCoach.BLL.services
                     Status = "pending",
                     Amount = plan.Price,
                     invoicenumber = usersubscription.Id.ToString(),
+                    invoiceid=null,
+                    transactionid=null,
+                    intentkey=null,
+                    invoicekey=null,
+                    transactionkey=null,
+                    PaymentMethod= null,
+
+
                 };
                 await context.AddAsync(payment);
                 await context.SaveChangesAsync();
@@ -75,8 +79,12 @@ namespace AICareerCoach.BLL.services
 
                 if (res != null)
                 {
-                    response.Success = true;
                     response.Data = res ;
+                    response.usersubscriptionid = usersubscription.Id.ToString();
+                }
+                else
+                {
+                    response.Data = "no payment methods found";
                     response.usersubscriptionid = usersubscription.Id.ToString();
                 }
             }
@@ -319,7 +327,6 @@ namespace AICareerCoach.BLL.services
             {
                 return new Generalresponse
                 {
-                    Success = false,
                     Data = "Invalid webhook hash."
                 };
             }
@@ -332,7 +339,6 @@ namespace AICareerCoach.BLL.services
             {
                 return new Generalresponse
                 {
-                    Success = false,
                     Data = "Payment not found."
                 };
             }
@@ -341,7 +347,6 @@ namespace AICareerCoach.BLL.services
             {
                 return new Generalresponse
                 {
-                    Success = true,
                     Data = "Payment already processed."
                 };
             }
@@ -349,19 +354,22 @@ namespace AICareerCoach.BLL.services
             payment.Status = "paid";
             payment.PaymentMethod = dto.PaymentMethod;
             payment.transactionid = dto.TransactionId.ToString();
+            payment.transactionkey=dto.TransactionKey;
+            payment.paidat = dto.PaidAt;
+            payment.Amount = dto.PaidAmount;
 
 
             payment.UserSubscription.Isactive = true;
             payment.UserSubscription.Status = "active";
             payment.UserSubscription.StartDate = DateTime.UtcNow;
-           
             payment.UserSubscription.Enddate = DateTime.UtcNow.AddMonths(1);
+       
 
             await context.SaveChangesAsync();
 
             return new Generalresponse
             {
-                Success = true,
+                
                 Data = dto
             };
         }
@@ -369,8 +377,6 @@ namespace AICareerCoach.BLL.services
 
         {
             var accesstoken = await fawaterakTokenService.GetAccessTokenAsync();
-
-            // var secretKey = configuration["Fawaterak:SecreteKey"];
 
             var query =
                 $"TransactionId={dto.TransactionId}&TransactionKey={dto.TransactionKey}&PaymentMethod={dto.PaymentMethod}";
