@@ -1,10 +1,12 @@
 ﻿using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI;
 using OpenAI.Chat;
+using ChatMessage = OpenAI.Chat.ChatMessage;
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
@@ -42,7 +44,7 @@ namespace AICareerCoach.BLL.Services.AI
         {
             if (!topJobs.Any()) return new Dictionary<int, JobExplanationDto>();
 
-            var trimmedCv = cvText.Length > 3000 ? cvText[..3000] : cvText;
+            var trimmedCv = cvText.Length > CvConstants.MaxLength ? cvText[..CvConstants.MaxLength] : cvText;
 
             var jobsContext = string.Join("\n\n", topJobs.Select(j =>
                 $"Job ID: {j.Id}\nTitle: {j.Title}\nCompany: {j.Company}\nDescription: {j.Description}\nRequired Skills: {j.RequiredSkills}"));

@@ -84,7 +84,13 @@
       @if (rm.templateSnapshot; as snapshot) {
         @if (snapshot.description) {
           <div class="why-roadmap">
-            <span class="why-label">Why this roadmap?</span>
+            <div class="why-roadmap-header">
+              <span class="why-label">Why this roadmap?</span>
+              <button class="download-pdf-btn" (click)="downloadRoadmapReport()">
+                <span class="material-icons">picture_as_pdf</span>
+                Download PDF
+              </button>
+            </div>
             <p class="why-description">{{ snapshot.description }}</p>
           </div>
         }

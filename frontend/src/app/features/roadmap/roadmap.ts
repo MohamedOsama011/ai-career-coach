@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RoadmapService } from '../../core/services/roadmap.service';
+import { AiService } from '../../core/services/ai.service';
 import { GenerateRoadmapRequestDto, RoadmapTemplateDto, UserRoadmapDto } from '../../core/models/roadmap.model';
 
 @Component({
@@ -19,7 +20,10 @@ export class Roadmap implements OnInit {
   error = signal('');
   expandedStep = signal<number | null>(null);
 
-  constructor(private roadmapService: RoadmapService) {}
+  constructor(
+    private roadmapService: RoadmapService,
+    private aiService: AiService
+  ) {}
 
   ngOnInit(): void {
     this.loadTemplates();
@@ -97,5 +101,19 @@ export class Roadmap implements OnInit {
 
   matchPercent(score: number): number {
     return Math.max(0, Math.min(100, Math.round(score * 100)));
+  }
+
+  downloadRoadmapReport(): void {
+    this.aiService.downloadRoadmapReport().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Roadmap_Report.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => alert('Failed to download report')
+    });
   }
 }

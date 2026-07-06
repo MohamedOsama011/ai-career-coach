@@ -1,4 +1,5 @@
 ﻿using AICareerCoach.BLL.DTOs.Job;
+using AICareerCoach.BLL.Helpers;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
@@ -132,10 +133,11 @@ namespace AICareerCoach.BLL.Services.AI
                 JobId = mj.JobEntity.Id,
                 Title = mj.JobEntity.Title,
                 Company = mj.JobEntity.Company,
-                Description = mj.JobEntity.Description,
+                Description = HtmlHelper.StripHtml(mj.JobEntity.Description),
                 CompanyLogoUrl = mj.JobEntity.CompanyLogoUrl,
                 Salary = mj.JobEntity.Salary,
                 Location = mj.JobEntity.Location,
+                ExternalUrl = mj.JobEntity.ExternalUrl,
                 MatchScore = mj.Percentage,
                 MatchExplanation = aiExplanations.TryGetValue(mj.JobEntity.Id, out var explanation)
                     ? explanation.Explanation

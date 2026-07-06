@@ -5,7 +5,7 @@
 .header-left span {
     font-size: 11px; 
     font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
     letter-spacing: 1.5px;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -13,14 +13,14 @@
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 0 0 18px 0;
 }
 
@@ -28,8 +28,8 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  background: var(--brand-primary-bg);
+  border: 1px solid var(--brand-primary-bg);
   border-left: 4px solid var(--brand-primary);
   border-radius: var(--radius-md);
   padding: 14px 18px;
@@ -52,14 +52,14 @@
 .focus-banner-title {
   font-size: 13px;
   font-weight: 700;
-  color: #1E40AF;
+  color: var(--brand-primary-hover);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .focus-banner-text {
   font-size: 14px;
-  color: #1E3A8A;
+  color: var(--brand-primary-hover);
   line-height: 1.5;
 }
 
@@ -112,7 +112,7 @@
 
 .option-card.selected {
   border-color: var(--brand-primary);
-  background: #EFF6FF;
+  background: var(--brand-primary-bg);
 }
 
 .option-card-title {
@@ -138,7 +138,7 @@
 
 .start-session-btn {
   background: var(--brand-primary);
-  color: var(--brand-card);
+color: var(--brand-on-primary);
   border: none;
   padding: 14px 28px;
   font-size: 15px;
@@ -154,7 +154,7 @@
 }
 
 .start-session-btn:hover:not(:disabled) {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .start-session-btn:disabled {
@@ -176,9 +176,9 @@
 }
 
 .error-box {
-  background: #FEF2F2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
+  border: 1px solid var(--brand-danger-bg);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   font-size: 14px;

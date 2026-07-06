@@ -44,7 +44,7 @@ namespace AICareerCoach.BLL.Services.AI
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.UploadedAt)
                 .FirstOrDefaultAsync()
-                ?? throw new Exception("No CV found. Please upload your CV first.");
+                ?? throw new KeyNotFoundException("No CV found. Please upload your CV first.");
 
             var fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "cvs", cv.FilePath);
 

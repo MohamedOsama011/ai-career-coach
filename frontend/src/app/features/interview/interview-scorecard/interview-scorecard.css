@@ -5,7 +5,7 @@
 .header-left span {
     font-size: 11px; 
     font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
     letter-spacing: 1.5px;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -13,14 +13,14 @@
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 0 0 18px 0;
 }
 
@@ -39,7 +39,7 @@
 
 .start-session-btn {
   background: var(--brand-primary);
-  color: var(--brand-card);
+  color: var(--brand-on-primary);
   border: none;
   padding: 14px 28px;
   font-size: 15px;
@@ -55,7 +55,7 @@
 }
 
 .start-session-btn:hover {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .scorecard-section {
@@ -237,7 +237,7 @@
   align-items: center;
   gap: var(--space-2);
   background: var(--brand-primary);
-  color: #FFFFFF;
+  color: var(--brand-on-primary);
   border: none;
   padding: 12px 22px;
   font-size: 14px;
@@ -248,7 +248,7 @@
 }
 
 .convert-btn:hover:not(:disabled) {
-  background: var(--brand-primary-dark, #1d4ed8);
+  background: var(--brand-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -265,7 +265,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #FFFFFF;
+  border-top-color: var(--brand-on-primary);
   border-radius: 50%;
   animation: convert-spin 0.8s linear infinite;
 }
@@ -275,7 +275,7 @@
 }
 
 .convert-error {
-  color: #DC2626;
+  color: var(--brand-danger);
   font-size: 13px;
   font-weight: 600;
   margin: 0;
@@ -300,7 +300,7 @@
 .print-btn:hover {
   border-color: var(--brand-primary);
   color: var(--brand-primary);
-  background: #EFF6FF;
+  background: var(--brand-primary-bg);
 }
 
 .print-btn .material-icons {
@@ -330,8 +330,8 @@
 @media print {
   body {
     font-size: 11pt;
-    color: #000;
-    background: #fff;
+    color: var(--brand-text);
+    background: var(--brand-card);
   }
 
   body * {
@@ -361,7 +361,7 @@
   .list-card,
   .analysis-card {
     box-shadow: none !important;
-    border: 1px solid #E5E7EB !important;
+    border: 1px solid var(--brand-border) !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -383,11 +383,11 @@
   .analysis-label,
   .analysis-number,
   .analysis-title {
-    color: #000 !important;
+    color: var(--brand-text) !important;
   }
 
   .analysis-text.suggestion {
-    color: #1d4ed8 !important;
+    color: var(--brand-primary-hover) !important;
   }
 
   .list-icon.positive,

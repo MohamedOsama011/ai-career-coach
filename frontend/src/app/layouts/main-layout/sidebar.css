@@ -54,13 +54,13 @@
 }
 
 .nav-item:hover {
-  background: #F1F5F9;
+  background: var(--brand-bg);
   color: var(--brand-text);
   text-decoration: none;
 }
 
 .nav-item.active {
-  background: #EFF6FF;
+  background: var(--brand-primary-bg);
   color: var(--brand-primary);
   font-weight: 600;
 }

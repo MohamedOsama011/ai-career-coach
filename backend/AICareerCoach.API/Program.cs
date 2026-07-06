@@ -6,6 +6,8 @@ using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
 using AICareerCoach.BLL.Services.External;
 using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.BLL.Services.Pdf;
+using QuestPDF.Infrastructure;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
@@ -48,6 +50,7 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<ICVService, CVService>();
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
             
@@ -65,12 +68,15 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
+            builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
 
 
             builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
             builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
             builder.Services.AddScoped<IJobSyncService, JobSyncService>();
             builder.Services.AddHostedService<JobSyncHostedService>();
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -90,27 +96,6 @@ namespace AICareerCoach.API
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                 };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine("AUTH FAILED");
-                        Console.WriteLine(context.Exception.GetType().Name);
-                        Console.WriteLine(context.Exception.Message);
-
-                        return Task.CompletedTask;
-                    },
-
-                    OnChallenge = context =>
-                    {
-                        Console.WriteLine("CHALLENGE");
-                        Console.WriteLine(context.Error);
-                        Console.WriteLine(context.ErrorDescription);
-                        return Task.CompletedTask;
-                    }
-                };
-
             });
 
 
@@ -151,6 +136,8 @@ namespace AICareerCoach.API
                     }
                 }
             }
+
+            QuestPDF.Settings.License = LicenseType.Community;
 
             if (app.Environment.IsDevelopment())
             {

@@ -1,4 +1,5 @@
-﻿using AICareerCoach.BLL.Interfaces.AI;
+﻿using AICareerCoach.BLL.Helpers;
+using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI;
@@ -32,7 +33,7 @@ namespace AICareerCoach.BLL.Services.AI
         {
             if (string.IsNullOrEmpty(text)) return Array.Empty<float>();
 
-            var trimmedText = text.Length > 6000 ? text[..6000] : text;
+            var trimmedText = text.Length > CvConstants.MaxLength ? text[..CvConstants.MaxLength] : text;
 
             try
             {

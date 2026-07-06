@@ -20,16 +20,11 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@auth0/angular-jwt": "^5.2.0",
-<<<<<<< HEAD
+    "@fortawesome/fontawesome-free": "^7.3.0",
+    "chart.js": "^4.5.1",
     "dompurify": "^3.4.11",
     "jwt-decode": "^4.0.0",
     "marked": "^18.0.5",
-=======
-    "@fortawesome/fontawesome-free": "^7.3.0",
-    "chart.js": "^4.5.1",
-    "jwt-decode": "^4.0.0",
-    "ngx-toastr": "^20.0.5",
->>>>>>> c038690 (Add payment management dashboard)
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0"

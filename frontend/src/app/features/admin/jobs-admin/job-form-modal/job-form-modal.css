@@ -10,7 +10,7 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--brand-card);
   border-radius: 12px;
   max-width: 640px;
   width: 100%;
@@ -120,7 +120,7 @@
 }
 
 .btn-icon:hover {
-  background: #F1F5F9;
+  background: var(--brand-bg);
   color: var(--brand-text);
 }
 

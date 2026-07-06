@@ -32,7 +32,7 @@
 }
 
 .icon-btn:hover {
-  background: #F3F4F6;
+  background: var(--brand-bg);
   color: var(--brand-text);
 }
 
@@ -50,7 +50,7 @@
 }
 
 .avatar-wrapper:hover {
-  background: #F3F4F6;
+  background: var(--brand-bg);
   border-color: var(--brand-border);
 }
 

@@ -5,7 +5,7 @@
 .header-left span {
     font-size: 11px; 
     font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
     letter-spacing: 1.5px;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -13,14 +13,14 @@
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 0 0 18px 0;
 }
 
@@ -29,12 +29,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  background: var(--brand-primary-bg);
+  border: 1px solid #8cbfff40;
   border-radius: var(--radius-md);
   padding: 10px var(--space-5);
   font-size: 14px;
-  color: #1E40AF;
+  color: var(--brand-primary-hover);
   margin-bottom: 16px;
 }
 
@@ -46,7 +46,7 @@
 .resume-btn {
   margin-left: auto;
   background: var(--brand-primary);
-  color: var(--brand-card);
+  color: var(--brand-on-primary);
   border: none;
   padding: 8px 18px;
   font-size: 13px;
@@ -57,7 +57,7 @@
 }
 
 .resume-btn:hover {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .dashboard-grid {
@@ -185,11 +185,11 @@
 
 .action-btn.primary {
   background: var(--brand-primary);
-  color: var(--brand-card);
+  color: var(--brand-on-primary);
 }
 
 .action-btn.primary:hover {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .action-btn.secondary {
@@ -227,7 +227,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--brand-primary);
-  background: #EFF6FF;
+  background: var(--brand-primary-bg);
   padding: 2px 10px;
   border-radius: 6px;
   display: flex;
@@ -302,8 +302,8 @@
 }
 
 .history-delete-btn:hover {
-  color: #DC2626;
-  background: #FEF2F2;
+  color: var(--brand-danger);
+  background: var(--brand-danger-bg);
 }
 
 .history-delete-btn:focus-visible {
@@ -337,18 +337,18 @@
 }
 
 .history-grade.grade-a {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--brand-success-bg);
+  color: var(--brand-success);
 }
 
 .history-grade.grade-b {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--brand-warning-bg);
+  color: var(--brand-warning);
 }
 
 .history-grade.grade-c {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
 }
 
 .history-date {
@@ -422,7 +422,7 @@
 
 .track-card.selected {
   border-color: var(--brand-primary);
-  background: #EFF6FF;
+  background: var(--brand-primary-bg);
 }
 
 .track-card-title {
