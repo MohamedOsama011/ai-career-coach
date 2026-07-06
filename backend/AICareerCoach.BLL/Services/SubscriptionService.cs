@@ -15,23 +15,23 @@ namespace AICareerCoach.BLL.Services
             _context = context;
         }
 
-        public async Task<Generalresponse> GetAllSubscriptionsAsync()
+        public async Task<GeneralResponse<List<Subscription>>> GetAllSubscriptionsAsync()
         {
             var list = await _context.Subscriptions.ToListAsync();
-            return new Generalresponse
+            return new GeneralResponse<List<Subscription>>
             {
-                Data = list.Count > 0 ? list : "there isn't any subscription yet",
+                Data = list.Count > 0 ? list : null,
                 Success = list.Count > 0,
             };
         }
 
-        public async Task<Generalresponse> GetSubscriptionByIdAsync(string id)
+        public async Task<GeneralResponse<Subscription>> GetSubscriptionByIdAsync(string id)
         {
             var subscription = await _context.Subscriptions.FindAsync(int.Parse(id));
-            return new Generalresponse
+            return new GeneralResponse<Subscription>
             {
                 Success = subscription != null,
-                Data = subscription != null ? (object)subscription : "no such subscription",
+                Data = subscription,
             };
         }
 
@@ -41,30 +41,46 @@ namespace AICareerCoach.BLL.Services
             {
                 Name = dto.Name,
                 Price = dto.Price,
+                DurationMonths = dto.DurationMonths,
             };
             _context.Subscriptions.Add(subscription);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteSubscriptionAsync(Subscription subscription)
+        public async Task<GeneralResponse<string>> DeleteSubscriptionAsync(string id)
         {
-            _context.Subscriptions.Remove(subscription);
+            var sub = await _context.Subscriptions
+                .Include(x => x.UserSubscriptions)
+                .FirstOrDefaultAsync(x => x.Id == int.Parse(id));
+            if (sub == null)
+            {
+                return new GeneralResponse<string> { Success = false, Data = "subscription not found" };
+            }
+
+            if (sub.UserSubscriptions != null && sub.UserSubscriptions.Count > 0)
+            {
+                return new GeneralResponse<string> { Success = false, Data = $"cannot delete plan: {sub.UserSubscriptions.Count} active subscriber(s)" };
+            }
+
+            _context.Subscriptions.Remove(sub);
             await _context.SaveChangesAsync();
+            return new GeneralResponse<string> { Success = true, Data = "deleted successfully" };
         }
 
-        public async Task<Generalresponse> UpdateSubscriptionAsync(SubscriptionDto dto, string id)
+        public async Task<GeneralResponse<string>> UpdateSubscriptionAsync(SubscriptionDto dto, string id)
         {
             var sub = await _context.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == id);
             if (sub == null)
             {
-                return new Generalresponse { Success = false, Data = "subscription not found" };
+                return new GeneralResponse<string> { Success = false, Data = "subscription not found" };
             }
 
             sub.Price = dto.Price;
             sub.Name = dto.Name;
+            sub.DurationMonths = dto.DurationMonths;
             await _context.SaveChangesAsync();
 
-            return new Generalresponse { Success = true, Data = "updated successfully" };
+            return new GeneralResponse<string> { Success = true, Data = "updated successfully" };
         }
     }
 }

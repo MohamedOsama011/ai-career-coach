@@ -14,11 +14,16 @@ namespace AICareerCoach.API.Controllers
     {
         private readonly IRoadmapService _roadmapService;
         private readonly IUserRoadmapService _userRoadmapService;
+        private readonly ISubscriptionGateService _gateService;
 
-        public RoadmapController(IRoadmapService roadmapService, IUserRoadmapService userRoadmapService)
+        public RoadmapController(
+            IRoadmapService roadmapService,
+            IUserRoadmapService userRoadmapService,
+            ISubscriptionGateService gateService)
         {
             _roadmapService = roadmapService;
             _userRoadmapService = userRoadmapService;
+            _gateService = gateService;
         }
 
         [HttpGet]
@@ -72,6 +77,18 @@ namespace AICareerCoach.API.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User identity could not be verified from the token." });
 
+            var gate = await _gateService.CheckAccessAsync(userId, Feature.RoadmapGeneration);
+            if (!gate.Allowed)
+            {
+                return StatusCode(403, new
+                {
+                    code = "LIMIT_REACHED",
+                    feature = "roadmap",
+                    used = gate.Used,
+                    limit = gate.Limit
+                });
+            }
+
             try
             {
                 var result = await _userRoadmapService.GenerateRoadmapAsync(userId, dto);
@@ -116,6 +133,18 @@ namespace AICareerCoach.API.Controllers
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var gate = await _gateService.CheckAccessAsync(userId, Feature.RoadmapRescan);
+            if (!gate.Allowed)
+            {
+                return StatusCode(403, new
+                {
+                    code = "LIMIT_REACHED",
+                    feature = "rescan",
+                    used = gate.Used,
+                    limit = gate.Limit
+                });
+            }
 
             try
             {

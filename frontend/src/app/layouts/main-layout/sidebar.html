@@ -37,6 +37,11 @@
       <div class="user-details">
         <span class="user-name">{{ authService.getUserFullName() }}</span>
         <span class="user-email">{{ authService.getUserEmail() }}</span>
+        @if (store.planName(); as name) {
+          <span class="plan-badge active" [title]="'Current plan: ' + name">{{ name }}</span>
+        } @else {
+          <span class="plan-badge free">Free</span>
+        }
       </div>
     </div>
   </div>

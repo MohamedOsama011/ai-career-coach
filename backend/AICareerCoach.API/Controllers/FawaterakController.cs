@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AICareerCoach.BLL.DTOs.Fawaterak;
 using AICareerCoach.BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -20,15 +21,30 @@ namespace AICareerCoach.API.Controllers
         [HttpPost("create-payment")]
         public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDto dto)
         {
-            var result = await _fawaterakService.CreatePaymentAsync(dto);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _fawaterakService.CreatePaymentAsync(dto, userId);
             return Ok(result);
         }
 
         [HttpPost("execute-invoice")]
         public async Task<IActionResult> ExecuteInvoice(string methodId, string userSubscriptionId)
         {
-            var result = await _fawaterakService.ExecuteInvoiceAsync(methodId, userSubscriptionId);
-            return Ok(result);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            try
+            {
+                var result = await _fawaterakService.ExecuteInvoiceAsync(methodId, userSubscriptionId, userId);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
         }
 
         [HttpPost("get-transaction-data")]

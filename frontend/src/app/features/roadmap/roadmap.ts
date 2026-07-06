@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RoadmapService } from '../../core/services/roadmap.service';
 import { AiService } from '../../core/services/ai.service';
+import { CareerProfileStore } from '../../core/store/career-profile-store';
 import { GenerateRoadmapRequestDto, RoadmapTemplateDto, UserRoadmapDto } from '../../core/models/roadmap.model';
 
 @Component({
@@ -11,6 +12,8 @@ import { GenerateRoadmapRequestDto, RoadmapTemplateDto, UserRoadmapDto } from '.
   styleUrl: './roadmap.css',
 })
 export class Roadmap implements OnInit {
+  private store = inject(CareerProfileStore);
+
   userRoadmap = signal<UserRoadmapDto | null>(null);
   targetRole = signal('');
   selectedTrack = signal('');
@@ -28,6 +31,7 @@ export class Roadmap implements OnInit {
   ngOnInit(): void {
     this.loadTemplates();
     this.loadMyRoadmap();
+    this.store.refreshGateStatus();
   }
 
   loadTemplates(): void {
@@ -56,6 +60,12 @@ export class Roadmap implements OnInit {
   generateRoadmap(): void {
     if (!this.targetRole().trim()) return;
 
+    if (!this.store.canUse('roadmap')) {
+      const status = this.store.gateStatus();
+      this.store.showUpgradeModal('roadmap', status?.features.roadmap.used, status?.features.roadmap.limit);
+      return;
+    }
+
     this.generating.set(true);
     this.error.set('');
 
@@ -69,10 +79,14 @@ export class Roadmap implements OnInit {
       next: (data) => {
         this.userRoadmap.set(data);
         this.generating.set(false);
+        this.store.refreshGateStatus();
       },
       error: (err) => {
         this.generating.set(false);
-        if (err.status === 400) {
+        if (err.status === 403 && err.error?.code === 'LIMIT_REACHED') {
+          this.store.showUpgradeModal('roadmap', err.error.used, err.error.limit);
+          this.store.refreshGateStatus();
+        } else if (err.status === 400) {
           this.error.set(err.error?.message || 'Please upload your CV and get feedback first.');
         } else {
           this.error.set('Failed to generate roadmap. Please try again.');

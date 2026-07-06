@@ -1,14 +1,64 @@
 <div class="container">
+    @if (errorBanner()) {
+        <div class="error-banner">
+            <span class="material-icons">error_outline</span>
+            <span>{{ errorBanner() }}</span>
+            <button class="btn-icon" (click)="errorBanner.set(null)" aria-label="Dismiss">&times;</button>
+        </div>
+    }
+
+    @if (pendingBanner()) {
+        <div class="pending-banner">
+            <span class="material-icons">schedule</span>
+            <span>{{ pendingBanner() }}</span>
+            <button class="btn-icon" (click)="pendingBanner.set(null)" aria-label="Dismiss">&times;</button>
+        </div>
+    }
+
     <div class="header">
         <h2>Subscription Plans</h2>
-        <button class="add-btn" (click)="navigateToCreate()">+ Add Plan</button>
-    </div>
-    <div class="plans-grid">
-        @for (plan of plans; track plan.id) {
-            <div class="plan-card">
-                <h3>{{ plan.name }}</h3>
-                <p class="price">${{ plan.price }}</p>
-            </div>
+        @if (isAdmin()) {
+            <button class="add-btn" routerLink="/admin/plans">
+                <span class="material-icons">settings</span> Manage Plans
+            </button>
         }
     </div>
+
+    @if (loading()) {
+        <div class="loading-state">
+            <span class="spinner"></span>
+            <p>Loading plans...</p>
+        </div>
+    } @else {
+        <div class="plans-grid">
+            @for (plan of plans(); track plan.id) {
+                <div class="plan-card" [class.current]="isCurrent(plan.id)">
+                    @if (isCurrent(plan.id)) {
+                        <span class="current-badge">
+                            <span class="material-icons">check_circle</span>
+                            Your current plan
+                        </span>
+                    }
+                    <h3>{{ plan.name }}</h3>
+                    <p class="price">EGP {{ plan.price }}</p>
+                    <p class="duration">{{ plan.durationMonths }} {{ plan.durationMonths === 1 ? 'month' : 'months' }}</p>
+                    <!-- @if (!isAdmin()) { -->
+                        <button class="subscribe-btn"
+                            [class.current-btn]="isCurrent(plan.id)"
+                            [disabled]="isCurrent(plan.id) || hasAnyActiveSub() || isNavigating(plan.id)"
+                            (click)="subscribe(plan.id)">
+                            @if (isNavigating(plan.id)) {
+                                <span class="btn-spinner"></span>
+                                Loading...
+                            } @else if (isCurrent(plan.id)) {
+                                Current Plan
+                            } @else {
+                                Subscribe
+                            }
+                        </button>
+                    <!-- } -->
+                </div>
+            }
+        </div>
+    }
 </div>

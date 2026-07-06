@@ -1,5 +1,6 @@
 ﻿using AICareerCoach.BLL.DTOs.Job;
 using AICareerCoach.BLL.Helpers;
+using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
@@ -17,20 +18,23 @@ namespace AICareerCoach.BLL.Services.AI
 {
     public class JobRecommendationService : IJobRecommendationService
     {
-        private readonly AICareerCoachDbContext _context; 
+        private readonly AICareerCoachDbContext _context;
         private readonly IEmbeddingService _embeddingService;
         private readonly ILlmExplanationService _llmExplanationService;
+        private readonly ISubscriptionGateService _gateService;
         private readonly ILogger<JobRecommendationService> _logger;
 
         public JobRecommendationService(
             AICareerCoachDbContext context,
             IEmbeddingService embeddingService,
             ILlmExplanationService llmExplanationService,
+            ISubscriptionGateService gateService,
             ILogger<JobRecommendationService> logger)
         {
             _context = context;
             _embeddingService = embeddingService;
             _llmExplanationService = llmExplanationService;
+            _gateService = gateService;
             _logger = logger;
         }
 
@@ -93,15 +97,34 @@ namespace AICareerCoach.BLL.Services.AI
             var cachedResult = await _context.JobRecommendationCaches
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.CvHash == cvHash);
 
+            JobRecommendationResultDto fullResult;
             if (cachedResult != null)
             {
                 _logger.LogInformation("Cache hit! Returning job recommendations from cache.");
-                var finalDto = JsonSerializer.Deserialize<JobRecommendationResultDto>(cachedResult.RecommendationsJson)!;
-                return finalDto;
+                fullResult = JsonSerializer.Deserialize<JobRecommendationResultDto>(cachedResult.RecommendationsJson)!;
+            }
+            else
+            {
+                _logger.LogInformation("Cache miss! Computing fresh recommendations via RAG pipeline...");
+                fullResult = await ComputeFreshRecommendationsAsync(userId, cvText);
+
+                var newCache = new JobRecommendationCache
+                {
+                    UserId = userId,
+                    CvHash = cvHash,
+                    RecommendationsJson = JsonSerializer.Serialize(fullResult),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.JobRecommendationCaches.AddAsync(newCache);
+                await _context.SaveChangesAsync();
             }
 
-            _logger.LogInformation("Cache miss! Computing fresh recommendations via RAG pipeline...");
+            return await ApplyFreeTierGateAsync(userId, fullResult);
+        }
 
+        private async Task<JobRecommendationResultDto> ComputeFreshRecommendationsAsync(string userId, string cvText)
+        {
             var cvEmbedding = await _embeddingService.GenerateEmbeddingAsync(cvText);
 
             var allJobEmbeddings = await _context.JobEmbeddings.Include(je => je.Job).ToListAsync();
@@ -121,8 +144,8 @@ namespace AICareerCoach.BLL.Services.AI
                     Percentage = matchPercentage
                 };
             })
-            .OrderByDescending(mj => mj.Percentage) 
-            .Take(5) 
+            .OrderByDescending(mj => mj.Percentage)
+            .Take(5)
             .ToList();
 
             var topJobEntities = matchedJobsList.Select(mj => mj.JobEntity).ToList();
@@ -147,25 +170,37 @@ namespace AICareerCoach.BLL.Services.AI
                     : new List<string>()
             }).ToList();
 
-            var resultDto = new JobRecommendationResultDto
+            return new JobRecommendationResultDto
             {
                 UserId = userId,
                 Recommendations = recommendationsList,
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = DateTime.UtcNow,
+                TotalCount = recommendationsList.Count,
+                ReturnedCount = recommendationsList.Count,
+                IsLimited = false,
             };
+        }
 
-            var newCache = new JobRecommendationCache
+        private async Task<JobRecommendationResultDto> ApplyFreeTierGateAsync(string userId, JobRecommendationResultDto full)
+        {
+            var hasActive = await _gateService.HasActiveSubscriptionAsync(userId);
+            var total = full.Recommendations.Count;
+
+            if (hasActive || total == 0)
             {
-                UserId = userId,
-                CvHash = cvHash,
-                RecommendationsJson = JsonSerializer.Serialize(resultDto),
-                CreatedAt = DateTime.UtcNow
-            };
+                full.IsLimited = false;
+                full.TotalCount = total;
+                full.ReturnedCount = total;
+                return full;
+            }
 
-            await _context.JobRecommendationCaches.AddAsync(newCache);
-            await _context.SaveChangesAsync();
-
-            return resultDto;
+            var allowed = Math.Min(total, FreeLimits.JobRecommendations);
+            full.Recommendations = full.Recommendations.Take(allowed).ToList();
+            full.IsLimited = true;
+            full.TotalCount = total;
+            full.ReturnedCount = allowed;
+            _logger.LogInformation("Gate: User {UserId} free tier — returning {Allowed}/{Total} recommendations", userId, allowed, total);
+            return full;
         }
         #endregion
 

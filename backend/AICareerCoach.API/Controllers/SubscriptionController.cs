@@ -1,6 +1,5 @@
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +7,6 @@ namespace AICareerCoach.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class SubscriptionController : ControllerBase
     {
         private readonly ISubscriptionService _subscriptionService;
@@ -19,6 +17,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var result = await _subscriptionService.GetAllSubscriptionsAsync();
@@ -26,6 +25,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> Get(string id)
         {
             var result = await _subscriptionService.GetSubscriptionByIdAsync(id);
@@ -33,20 +33,29 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] SubscriptionDto dto)
         {
             await _subscriptionService.CreateSubscriptionAsync(dto);
             return Ok();
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] Subscription subscription)
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(string id)
         {
-            await _subscriptionService.DeleteSubscriptionAsync(subscription);
-            return Ok();
+            var result = await _subscriptionService.DeleteSubscriptionAsync(id);
+            if (!result.Success)
+            {
+                if (result.Data != null && result.Data.Contains("not found"))
+                    return NotFound(result);
+                return BadRequest(result);
+            }
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(string id, [FromBody] SubscriptionDto dto)
         {
             var result = await _subscriptionService.UpdateSubscriptionAsync(dto, id);

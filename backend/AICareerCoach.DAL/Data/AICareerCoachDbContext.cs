@@ -15,10 +15,12 @@ namespace AICareerCoach.DAL.Data
         }
 
         /// <summary>
-        /// Auto-touches <see cref="InterviewSession.UpdatedAt"/> on any Modified
-        /// InterviewSession entry so status transitions are always timestamped
-        /// even if a call site forgets to set it (Phase 6, M4). Added entries
-        /// rely on the entity's field initializer.
+        /// Auto-touches <see cref="InterviewSession.UpdatedAt"/>,
+        /// <see cref="Payment.UpdatedAt"/>, <see cref="Subscription.UpdatedAt"/>,
+        /// and <see cref="UserSubscription.UpdatedAt"/> on any Modified entry
+        /// so status transitions are always timestamped even if a call site
+        /// forgets to set it (interview: Phase 6, M4; payment: Phase 1).
+        /// Added entries rely on the entity's field initializer.
         /// </summary>
         public override int SaveChanges()
         {
@@ -34,10 +36,26 @@ namespace AICareerCoach.DAL.Data
 
         private void TouchUpdatedAt()
         {
+            var now = DateTime.UtcNow;
             foreach (var entry in ChangeTracker.Entries<InterviewSession>())
             {
                 if (entry.State == EntityState.Modified)
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = now;
+            }
+            foreach (var entry in ChangeTracker.Entries<Payment>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = now;
+            }
+            foreach (var entry in ChangeTracker.Entries<Subscription>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = now;
+            }
+            foreach (var entry in ChangeTracker.Entries<UserSubscription>())
+            {
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = now;
             }
         }
 
@@ -80,12 +98,38 @@ namespace AICareerCoach.DAL.Data
             ConfigureInterviewEntities(builder);
             ConfigureChatEntities(builder);
             ConfigurePaymentEntities(builder);
+            ConfigureSubscriptionAuditLogEntity(builder);
 
             builder.Entity<JobSyncLog>(e =>
             {
                 e.HasKey(x => x.Id);
                 e.Property(x => x.ErrorMessages).HasMaxLength(-1);
                 e.HasIndex(x => x.SyncedAt);
+            });
+        }
+
+        private static void ConfigureSubscriptionAuditLogEntity(ModelBuilder builder)
+        {
+            builder.Entity<SubscriptionAuditLog>(e =>
+            {
+                e.Property(a => a.Action).HasMaxLength(64);
+                e.Property(a => a.PreviousValues).HasMaxLength(-1);
+                e.Property(a => a.NewValues).HasMaxLength(-1);
+                e.Property(a => a.Notes).HasMaxLength(-1);
+
+                e.HasOne(a => a.AdminUser)
+                    .WithMany()
+                    .HasForeignKey(a => a.AdminUserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasOne(a => a.UserSubscription)
+                    .WithMany()
+                    .HasForeignKey(a => a.UserSubscriptionId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasIndex(a => a.UserSubscriptionId);
+                e.HasIndex(a => a.AdminUserId);
+                e.HasIndex(a => a.CreatedAt);
             });
         }
 
@@ -104,7 +148,6 @@ namespace AICareerCoach.DAL.Data
             builder.Entity<UserSubscription>(e =>
             {
                 e.Property(us => us.UserId).HasMaxLength(450);
-                e.Property(us => us.Status).HasMaxLength(32);
 
                 e.HasOne(us => us.User)
                     .WithMany(u => u.UserSubscriptions)
@@ -121,7 +164,6 @@ namespace AICareerCoach.DAL.Data
 
             builder.Entity<Payment>(e =>
             {
-                e.Property(p => p.Status).HasMaxLength(32);
                 e.Property(p => p.IntentKey).HasMaxLength(256);
                 e.Property(p => p.InvoiceNumber).HasMaxLength(256);
                 e.Property(p => p.TransactionId).HasMaxLength(256);
@@ -267,5 +309,6 @@ namespace AICareerCoach.DAL.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<UserSubscription> UserSubscriptions { get; set; }
+        public DbSet<SubscriptionAuditLog> SubscriptionAuditLogs { get; set; }
     }
 }

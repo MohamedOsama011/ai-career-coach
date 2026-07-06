@@ -25,15 +25,16 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/material-theme.scss", "src/styles.css", "src/app/shared/styles/skeleton.css"]
+            "styles": ["src/material-theme.scss", "src/styles.css", "src/app/shared/styles/skeleton.css"],
+            "allowedCommonJsDependencies": ["papaparse"]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "750kB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",

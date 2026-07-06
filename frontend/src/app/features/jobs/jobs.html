@@ -142,6 +142,23 @@
               }
               </article>
             }
+            @if (isLimited() && lockedCount() > 0) {
+              @for (_ of lockedCardPlaceholders(); track $index) {
+                <article class="recommendation-card locked-card">
+                  <div class="locked-content">
+                    <div class="locked-icon">
+                      <span class="material-icons">lock</span>
+                    </div>
+                    <h3>Locked match</h3>
+                    <p>Upgrade to Pro to unlock {{ lockedCount() }} more personalized job matches.</p>
+                    <button class="unlock-btn" (click)="showUpgradeForLocked()" type="button">
+                      <span class="material-icons">workspace_premium</span>
+                      Unlock with Pro
+                    </button>
+                  </div>
+                </article>
+              }
+            }
           </div>
         }
       </section>

@@ -6,11 +6,14 @@ import { AiService } from '../services/ai.service';
 import { RoadmapService } from '../services/roadmap.service';
 import { InterviewService } from '../services/interview.service';
 import { JobsService } from '../services/jobs.service';
+import { UserSubscriptionService } from '../services/user-subscription.service';
+import { SubscriptionGateService, SubscriptionGateStatus, GateFeature } from '../services/subscription-gate.service';
 import { ProfileResponse } from '../models/user.model';
 import { CvFeedback } from '../models/cv-feedback.model';
 import { UserRoadmapDto, SkillGapItemDto, SkillsCategoryDto } from '../models/roadmap.model';
 import { InterviewSessionDto, InterviewHistoryItemDto } from '../models/interview.model';
 import { JobRecommendationResult } from '../models/job.model';
+import { UserSubscriptionDto, PaymentInvoiceDto, PagedPaymentHistoryDto } from '../models/payment.model';
 
 export type SkillsSortMode = 'priority' | 'alphabetical';
 const SKILLS_SORT_KEY = 'skillsSort';
@@ -59,6 +62,10 @@ export class CareerProfileStore {
   private readonly _activeSession = signal<InterviewSessionDto | null>(null);
   private readonly _interviewHistory = signal<InterviewHistoryItemDto[]>([]);
   private readonly _jobRecommendations = signal<JobRecommendationResult | null>(null);
+  private readonly _activeSubscription = signal<UserSubscriptionDto | null>(null);
+  private readonly _gateStatus = signal<SubscriptionGateStatus | null>(null);
+  private readonly _upgradeModalOpen = signal<{ feature: GateFeature; used?: number; limit?: number } | null>(null);
+  private readonly _paymentHistory = signal<PaymentInvoiceDto[]>([]);
 
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
@@ -70,6 +77,10 @@ export class CareerProfileStore {
   readonly interviewGrade = computed(() => this.lastInterview()?.letterGrade ?? null);
   readonly interviewSessionsCount = computed(() => this._interviewHistory().length);
   readonly topRecommendations = computed(() => this._jobRecommendations()?.recommendations ?? []);
+  readonly hasActiveSub = computed(() => this._activeSubscription() !== null);
+  readonly planName = computed(() => this._activeSubscription()?.subscription?.name ?? null);
+  readonly gateStatus = this._gateStatus.asReadonly();
+  readonly upgradeModalOpen = this._upgradeModalOpen.asReadonly();
 
   readonly profile = this._profile.asReadonly();
   readonly cvFeedback = this._cvFeedback.asReadonly();
@@ -77,6 +88,8 @@ export class CareerProfileStore {
   readonly activeSession = this._activeSession.asReadonly();
   readonly interviewHistory = this._interviewHistory.asReadonly();
   readonly jobRecommendations = this._jobRecommendations.asReadonly();
+  readonly activeSubscription = this._activeSubscription.asReadonly();
+  readonly paymentHistory = this._paymentHistory.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -85,8 +98,22 @@ export class CareerProfileStore {
     private readonly aiService: AiService,
     private readonly roadmapService: RoadmapService,
     private readonly interviewService: InterviewService,
-    private readonly jobsService: JobsService
+    private readonly jobsService: JobsService,
+    private readonly userSubscriptionService: UserSubscriptionService,
+    private readonly gateService: SubscriptionGateService
   ) {}
+
+  canUse(feature: GateFeature): boolean {
+    return this.gateService.canUse(this._gateStatus(), feature);
+  }
+
+  showUpgradeModal(feature: GateFeature, used?: number, limit?: number): void {
+    this._upgradeModalOpen.set({ feature, used, limit });
+  }
+
+  dismissUpgradeModal(): void {
+    this._upgradeModalOpen.set(null);
+  }
 
   refreshAll(): void {
     this._loading.set(true);
@@ -110,6 +137,40 @@ export class CareerProfileStore {
       },
       error: (err) => this._error.set(err?.message ?? 'Failed to load profile data'),
       complete: () => this._loading.set(false)
+    });
+
+    this.refreshActiveSubscription();
+    this.refreshGateStatus();
+  }
+
+  refreshActiveSubscription(): void {
+    this.userSubscriptionService.getMy().pipe(catchError(() => of(null))).subscribe({
+      next: (res) => {
+        const subs = (res?.data as UserSubscriptionDto[] | null) ?? [];
+        const now = Date.now();
+        this._activeSubscription.set(
+          subs.find(s =>
+            s.isActive
+            && s.endDate
+            && new Date(s.endDate).getTime() > now
+          ) ?? null
+        );
+      }
+    });
+  }
+
+  refreshPaymentHistory(): void {
+    this.userSubscriptionService.getPaymentHistory(1, 5).pipe(catchError(() => of(null))).subscribe({
+      next: (res) => {
+        const data = res?.data as PagedPaymentHistoryDto | null;
+        this._paymentHistory.set(data?.items ?? []);
+      }
+    });
+  }
+
+  refreshGateStatus(): void {
+    this.gateService.getStatus().subscribe({
+      next: (status) => this._gateStatus.set(status)
     });
   }
 
@@ -155,5 +216,10 @@ export class CareerProfileStore {
     this.refreshRoadmap();
     this.refreshJobs();
     this.refreshProfile();
+    this.refreshGateStatus();
+  }
+
+  refreshPayments(): void {
+    this.refreshPaymentHistory();
   }
 }

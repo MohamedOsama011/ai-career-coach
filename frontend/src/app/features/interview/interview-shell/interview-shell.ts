@@ -10,6 +10,7 @@ import { InterviewScorecardComponent } from '../interview-scorecard/interview-sc
 import { InterviewService } from '../../../core/services/interview.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SpeechSynthesisService } from '../../../core/services/speech-synthesis.service';
+import { CareerProfileStore } from '../../../core/store/career-profile-store';
 import {
   InterviewMessageDto,
   InterviewOptionsDto,
@@ -38,6 +39,7 @@ export class InterviewShell implements OnInit {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly speechSynthesis = inject(SpeechSynthesisService);
+  private readonly store = inject(CareerProfileStore);
 
   private sentenceBuffer = '';
 
@@ -81,6 +83,7 @@ export class InterviewShell implements OnInit {
   ngOnInit(): void {
     this.loadOptions();
     this.loadInitialData();
+    this.store.refreshGateStatus();
   }
 
   private loadOptions(): void {
@@ -141,6 +144,12 @@ export class InterviewShell implements OnInit {
   startSession(): void {
     if (!this.selectedTrack() || !this.selectedDifficulty() || !this.targetRole().trim()) return;
 
+    if (!this.store.canUse('interview')) {
+      const status = this.store.gateStatus();
+      this.store.showUpgradeModal('interview', status?.features.interview.used, status?.features.interview.limit);
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -155,10 +164,16 @@ export class InterviewShell implements OnInit {
         this.session.set(session);
         this.view.set('chat');
         this.loading.set(false);
+        this.store.refreshGateStatus();
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Failed to start session. Please try again.');
+        if (err.status === 403 && err.error?.code === 'LIMIT_REACHED') {
+          this.store.showUpgradeModal('interview', err.error.used, err.error.limit);
+          this.store.refreshGateStatus();
+        } else {
+          this.error.set(err.error?.message || 'Failed to start session. Please try again.');
+        }
       }
     });
   }

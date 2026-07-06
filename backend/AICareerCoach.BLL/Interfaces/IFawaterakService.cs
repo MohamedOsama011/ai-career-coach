@@ -5,11 +5,11 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface IFawaterakService
     {
-        Task<CreatePaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto dto);
-        Task<object> ExecuteInvoiceAsync(string methodId, string userSubscriptionId);
+        Task<CreatePaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto dto, string userId);
+        Task<ExecutePaymentResponseDto> ExecuteInvoiceAsync(string methodId, string userSubscriptionId, string userId);
         Task<GetPaymentMethodsResponseDto> GetPaymentMethodsAsync();
         Task<ExecutePaymentResponseDto> ExecutePaymentAsync(FawaterakPaymentRequestDto request);
         Task<GetTransactionResponseDto> GetTransactionDataAsync(GetTransactionRequestDto dto);
-        Task<Generalresponse> HandleSuccessWebhookAsync(WebhookSuccessDto dto);
+        Task<GeneralResponse<WebhookSuccessDto>> HandleSuccessWebhookAsync(WebhookSuccessDto dto);
     }
 }

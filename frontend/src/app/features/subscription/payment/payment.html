@@ -1,0 +1,59 @@
+<div class="payment-container">
+    <div class="payment-card">
+        @if (plan(); as p) {
+            <div class="plan-header">
+                <h2 class="plan-name">{{ p.name }}</h2>
+                <div class="plan-meta">
+                    <span class="plan-price">EGP {{ p.price }}</span>
+                    <span class="plan-duration">
+                        / {{ p.durationMonths }} {{ p.durationMonths === 1 ? 'month' : 'months' }}
+                    </span>
+                </div>
+            </div>
+        } @else {
+            <h2>Choose Payment Method</h2>
+        }
+
+        @if (loading()) {
+            <div class="payment-loading">
+                <span class="spinner"></span>
+                <p>Loading payment options...</p>
+            </div>
+        }
+
+        @if (error()) {
+            <div class="payment-error">
+                <span class="material-icons">error_outline</span>
+                <p>{{ error() }}</p>
+                <button class="btn btn-secondary" (click)="initPayment()">Retry</button>
+            </div>
+        }
+
+        @if (!loading() && !error() && paymentMethods().length === 0) {
+            <div class="payment-empty">
+                <p>No payment methods available.</p>
+            </div>
+        }
+
+        @if (!loading() && paymentMethods().length > 0) {
+            <h3 class="methods-title">Select payment method</h3>
+            <div class="methods-grid">
+                @for (method of paymentMethods(); track method.payment_method_id) {
+                    <button class="method-card"
+                        [class.selected]="selectedMethodId() === method.payment_method_id"
+                        [class.executing]="executing() && selectedMethodId() === method.payment_method_id"
+                        (click)="selectMethod(method.payment_method_id)"
+                        [disabled]="executing()">
+                        @if (method.logo) {
+                            <img [src]="method.logo" [alt]="method.name_en" class="method-logo">
+                        }
+                        <span class="method-name">{{ method.name_en || method.name }}</span>
+                        @if (executing() && selectedMethodId() === method.payment_method_id) {
+                            <span class="method-spinner"></span>
+                        }
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>

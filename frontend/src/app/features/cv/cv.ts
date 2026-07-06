@@ -27,7 +27,7 @@ export class Cv implements OnInit, OnDestroy {
   displayedScore = signal(0);
   deletingCvId = signal<number | null>(null);
   deleteSuccess = signal('');
-  private animationTimer: number | null = null;
+  private animationTimer: ReturnType<typeof setTimeout> | null = null;
 
   showDiff = signal(false);
   diffCVText = signal('');

@@ -36,6 +36,9 @@ export interface JobRecommendationResult {
   userId: string;
   recommendations: JobRecommendation[];
   generatedAt: string;
+  isLimited?: boolean;
+  totalCount?: number;
+  returnedCount?: number;
 }
 
 export interface SyncResultDto {

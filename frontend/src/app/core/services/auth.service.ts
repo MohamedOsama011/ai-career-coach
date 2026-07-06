@@ -60,14 +60,34 @@ export class AuthService{
     isLoggedIn(): boolean {
         return !!this.getToken();
     }
-    getRoles(): string[] {
-        const stored = localStorage.getItem('userRoles');
-        return stored ? JSON.parse(stored) : [];
-    }
+  getRoles(): string[] {
+    const stored = localStorage.getItem('userRoles');
+    return stored ? JSON.parse(stored) : [];
+  }
 
-    isAdmin(): boolean {
-        return this.getRoles().includes('Admin');
+  getRolesFromToken(): string[] {
+    const token = this.getToken();
+    if (!token) return [];
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      if (!roleClaim) return [];
+      return Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+    } catch {
+      return [];
     }
+  }
+
+  syncRolesFromToken(): void {
+    const roles = this.getRolesFromToken();
+    if (roles.length > 0) {
+      localStorage.setItem('userRoles', JSON.stringify(roles));
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.getRoles().includes('Admin');
+  }
 
     logout(): void {
         localStorage.removeItem('authToken');

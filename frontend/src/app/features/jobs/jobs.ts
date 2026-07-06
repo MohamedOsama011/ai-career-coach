@@ -1,9 +1,10 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { JobsService } from '../../core/services/jobs.service';
 import { JobCard } from '../../shared/components/job-card/job-card';
 import { Job, JobRecommendation } from '../../core/models/job.model';
+import { CareerProfileStore } from '../../core/store/career-profile-store';
 
 @Component({
   selector: 'app-jobs',
@@ -12,12 +13,18 @@ import { Job, JobRecommendation } from '../../core/models/job.model';
   styleUrl: './jobs.css',
 })
 export class Jobs implements OnInit {
+  private store = inject(CareerProfileStore);
+
   activeView = signal<'recommendations' | 'all'>('recommendations');
   activeFilter = signal<'all' | 'remote' | 'saved'>('all');
 
   jobs = signal<Job[]>([]);
   recommendations = signal<JobRecommendation[]>([]);
   recommendationsGeneratedAt = signal<string | null>(null);
+  isLimited = signal(false);
+  recommendationsTotalCount = signal(0);
+  returnedCount = signal(0);
+  lockedCount = computed(() => Math.max(0, this.recommendationsTotalCount() - this.returnedCount()));
 
   jobsLoading = signal(true);
   recommendationsLoading = signal(true);
@@ -53,6 +60,7 @@ export class Jobs implements OnInit {
   ngOnInit(): void {
     this.loadRecommendations();
     this.loadJobs();
+    this.store.refreshGateStatus();
   }
 
   loadJobs(): void {
@@ -100,6 +108,9 @@ export class Jobs implements OnInit {
       next: (result) => {
         this.recommendations.set(result?.recommendations ?? []);
         this.recommendationsGeneratedAt.set(result?.generatedAt ?? null);
+        this.isLimited.set(!!result?.isLimited);
+        this.recommendationsTotalCount.set(result?.totalCount ?? result?.recommendations?.length ?? 0);
+        this.returnedCount.set(result?.returnedCount ?? result?.recommendations?.length ?? 0);
         this.recommendationsLoading.set(false);
         setTimeout(() => this.ringReady.set(true), 50);
       },
@@ -109,6 +120,14 @@ export class Jobs implements OnInit {
         this.recommendationsLoading.set(false);
       }
     });
+  }
+
+  showUpgradeForLocked(): void {
+    this.store.showUpgradeModal('jobs');
+  }
+
+  lockedCardPlaceholders(): unknown[] {
+    return new Array(this.lockedCount());
   }
 
   setView(view: 'recommendations' | 'all'): void {

@@ -14,6 +14,7 @@ import { SkillsCategoryDto } from '../../core/models/roadmap.model';
 export class Skills implements OnInit {
   private skillsService = inject(SkillsService);
   private route = inject(ActivatedRoute);
+  private store = inject(CareerProfileStore);
 
   categories = signal<SkillsCategoryDto[]>([]);
   loading = signal(true);
@@ -61,6 +62,7 @@ export class Skills implements OnInit {
       if (set.size > 0) this.highlightedSkills.set(set);
     }
     this.loadSkillsAnalysis();
+    this.store.refreshGateStatus();
   }
 
   loadSkillsAnalysis(): void {
@@ -102,14 +104,22 @@ export class Skills implements OnInit {
   }
 
   rescan(): void {
+    if (!this.store.canUse('rescan')) {
+      this.store.showUpgradeModal('rescan');
+      return;
+    }
+
     this.rescanning.set(true);
     this.skillsService.rescanGapAnalysis().subscribe({
       next: (updated) => {
         this.categories.set(updated.gapAnalysis);
         this.rescanning.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.rescanning.set(false);
+        if (err.status === 403 && err.error?.code === 'LIMIT_REACHED') {
+          this.store.showUpgradeModal('rescan', err.error.used, err.error.limit);
+        }
       }
     });
   }

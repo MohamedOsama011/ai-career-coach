@@ -1,0 +1,178 @@
+<div class="admin-page" (click)="closeDropdown()">
+  <header class="page-header">
+    <div>
+      <h1>Subscribers</h1>
+      <p class="subtitle">
+        {{ filteredCount() }} of {{ totalCount() }} subscribers · {{ activeCount() }} active
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="exportCsv()" [disabled]="exporting() || filteredCount() === 0">
+        <span class="material-icons">download</span>
+        <span>{{ exporting() ? 'Exporting...' : 'Export CSV' }}</span>
+      </button>
+      <button class="btn btn-secondary" (click)="loadSubscribers()">
+        <span class="material-icons">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  <div class="filters card">
+    <div class="filter-group search-group">
+      <label for="search-input">Search</label>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search by name or email..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)">
+    </div>
+
+    <div class="filter-group">
+      <label for="status-filter">Status</label>
+      <select id="status-filter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="All">All</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Cancelled">Cancelled</option>
+        <option value="Expired">Expired</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="plan-filter">Plan</label>
+      <select id="plan-filter" [ngModel]="planFilter()" (ngModelChange)="planFilter.set($event)">
+        <option value="All">All</option>
+        @for (name of availablePlans(); track name) {
+          <option [value]="name">{{ name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="from-date">From</label>
+      <input
+        id="from-date"
+        type="date"
+        [ngModel]="fromDate()"
+        (ngModelChange)="onDateChange()"
+        [max]="toDate() || null">
+    </div>
+
+    <div class="filter-group">
+      <label for="to-date">To</label>
+      <input
+        id="to-date"
+        type="date"
+        [ngModel]="toDate()"
+        (ngModelChange)="onDateChange()"
+        [min]="fromDate() || null">
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="btn btn-secondary reset-btn" (click)="resetFilters()">Reset</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Loading subscribers...</p>
+    </div>
+  } @else if (filteredSubscribers().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons">group_off</span>
+      <p>
+        @if (allSubscribers().length === 0) {
+          No subscribers yet.
+        } @else {
+          No subscribers match the selected filters.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-wrapper card">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Payment</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sub of filteredSubscribers(); track sub.id) {
+            <tr>
+              <td class="user-cell" (click)="openDetail(sub.id)" style="cursor: pointer;">
+                <div class="user-name">{{ sub.user?.fullName || '—' }}</div>
+                <div class="user-email">{{ sub.user?.email || '—' }}</div>
+              </td>
+              <td (click)="openDetail(sub.id)" style="cursor: pointer;">{{ sub.subscription?.name || '—' }}</td>
+              <td (click)="openDetail(sub.id)" style="cursor: pointer;">
+                <span class="status-badge" [class.active]="sub.isActive" [class.cancelled]="sub.status === 'Cancelled'">
+                  {{ sub.isActive ? 'Active' : sub.status }}
+                </span>
+              </td>
+              <td (click)="openDetail(sub.id)" style="cursor: pointer;">{{ sub.startDate ? (sub.startDate | date: 'mediumDate') : '—' }}</td>
+              <td (click)="openDetail(sub.id)" style="cursor: pointer;">{{ sub.endDate ? (sub.endDate | date: 'mediumDate') : '—' }}</td>
+              <td (click)="openDetail(sub.id)" style="cursor: pointer;">
+                @if (sub.payments && sub.payments.length > 0) {
+                  <span class="payment-badge" [class.paid]="sub.payments[0].status === 'Paid'">
+                    {{ sub.payments[0].status }}
+                  </span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td class="actions-cell" (click)="$event.stopPropagation()">
+                <div class="dropdown-wrapper">
+                  <button class="btn-icon dropdown-trigger" (click)="toggleDropdown(sub.id)" aria-label="Actions">
+                    <span class="material-icons">more_vert</span>
+                  </button>
+                  @if (openDropdownId() === sub.id) {
+                    <div class="dropdown-menu">
+                      <button class="dropdown-item" (click)="openDetail(sub.id)">
+                        <span class="material-icons">visibility</span>
+                        View Details
+                      </button>
+                      @if (sub.isActive) {
+                        <button class="dropdown-item dropdown-item-danger" (click)="requestCancel(sub.id)">
+                          <span class="material-icons">cancel</span>
+                          Cancel
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="pendingCancelId() !== null"
+  title="Cancel Subscription?"
+  [message]="'Cancel ' + (pendingCancelUser()?.user?.fullName || 'this user') + '\'s subscription? They will keep access until the current period ends.'"
+  confirmText="Cancel Subscription"
+  variant="danger"
+  [loading]="cancelling()"
+  (confirm)="confirmCancel()"
+  (cancel)="cancelCancel()"
+/>

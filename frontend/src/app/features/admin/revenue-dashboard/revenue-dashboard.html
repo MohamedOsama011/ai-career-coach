@@ -1,0 +1,179 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Revenue Dashboard</h1>
+      <p class="subtitle">
+        @if (summary()) {
+          {{ summary()!.activeSubscribers }} active · {{ summary()!.totalSubscribers }} total subscribers
+        } @else {
+          Loading analytics...
+        }
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadAnalytics()">
+        <span class="material-icons">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  <div class="range-filter card">
+    <span class="range-label">Date range:</span>
+    <div class="range-buttons">
+      @for (opt of rangeOptions; track opt.value) {
+        <button
+          class="range-btn"
+          [class.active]="range() === opt.value"
+          (click)="onRangeChange(opt.value)">
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Loading analytics...</p>
+    </div>
+  } @else if (!hasData()) {
+    <div class="empty-state">
+      <span class="material-icons">insights</span>
+      <p>No analytics data available yet.</p>
+    </div>
+  } @else {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">{{ summary()!.currency }} {{ summary()!.totalRevenue | number: '1.0-0' }}</div>
+        <div class="stat-icon">
+          <span class="material-icons">payments</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">MRR</div>
+        <div class="stat-value">{{ summary()!.currency }} {{ summary()!.monthlyRecurringRevenue | number: '1.0-0' }}</div>
+        <div class="stat-sub">Monthly recurring</div>
+        <div class="stat-icon">
+          <span class="material-icons">autorenew</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">ARPU</div>
+        <div class="stat-value">{{ summary()!.currency }} {{ summary()!.averageRevenuePerUser | number: '1.0-0' }}</div>
+        <div class="stat-sub">Avg revenue / user</div>
+        <div class="stat-icon">
+          <span class="material-icons">person</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Active Subscribers</div>
+        <div class="stat-value">{{ summary()!.activeSubscribers }}</div>
+        <div class="stat-sub">
+          {{ summary()!.pendingSubscribers }} pending · {{ summary()!.cancelledSubscribers }} cancelled · {{ summary()!.expiredSubscribers }} expired
+        </div>
+        <div class="stat-icon">
+          <span class="material-icons">group</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Total Subscribers</div>
+        <div class="stat-value">{{ summary()!.totalSubscribers }}</div>
+        <div class="stat-sub">All-time</div>
+        <div class="stat-icon">
+          <span class="material-icons">groups</span>
+        </div>
+      </div>
+
+      <div class="stat-card" [class]="'stat-card ' + churnClass(summary()!.churnRate)">
+        <div class="stat-label">Churn Rate</div>
+        <div class="stat-value">{{ summary()!.churnRate }}%</div>
+        <div class="stat-sub">Last 30 days</div>
+        <div class="stat-icon">
+          <span class="material-icons">trending_down</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2 class="chart-title">Revenue by month</h2>
+        <div class="chart-wrap">
+          <canvas
+            baseChart
+            [type]="'line'"
+            [data]="lineChartData()"
+            [options]="lineChartOptions">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2 class="chart-title">Subscriptions by plan</h2>
+        <div class="chart-wrap">
+          <canvas
+            baseChart
+            [type]="'doughnut'"
+            [data]="doughnutChartData()"
+            [options]="doughnutChartOptions">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <h2 class="section-title">Recent transactions</h2>
+      @if (recentTransactions().length === 0) {
+        <div class="empty-state small">
+          <span class="material-icons">receipt_long</span>
+          <p>No transactions yet.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper card">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (txn of recentTransactions(); track txn.paymentId) {
+                <tr>
+                  <td class="user-cell">
+                    <div class="user-name">{{ txn.userName || '—' }}</div>
+                    <div class="user-email">{{ txn.userEmail || '—' }}</div>
+                  </td>
+                  <td>{{ txn.planName || '—' }}</td>
+                  <td class="amount-cell">EGP {{ txn.amount | number: '1.0-0' }}</td>
+                  <td>
+                    <span class="status-badge" [class]="statusClass(txn.status)">
+                      {{ txn.status }}
+                    </span>
+                  </td>
+                  <td>{{ txn.createdAt | date: 'medium' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

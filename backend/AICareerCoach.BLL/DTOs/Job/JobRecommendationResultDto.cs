@@ -13,5 +13,11 @@ namespace AICareerCoach.BLL.DTOs.Job
         public List<JobRecommendationDto> Recommendations { get; set; } = new();
 
         public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsLimited { get; set; }
+
+        public int TotalCount { get; set; }
+
+        public int ReturnedCount { get; set; }
     }
 }

@@ -8,6 +8,9 @@ namespace AICareerCoach.DAL.Entities
         public int Id { get; set; }
         public string? Name { get; set; }
         public decimal Price { get; set; }
+        public int DurationMonths { get; set; } = 1;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<UserSubscription>? UserSubscriptions { get; set; } = new HashSet<UserSubscription>();
     }

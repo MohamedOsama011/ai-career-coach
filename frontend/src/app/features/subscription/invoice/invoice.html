@@ -1,0 +1,99 @@
+<div class="invoice-page">
+    <div class="toolbar no-print">
+        <a class="btn btn-secondary" routerLink="/payment-history">
+            <span class="material-icons">arrow_back</span>
+            Back to history
+        </a>
+        <button class="btn btn-primary" (click)="print()" [disabled]="!invoice()">
+            <span class="material-icons">print</span>
+            Print
+        </button>
+    </div>
+
+    @if (loading()) {
+        <div class="loading-state">
+            <span class="spinner"></span>
+            <p>Loading invoice...</p>
+        </div>
+    } @else if (error()) {
+        <div class="error-banner">
+            <span class="material-icons">error_outline</span>
+            <span>{{ error() }}</span>
+        </div>
+    } @else if (invoice(); as inv) {
+        <div class="invoice-card">
+            <header class="invoice-header">
+                <div>
+                    <h1>INVOICE</h1>
+                    <p class="invoice-number">#{{ inv.invoiceNumber || inv.paymentId }}</p>
+                </div>
+                <div class="brand">
+                    <div class="brand-logo">AI Career Coach</div>
+                    <p class="brand-tagline">Smart career guidance powered by AI</p>
+                </div>
+            </header>
+
+            <section class="invoice-meta">
+                <div class="meta-block">
+                    <h3>Issued To</h3>
+                    <p>Subscriber</p>
+                </div>
+                <div class="meta-block meta-right">
+                    <h3>Date</h3>
+                    <p>{{ inv.paidAt | date: 'longDate' }}</p>
+                    <h3>Status</h3>
+                    <p>
+                        <span class="status-badge" [class.paid]="inv.status === 'Paid'" [class.pending]="inv.status === 'Pending'" [class.failed]="inv.status === 'Failed'">
+                            {{ inv.status }}
+                        </span>
+                    </p>
+                </div>
+            </section>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="amount-col">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="item-name">{{ inv.planName }} — Subscription</div>
+                            <div class="item-meta">Payment ID: {{ inv.paymentId }}</div>
+                        </td>
+                        <td class="amount-col">{{ inv.currency }} {{ inv.amount }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><strong>Total</strong></td>
+                        <td class="amount-col"><strong>{{ inv.currency }} {{ inv.amount }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <section class="invoice-details">
+                <h3>Payment Details</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Payment Method</span>
+                        <span class="detail-value">{{ inv.paymentMethod || '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Transaction ID</span>
+                        <span class="detail-value mono">{{ inv.transactionId || '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Invoice Number</span>
+                        <span class="detail-value mono">{{ inv.invoiceNumber || '—' }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="invoice-footer">
+                <p>Thank you for your subscription.</p>
+                <p class="generated-at">Generated on {{ inv.paidAt | date: 'medium' }}</p>
+            </footer>
+        </div>
+    }
+</div>

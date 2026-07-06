@@ -1,0 +1,283 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div class="header-left">
+      <button class="btn btn-ghost back-btn" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+        <span>Back to Subscribers</span>
+      </button>
+      <h1>{{ user()?.fullName || 'Subscriber Detail' }}</h1>
+    </div>
+    <div class="header-actions">
+      @if (user() && subscription()) {
+        @if (!isActive()) {
+          <button class="btn btn-primary" (click)="requestActivate()" [disabled]="actionLoading() !== null">
+            <span class="material-icons">check_circle</span>
+            <span>Activate</span>
+          </button>
+        }
+        @if (isActive()) {
+          <button class="btn btn-secondary" (click)="openExtendModal()" [disabled]="actionLoading() !== null">
+            <span class="material-icons">date_range</span>
+            <span>Extend</span>
+          </button>
+          <button class="btn btn-secondary" (click)="requestCancel()" [disabled]="actionLoading() !== null">
+            <span class="material-icons">cancel</span>
+            <span>Cancel</span>
+          </button>
+        }
+        @if (isActive()) {
+          <button class="btn btn-danger" (click)="requestCancelImmediate()" [disabled]="actionLoading() !== null">
+            <span class="material-icons">block</span>
+            <span>Cancel Immediately</span>
+          </button>
+        }
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Loading subscriber details...</p>
+    </div>
+  } @else if (detail()) {
+    <div class="detail-grid">
+      <div class="card user-card">
+        <div class="card-header">
+          <span class="material-icons">person</span>
+          <h2>User</h2>
+        </div>
+        <div class="avatar-row">
+          <div class="avatar">{{ user()?.fullName?.charAt(0)?.toUpperCase() || '?' }}</div>
+          <div>
+            <div class="user-fullname">{{ user()?.fullName || '—' }}</div>
+            <div class="user-email">{{ user()?.email || '—' }}</div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Phone</span>
+            <span class="info-value">{{ user()?.phone || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Joined</span>
+            <span class="info-value">{{ user()?.joinDate ? (user()!.joinDate! | date: 'mediumDate') : '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">CVs</span>
+            <span class="info-value">{{ user()?.cvCount ?? 0 }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">User ID</span>
+            <span class="info-value mono">{{ user()?.id ? (user()!.id!.slice(0, 8) + '...') : '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card subscription-card">
+        <div class="card-header">
+          <span class="material-icons">card_membership</span>
+          <h2>Subscription</h2>
+        </div>
+        <div class="sub-plan-row">
+          <span class="plan-name">{{ subscription()?.planName || 'No Plan' }}</span>
+          @if (isActive()) {
+            <span class="status-badge active">Active</span>
+          } @else if (subscription()?.isActive) {
+            <span class="status-badge expired">Expired</span>
+          } @else {
+            <span class="status-badge cancelled">{{ subscription()?.status || 'Inactive' }}</span>
+          }
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Amount</span>
+            <span class="info-value">EGP {{ subscription()?.amount || 0 | number }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Start</span>
+            <span class="info-value">{{ subscription()?.startDate ? (subscription()!.startDate! | date: 'mediumDate') : '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">End</span>
+            <span class="info-value">{{ subscription()?.endDate ? (subscription()!.endDate! | date: 'mediumDate') : '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Days Remaining</span>
+            <span class="info-value" [class.text-danger]="isActive() && daysRemaining() !== null && daysRemaining()! <= 7">
+              {{ daysRemaining() !== null ? (daysRemaining() + ' days') : '—' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card sessions-card">
+        <div class="card-header">
+          <span class="material-icons">record_voice_over</span>
+          <h2>Recent Interview Sessions</h2>
+          <span class="badge-count">{{ recentSessions().length }}</span>
+        </div>
+        @if (recentSessions().length === 0) {
+          <p class="empty-text">No sessions yet.</p>
+        } @else {
+          <div class="mini-list">
+            @for (s of recentSessions(); track s.id) {
+              <div class="mini-item">
+                <span class="mini-primary">{{ s.targetRole || s.track }}</span>
+                <span class="mini-meta">{{ s.track }} · {{ s.status }}</span>
+                <span class="mini-date">{{ s.createdAt | date: 'mediumDate' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card cvs-card">
+        <div class="card-header">
+          <span class="material-icons">description</span>
+          <h2>CVs</h2>
+          <span class="badge-count">{{ cvs().length }}</span>
+        </div>
+        @if (cvs().length === 0) {
+          <p class="empty-text">No CVs uploaded.</p>
+        } @else {
+          <div class="mini-list">
+            @for (c of cvs(); track c.cvId) {
+              <div class="mini-item">
+                <span class="mini-primary">{{ c.fileName }}</span>
+                <span class="mini-date">{{ c.uploadedAt | date: 'mediumDate' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card roadmaps-card">
+        <div class="card-header">
+          <span class="material-icons">route</span>
+          <h2>Roadmaps</h2>
+          <span class="badge-count">{{ roadmaps().length }}</span>
+        </div>
+        @if (roadmaps().length === 0) {
+          <p class="empty-text">No roadmaps yet.</p>
+        } @else {
+          <div class="mini-list">
+            @for (r of roadmaps(); track r.id) {
+              <div class="mini-item">
+                <span class="mini-primary">{{ r.targetRole }}</span>
+                <span class="mini-meta">{{ r.templateTrack || 'General' }}</span>
+                <span class="mini-date">{{ r.createdAt | date: 'mediumDate' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card payments-card">
+        <div class="card-header">
+          <span class="material-icons">receipt</span>
+          <h2>Recent Payments</h2>
+          <span class="badge-count">{{ recentPayments().length }}</span>
+        </div>
+        @if (recentPayments().length === 0) {
+          <p class="empty-text">No payments yet.</p>
+        } @else {
+          <div class="payment-table">
+            <div class="payment-row header-row">
+              <span>Date</span>
+              <span>Amount</span>
+              <span>Method</span>
+              <span>Transaction</span>
+              <span>Status</span>
+              @if (hasPendingPayments()) {
+                <span></span>
+              }
+            </div>
+            @for (p of recentPayments(); track p.paymentId) {
+              <div class="payment-row">
+                <span>{{ p.paidAt | date: 'shortDate' }}</span>
+                <span class="amount">EGP {{ p.amount | number }}</span>
+                <span>{{ p.paymentMethod || '—' }}</span>
+                <span class="mono transaction-id">{{ p.transactionId ? (p.transactionId!.length > 12 ? (p.transactionId!.slice(0, 12) + '...') : p.transactionId) : '—' }}</span>
+                <span>
+                  <span class="payment-badge" [class.status-paid]="p.status === 'Paid'" [class.status-pending]="p.status === 'Pending'" [class.status-failed]="p.status === 'Failed'">
+                    {{ p.status }}
+                  </span>
+                </span>
+                @if (p.status === 'Paid' || p.status === 'Pending') {
+                  <span class="actions-col">
+                    @if (p.status === 'Pending') {
+                      <button class="btn-sm btn-primary" (click)="requestMarkPaid()" [disabled]="actionLoading() !== null">
+                        Mark Paid
+                      </button>
+                    }
+                    <button class="btn-sm btn-danger" (click)="requestRefund(p.paymentId)" [disabled]="actionLoading() !== null">
+                      Refund
+                    </button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card audit-log-card full-width">
+        <div class="card-header">
+          <span class="material-icons">history</span>
+          <h2>Audit Log</h2>
+          <span class="badge-count">{{ auditLogEntries().length }}</span>
+        </div>
+        @if (auditLogEntries().length === 0) {
+          <p class="empty-text">No audit log entries yet.</p>
+        } @else {
+          <div class="audit-list">
+            @for (log of auditLogEntries(); track log.id) {
+              <div class="audit-item">
+                <div class="audit-icon">
+                  <span class="material-icons">admin_panel_settings</span>
+                </div>
+                <div class="audit-content">
+                  <div class="audit-action">{{ log.action }}</div>
+                  <div class="audit-meta">
+                    by {{ log.adminUserName || 'System' }}
+                    @if (log.notes) {
+                      <span class="audit-notes">· {{ log.notes }}</span>
+                    }
+                  </div>
+                  <div class="audit-date">{{ log.createdAt | date: 'medium' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="confirmAction() !== null"
+  [title]="confirmAction()?.title || 'Confirm'"
+  [message]="confirmAction()?.message || ''"
+  confirmText="Confirm"
+  variant="danger"
+  [loading]="actionLoading() !== null"
+  (confirm)="handleConfirm()"
+  (cancel)="closeConfirm()"
+/>
+
+<app-extend-modal
+  [open]="showExtendModal()"
+  [loading]="actionLoading() === 'extend'"
+  (confirm)="handleExtend($event)"
+  (cancel)="closeExtendModal()"
+/>

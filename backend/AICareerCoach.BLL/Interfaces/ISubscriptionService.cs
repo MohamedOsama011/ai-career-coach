@@ -5,10 +5,10 @@ namespace AICareerCoach.BLL.Interfaces
 {
     public interface ISubscriptionService
     {
-        Task<Generalresponse> GetAllSubscriptionsAsync();
-        Task<Generalresponse> GetSubscriptionByIdAsync(string id);
+        Task<GeneralResponse<List<Subscription>>> GetAllSubscriptionsAsync();
+        Task<GeneralResponse<Subscription>> GetSubscriptionByIdAsync(string id);
         Task CreateSubscriptionAsync(SubscriptionDto subscription);
-        Task DeleteSubscriptionAsync(Subscription subscription);
-        Task<Generalresponse> UpdateSubscriptionAsync(SubscriptionDto dto, string id);
+        Task<GeneralResponse<string>> DeleteSubscriptionAsync(string id);
+        Task<GeneralResponse<string>> UpdateSubscriptionAsync(SubscriptionDto dto, string id);
     }
 }

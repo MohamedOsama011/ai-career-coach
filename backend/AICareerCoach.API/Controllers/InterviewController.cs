@@ -1,6 +1,7 @@
 ﻿using AICareerCoach.BLL.DTOs.Interview;
 using AICareerCoach.BLL.DTOs.Roadmap;
 using AICareerCoach.BLL.Exceptions;
+using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
@@ -16,6 +17,7 @@ namespace AICareerCoach.API.Controllers
     public class InterviewController : ControllerBase
     {
         private readonly IInterviewService _interviewService;
+        private readonly ISubscriptionGateService _gateService;
 
         /// <summary>
         /// Cached serializer options for SSE events. SSE responses are written
@@ -32,9 +34,10 @@ namespace AICareerCoach.API.Controllers
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        public InterviewController(IInterviewService interviewService)
+        public InterviewController(IInterviewService interviewService, ISubscriptionGateService gateService)
         {
             _interviewService = interviewService;
+            _gateService = gateService;
         }
 
         [HttpGet("options")]
@@ -54,6 +57,18 @@ namespace AICareerCoach.API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User identity could not be verified from the token." });
+
+            var gate = await _gateService.CheckAccessAsync(userId, Feature.InterviewSession);
+            if (!gate.Allowed)
+            {
+                return StatusCode(403, new
+                {
+                    code = "LIMIT_REACHED",
+                    feature = "interview",
+                    used = gate.Used,
+                    limit = gate.Limit
+                });
+            }
 
             try
             {

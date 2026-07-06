@@ -6,3 +6,11 @@
   </main>
 </div>
 <app-chat-assistant />
+
+@if (store.upgradeModalOpen(); as modal) {
+  <app-upgrade-modal
+    [feature]="modal.feature"
+    [used]="modal.used"
+    [limit]="modal.limit"
+  />
+}

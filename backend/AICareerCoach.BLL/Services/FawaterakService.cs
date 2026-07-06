@@ -18,6 +18,7 @@ namespace AICareerCoach.BLL.Services
         private readonly IConfiguration _configuration;
         private readonly AICareerCoachDbContext _context;
         private readonly IFawaterakTokenService _tokenService;
+        private readonly IUserSubscriptionService _userSubscriptionService;
         private readonly ILogger<FawaterakService> _logger;
 
         public FawaterakService(
@@ -25,20 +26,22 @@ namespace AICareerCoach.BLL.Services
             IConfiguration configuration,
             AICareerCoachDbContext context,
             IFawaterakTokenService tokenService,
+            IUserSubscriptionService userSubscriptionService,
             ILogger<FawaterakService> logger)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _context = context;
             _tokenService = tokenService;
+            _userSubscriptionService = userSubscriptionService;
             _logger = logger;
         }
 
-        public async Task<CreatePaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto dto)
+        public async Task<CreatePaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto dto, string userId)
         {
             var response = new CreatePaymentResponseDto();
 
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == dto.UserId);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
             var plan = await _context.Subscriptions.FirstOrDefaultAsync(x => x.Id.ToString() == dto.PlanId);
 
             if (plan == null)
@@ -55,6 +58,22 @@ namespace AICareerCoach.BLL.Services
                 return response;
             }
 
+            await _userSubscriptionService.RefreshExpiredSubscriptionsAsync(userId);
+
+            var hasActive = await _context.UserSubscriptions
+                .AnyAsync(us => us.UserId == userId
+                             && us.IsActive
+                             && us.EndDate > DateTime.UtcNow);
+            if (hasActive)
+            {
+                _logger.LogWarning("CreatePayment blocked: User {UserId} already has an active subscription", userId);
+                return new CreatePaymentResponseDto
+                {
+                    Success = false,
+                    Data = "You already have an active subscription. Cancel it first to switch plans."
+                };
+            }
+
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
@@ -62,10 +81,11 @@ namespace AICareerCoach.BLL.Services
 
                 var userSubscription = new UserSubscription
                 {
-                    UserId = dto.UserId,
+                    UserId = userId,
                     SubscriptionId = int.Parse(dto.PlanId),
                     IsActive = false,
-                    Status = "pending",
+                    Status = SubscriptionStatus.Pending,
+                    Quantity = 1,
                 };
                 _context.UserSubscriptions.Add(userSubscription);
                 await _context.SaveChangesAsync();
@@ -73,7 +93,7 @@ namespace AICareerCoach.BLL.Services
                 var payment = new Payment
                 {
                     UserSubscriptionId = userSubscription.Id,
-                    Status = "pending",
+                    Status = PaymentStatus.Pending,
                     Amount = plan.Price,
                     InvoiceNumber = userSubscription.Id.ToString(),
                 };
@@ -89,7 +109,7 @@ namespace AICareerCoach.BLL.Services
             if (paymentMethods != null)
             {
                 response.Success = true;
-                response.Data = paymentMethods;
+                response.Data = paymentMethods?.Data;
             }
 
             return response;
@@ -117,7 +137,7 @@ namespace AICareerCoach.BLL.Services
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         }
 
-        public async Task<object> ExecuteInvoiceAsync(string methodId, string userSubscriptionId)
+        public async Task<ExecutePaymentResponseDto> ExecuteInvoiceAsync(string methodId, string userSubscriptionId, string userId)
         {
             var data = await _context.UserSubscriptions
                 .Include(u => u.Payments)
@@ -127,6 +147,13 @@ namespace AICareerCoach.BLL.Services
 
             if (data == null)
                 throw new KeyNotFoundException("User subscription not found.");
+
+            if (data.UserId != userId)
+            {
+                _logger.LogWarning("ExecuteInvoice: User {UserId} attempted to execute invoice for subscription {SubId} owned by {OwnerId}",
+                    userId, userSubscriptionId, data.UserId);
+                throw new UnauthorizedAccessException("You do not own this subscription.");
+            }
 
             var dto = new FawaterakPaymentRequestDto
             {
@@ -166,10 +193,10 @@ namespace AICareerCoach.BLL.Services
                 AuthAndCapture = 0,
                 RedirectionUrls = new RedirectionUrlsDto
                 {
-                    SuccessUrl = $"{_configuration["AppSettings:BaseUrl"]}/api/Fawaterak/successwebhook",
-                    FailUrl = $"{_configuration["AppSettings:BaseUrl"]}/swagger/index.html",
-                    PendingUrl = $"{_configuration["AppSettings:BaseUrl"]}/swagger/index.html",
-                    WebhookUrl = $"{_configuration["AppSettings:BaseUrl"]}/swagger/index.html",
+                    SuccessUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/my-subscriptions?payment=success",
+                    FailUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/subscriptions?payment=failed",
+                    PendingUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/subscriptions?payment=pending",
+                    WebhookUrl = $"{_configuration["AppSettings:BaseUrl"]}/api/Fawaterak/success-webhook",
                 },
             };
 
@@ -283,44 +310,60 @@ namespace AICareerCoach.BLL.Services
                 result, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         }
 
-        public async Task<Generalresponse> HandleSuccessWebhookAsync(WebhookSuccessDto dto)
+        public async Task<GeneralResponse<WebhookSuccessDto>> HandleSuccessWebhookAsync(WebhookSuccessDto dto)
         {
             if (!VerifyWebhookHash(dto))
             {
-                return new Generalresponse { Success = false, Data = "Invalid webhook hash." };
+                _logger.LogWarning("Invalid webhook hash for TransactionId={TransactionId}", dto.TransactionId);
+                return new GeneralResponse<WebhookSuccessDto> { Success = false };
             }
 
-            var payment = await _context.Payments
-                .Include(x => x.UserSubscription)
-                .FirstOrDefaultAsync(x => x.IntentKey == dto.TransactionKey);
-
-            if (payment == null)
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                return new Generalresponse { Success = false, Data = "Payment not found." };
-            }
+                using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (payment.Status == "paid")
-            {
-                return new Generalresponse { Success = true, Data = "Payment already processed." };
-            }
+                var payment = await _context.Payments
+                    .Include(x => x.UserSubscription)
+                    .FirstOrDefaultAsync(x => x.IntentKey == dto.TransactionKey);
 
-            payment.Status = "paid";
-            payment.PaymentMethod = dto.PaymentMethod;
-            payment.TransactionId = dto.TransactionId.ToString();
+                if (payment == null)
+                {
+                    _logger.LogWarning("Webhook: Payment not found for IntentKey={IntentKey}", dto.TransactionKey);
+                    return new GeneralResponse<WebhookSuccessDto> { Success = false };
+                }
 
-            if (payment.UserSubscription != null)
-            {
-                payment.UserSubscription.IsActive = true;
-                payment.UserSubscription.Status = "active";
-                payment.UserSubscription.StartDate = DateTime.UtcNow;
-                payment.UserSubscription.EndDate = DateTime.UtcNow.AddMonths(1);
-            }
+                if (payment.Status == PaymentStatus.Paid)
+                {
+                    _logger.LogInformation("Webhook: Payment {PaymentId} already processed", payment.Id);
+                    return new GeneralResponse<WebhookSuccessDto> { Success = true, Data = dto };
+                }
 
-            await _context.SaveChangesAsync();
+                payment.Status = PaymentStatus.Paid;
+                payment.PaymentMethod = dto.PaymentMethod;
+                payment.TransactionId = dto.TransactionId.ToString();
 
-            _logger.LogInformation("Payment {PaymentId} processed successfully via webhook", payment.Id);
+                if (payment.UserSubscription != null)
+                {
+                    payment.UserSubscription.IsActive = true;
+                    payment.UserSubscription.Status = SubscriptionStatus.Active;
+                    payment.UserSubscription.StartDate = DateTime.UtcNow;
 
-            return new Generalresponse { Success = true, Data = dto };
+                    var subscription = await _context.Subscriptions
+                        .FirstOrDefaultAsync(s => s.Id == payment.UserSubscription.SubscriptionId);
+                    var durationMonths = subscription?.DurationMonths ?? 1;
+                    payment.UserSubscription.EndDate = DateTime.UtcNow.AddMonths(durationMonths);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Payment {PaymentId} processed successfully via webhook (duration={DurationMonths}mo)",
+                    payment.Id,
+                    payment.UserSubscription?.Subscription?.DurationMonths ?? 1);
+
+                return new GeneralResponse<WebhookSuccessDto> { Success = true, Data = dto };
+            });
         }
 
         private bool VerifyWebhookHash(WebhookSuccessDto dto)

@@ -1,0 +1,47 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, map, timeout } from 'rxjs/operators';
+
+export type GateFeature = 'interview' | 'roadmap' | 'jobs' | 'rescan';
+
+export interface GateFeatureStatus {
+  used: number;
+  limit: number;
+  allowed: boolean;
+}
+
+export interface SubscriptionGateStatus {
+  hasActiveSub: boolean;
+  planName: string | null;
+  endDate: string | null;
+  features: {
+    interview: GateFeatureStatus;
+    roadmap: GateFeatureStatus;
+    jobs: GateFeatureStatus;
+  };
+}
+
+@Injectable({ providedIn: 'root' })
+export class SubscriptionGateService {
+  private http = inject(HttpClient);
+  private apiUrl = 'https://localhost:7222/api/usersubscription';
+
+  getStatus(): Observable<SubscriptionGateStatus | null> {
+    return this.http.get<SubscriptionGateStatus>(`${this.apiUrl}/status`).pipe(
+      timeout(5000),
+      catchError(() => of(null))
+    );
+  }
+
+  canUse(status: SubscriptionGateStatus | null, feature: GateFeature): boolean {
+    if (!status) return false;
+    if (status.hasActiveSub) return true;
+    switch (feature) {
+      case 'interview': return status.features.interview.allowed;
+      case 'roadmap': return status.features.roadmap.allowed;
+      case 'rescan': return false;
+      case 'jobs': return status.features.jobs.allowed;
+    }
+  }
+}

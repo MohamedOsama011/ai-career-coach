@@ -76,6 +76,8 @@ namespace AICareerCoach.API
 
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
+            builder.Services.AddScoped<ISubscriptionGateService, SubscriptionGateService>();
+            builder.Services.AddScoped<IAdminSubscriptionService, AdminSubscriptionService>();
             builder.Services.AddHttpClient<IFawaterakService, FawaterakService>();
             builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
             builder.Services.AddMemoryCache();
@@ -118,7 +120,13 @@ namespace AICareerCoach.API
                           .AllowAnyMethod());
             });
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    options.JsonSerializerOptions.Converters.Add(
+                        new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -148,6 +156,7 @@ namespace AICareerCoach.API
                 await RoleSeeder.SeedAsync(roleManager);
                 //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
+                await SubscriptionSeeder.SeedAsync(context);
             }
 
             app.MapControllers();
