@@ -7,5 +7,6 @@ namespace AICareerCoach.BLL.DTOs.User
         public string email { get; set; }
 
         public string title { get; set; }
+        public string id { get; set; }
     }
 }

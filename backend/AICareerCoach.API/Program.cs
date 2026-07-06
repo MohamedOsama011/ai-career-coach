@@ -1,5 +1,6 @@
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
+using AICareerCoach.BLL.services;
 using AICareerCoach.BLL.Interfaces.External;
 using AICareerCoach.BLL.Services;
 using AICareerCoach.BLL.Services.AI;
@@ -65,8 +66,11 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
             builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
+
 
             builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
             builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
@@ -94,15 +98,14 @@ namespace AICareerCoach.API
                 };
             });
 
-            // Fail-closed default: every endpoint requires an authenticated user
-            // unless it explicitly opts out via [AllowAnonymous]. Individual
-            // controllers may still add role requirements on top of this.
+
             builder.Services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
             });
+
 
             builder.Services.AddCors(options =>
             {
@@ -116,7 +119,23 @@ namespace AICareerCoach.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                string[] roles = { "Admin", "User" };
+
+                foreach (var role in roles)
+                {
+                    if (!await roleManager.RoleExistsAsync(role))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(role));
+                    }
+                }
+            }
 
             QuestPDF.Settings.License = LicenseType.Community;
 

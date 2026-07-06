@@ -1,0 +1,202 @@
+<div class="payment-management">
+
+  <h2 class="page-title">
+    Payment Management
+  </h2>
+
+  <!-- Statistics -->
+
+  <div class="stats-grid">
+
+    <app-stat-card
+      label="Revenue"
+      [value]="'$' + totalRevenue"
+      icon="payments">
+    </app-stat-card>
+
+    <app-stat-card
+      label="Paid"
+      [value]="successfulPayments.toString()"
+      icon="check_circle">
+    </app-stat-card>
+
+    <app-stat-card
+      label="Pending"
+      [value]="pendingPayments.toString()"
+      icon="schedule">
+    </app-stat-card>
+
+    <app-stat-card
+      label="Failed"
+      [value]="failedPayments.toString()"
+      icon="cancel">
+    </app-stat-card>
+
+  </div>
+
+  <div class="charts-grid">
+
+<app-card>
+  <h4>Monthly Revenue</h4>
+  <canvas id="monthlyRevenueChart"></canvas>
+</app-card>
+
+<app-card>
+  <h4>Revenue by Plan</h4>
+  <canvas id="planRevenueChart"></canvas>
+</app-card>
+
+</div>
+
+  <!-- Table -->
+
+  <app-card class="users-card">
+
+<div class="table-header">
+
+    <h4 class="section-title">
+
+        <span class="material-icons">
+            payments
+        </span>
+
+        Payment Management
+
+        <span class="count-badge">
+            {{ payments.length }}
+        </span>
+
+    </h4>
+
+<div class="search-container">
+
+  <span class="material-icons search-icon">
+    search
+  </span>
+
+  <input
+    type="text"
+    class="search-box"
+    placeholder="Search by name, email or transaction..."
+    [(ngModel)]="searchText">
+
+</div>
+
+</div>
+
+    <table class="table table-hover align-middle">
+
+      <thead>
+
+        <tr>
+
+          <th>User</th>
+
+          <th>Plan</th>
+
+          <th>Amount</th>
+
+          <th>Method</th>
+
+          <th>Date</th>
+
+          <th>Status</th>
+
+          <th width="260">
+            Actions
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let payment of filteredPayments()">
+
+          <td>
+
+            <div class="fw-semibold">
+              {{payment.userName}}
+            </div>
+
+            <small class="text-muted">
+              {{payment.email}}
+            </small>
+
+          </td>
+
+          <td>
+
+            {{payment.plan}}
+
+          </td>
+
+          <td>
+
+            ${{payment.amount}}
+
+          </td>
+
+          <td>
+
+            {{payment.paymentMethod}}
+
+          </td>
+
+          <td>
+
+            {{payment.paymentDate | date:'dd/MM/yyyy'}}
+
+          </td>
+
+          <td>
+
+<app-badge
+    [text]="payment.status"
+    [variant]="
+      payment.status === 'Paid'
+      ? 'success'
+      : payment.status === 'Pending'
+      ? 'warning'
+      : payment.status === 'Failed'
+      ? 'danger'
+      : 'info'">
+</app-badge>
+            
+
+          </td>
+
+          <td class="actions">
+
+            <app-button
+              variant="info"
+              label="View"
+              (clicked)="viewPayment(payment)">
+            </app-button>
+
+            <app-button
+              variant="info"
+              label="Refund"
+              (clicked)="refundPayment(payment)">
+            </app-button>
+
+            <app-button
+              variant="danger"
+              (clicked)="deletePayment( payment.id)">
+
+              Delete
+
+            </app-button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </app-card>
+
+</div>

@@ -10,27 +10,30 @@ namespace AICareerCoach.DAL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
+            migrationBuilder.AddColumn<string>(
                 name: "ExtractedData",
                 table: "CVs",
                 type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                nullable: true);
+            migrationBuilder.AddColumn<string>(
+    name: "FileHash",
+    table: "CVs",
+    type: "nvarchar(max)",
+    nullable: true);
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
+            migrationBuilder.DropColumn(
                 name: "ExtractedData",
-                table: "CVs",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
+                table: "CVs");
+
+            migrationBuilder.DropColumn(
+    name: "FileHash",
+    table: "CVs");
+
         }
     }
 }

@@ -134,5 +134,27 @@ namespace AICareerCoach.API.Controllers
                 Data = "user updated successfully"
             });
         }
+
+        [Authorize]
+        [HttpPut("change-role")]
+        public async Task<IActionResult> ChangeRole(ChangeRoleDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+                return NotFound();
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            if (currentRoles.Any())
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            var result = await _userManager.AddToRoleAsync(user, model.Role);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok("Role updated successfully");
+        }
     }
 }
