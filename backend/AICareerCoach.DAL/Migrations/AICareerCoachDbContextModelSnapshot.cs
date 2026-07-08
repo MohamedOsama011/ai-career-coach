@@ -672,6 +672,9 @@ namespace AICareerCoach.DAL.Migrations
                     b.Property<int>("DurationMonths")
                         .HasColumnType("int");
 
+                    b.Property<string>("LimitsJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");

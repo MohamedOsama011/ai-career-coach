@@ -9,6 +9,7 @@ namespace AICareerCoach.DAL.Entities
         public string? Name { get; set; }
         public decimal Price { get; set; }
         public int DurationMonths { get; set; } = 1;
+        public string? LimitsJson { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

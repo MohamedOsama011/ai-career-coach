@@ -2,9 +2,13 @@
 using AICareerCoach.BLL.DTOs.Job;
 using AICareerCoach.BLL.Interfaces;
 using AICareerCoach.BLL.Interfaces.AI;
+using AICareerCoach.DAL.Data;
+using AICareerCoach.DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -15,15 +19,21 @@ namespace AICareerCoach.API.Controllers
         private readonly IJobService _jobService;
         private readonly IJobRecommendationService _jobRecommendationService;
         private readonly IJobSyncService _jobSyncService;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ILogger<JobController> _logger;
 
         public JobController(
             IJobService jobService,
             IJobRecommendationService jobRecommendationService,
-            IJobSyncService jobSyncService)
+            IJobSyncService jobSyncService,
+            IServiceScopeFactory scopeFactory,
+            ILogger<JobController> logger)
         {
             _jobService = jobService;
             _jobRecommendationService = jobRecommendationService;
             _jobSyncService = jobSyncService;
+            _scopeFactory = scopeFactory;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -87,17 +97,49 @@ namespace AICareerCoach.API.Controllers
 
         [HttpPost("sync")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<SyncResultDto>> SyncJobs()
+        public ActionResult<object> SyncJobs()
         {
-            try
+            var startedAt = DateTime.UtcNow;
+            var scopeFactory = _scopeFactory;
+
+            _ = Task.Run(async () =>
             {
-                var result = await _jobSyncService.SyncAsync(HttpContext.RequestAborted);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while syncing jobs.", error = ex.Message });
-            }
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var syncService = scope.ServiceProvider.GetRequiredService<IJobSyncService>();
+                    var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
+
+                    var result = await syncService.SyncAsync(CancellationToken.None);
+                    var duration = DateTime.UtcNow - startedAt;
+
+                    var log = new JobSyncLog
+                    {
+                        SyncedAt = result.SyncedAt,
+                        Fetched = result.Fetched,
+                        New = result.New,
+                        Skipped = result.Skipped,
+                        Embedded = result.Embedded,
+                        Errors = result.Errors,
+                        ErrorMessages = result.ErrorMessages.Count > 0
+                            ? JsonSerializer.Serialize(result.ErrorMessages)
+                            : null,
+                        Duration = duration
+                    };
+                    context.JobSyncLogs.Add(log);
+                    await context.SaveChangesAsync(CancellationToken.None);
+
+                    _logger.LogInformation(
+                        "Manual sync complete: fetched={Fetched} new={New} skipped={Skipped} embedded={Embedded} errors={Errors} duration={Duration}ms",
+                        result.Fetched, result.New, result.Skipped, result.Embedded, result.Errors, duration.TotalMilliseconds);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Background sync failed.");
+                }
+            });
+
+            return Ok(new { status = "started", message = "Job sync started. Results will appear in sync history once complete." });
         }
 
         [HttpGet("sync-status")]

@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, signal, input, output } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CareerProfileStore } from '../../core/store/career-profile-store';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface NavItem {
   path: string;
@@ -16,6 +18,14 @@ interface NavItem {
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
+  readonly open = input(false);
+  readonly closedrawer = output<void>();
+
+  private router = inject(Router);
+  readonly authService = inject(AuthService);
+  readonly store = inject(CareerProfileStore);
+  readonly isAdminMode = signal(false);
+
   navItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/cv', label: 'CV Analysis', icon: 'description' },
@@ -23,18 +33,33 @@ export class Sidebar {
     { path: '/roadmap', label: 'Career Roadmap', icon: 'route' },
     { path: '/interview', label: 'Interview Lab', icon: 'record_voice_over' },
     { path: '/skills', label: 'Skills Gap', icon: 'assessment' },
+    { path: '/billing', label: 'Plans & Billing', icon: 'credit_card' },
     { path: '/profile', label: 'Profile', icon: 'person' },
-    { path: '/subscriptions', label: 'Plans', icon: 'card_membership' },
-    { path: '/my-subscriptions', label: 'My Subscription', icon: 'verified' },
-    { path: '/payment-history', label: 'Payment History', icon: 'receipt_long' },
   ];
 
   adminNavItems: NavItem[] = [
-    { path: '/admin/jobs', label: 'Jobs Management', icon: 'admin_panel_settings' },
-    { path: '/admin/plans', label: 'Plans Management', icon: 'card_membership' },
+    { path: '/admin', label: 'Dashboard', icon: 'dashboard' },
+    { path: '/admin/users', label: 'Users', icon: 'people' },
+    { path: '/admin/jobs', label: 'Jobs', icon: 'work' },
+    { path: '/admin/interviews', label: 'Interviews', icon: 'record_voice_over' },
+    { path: '/admin/roadmap-templates', label: 'Roadmaps', icon: 'route' },
+    { path: '/admin/plans', label: 'Plans', icon: 'card_membership' },
     { path: '/admin/subscribers', label: 'Subscribers', icon: 'group' },
     { path: '/admin/revenue', label: 'Revenue', icon: 'insights' },
+    { path: '/admin/audit-log', label: 'Audit Log', icon: 'history' },
+    { path: '/admin/reports', label: 'Reports', icon: 'bar_chart' },
+    { path: '/admin/health', label: 'System Health', icon: 'monitor_heart' },
+    { path: '/admin/chat', label: 'Chat Sessions', icon: 'chat' },
+    { path: '/admin/broadcast', label: 'Broadcast', icon: 'campaign' },
   ];
 
-  constructor(public authService: AuthService, public store: CareerProfileStore) {}
+  constructor() {
+    this.isAdminMode.set(this.router.url.startsWith('/admin'));
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      takeUntilDestroyed()
+    ).subscribe(e => {
+      this.isAdminMode.set(e.url.startsWith('/admin'));
+    });
+  }
 }

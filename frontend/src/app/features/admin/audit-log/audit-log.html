@@ -1,0 +1,99 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Audit Log</h1>
+      <p class="page-subtitle">Track all admin actions and system changes</p>
+    </div>
+    <button class="refresh-btn" (click)="loadLogs()" [attr.aria-label]="'Refresh audit logs'">
+      <span class="material-icons">refresh</span> Refresh
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ err }}</span>
+      <button class="error-dismiss" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  }
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label">Action</label>
+      <div class="filter-chips">
+        <button class="filter-chip" [class.active]="actionFilter() === 'all'" (click)="setActionFilter('all')">All</button>
+        @for (action of actionKeys; track action) {
+          <button class="filter-chip" [class.active]="actionFilter() === action" (click)="setActionFilter(action)">
+            <span class="material-icons filter-chip-icon">{{ actionIcon(action) }}</span>
+            {{ actionLabel(action) }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Admin</label>
+      <select class="filter-select" [value]="adminFilter()" (change)="onAdminFilterChange($event)">
+        <option value="all">All Admins</option>
+        @for (entry of adminNames() | keyvalue; track entry.key) {
+          <option [value]="entry.key">{{ entry.value }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="result-meta">
+    Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ totalCount() }} entries
+  </div>
+
+  @if (!loading() && logs().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">history</span>
+      <p>No audit log entries found</p>
+    </div>
+  }
+
+  @if (logs().length > 0) {
+    <div class="timeline">
+      @for (log of logs(); track log.id) {
+        <div class="timeline-item">
+          <div class="timeline-marker" [class]="'marker-' + log.action">
+            <span class="material-icons timeline-marker-icon">{{ actionIcon(log.action) }}</span>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <span class="timeline-action-badge" [class]="'badge-' + log.action">{{ actionLabel(log.action) }}</span>
+              <span class="timeline-admin">{{ log.adminUserName }}</span>
+              <span class="timeline-time">{{ log.timestamp | date:'MMM d, y, h:mm a' }}</span>
+            </div>
+            <div class="timeline-target">
+              <span class="target-type">{{ log.targetType }}</span>
+              @if (log.targetId) {
+                <span class="target-id">#{{ log.targetId }}</span>
+              }
+            </div>
+            @if (log.details) {
+              <div class="timeline-details">{{ log.details }}</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button class="page-btn" (click)="prevPage()" [disabled]="page() <= 1" aria-label="Previous page">
+        <span class="material-icons">chevron_left</span>
+      </button>
+      <div class="page-info">Page {{ page() }} of {{ totalPages() }}</div>
+      <button class="page-btn" (click)="nextPage()" [disabled]="!hasNextPage()" aria-label="Next page">
+        <span class="material-icons">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,131 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>System Health</h1>
+      <p class="page-subtitle">Monitor backend services and system status</p>
+    </div>
+    <div class="header-actions">
+      <label class="auto-refresh-toggle" [class.active]="autoRefresh()">
+        <input type="checkbox" [checked]="autoRefresh()" (change)="toggleAutoRefresh()" />
+        <span class="material-icons">autorenew</span>
+        Auto-refresh 30s
+      </label>
+      <button class="refresh-btn" (click)="loadHealth()" [disabled]="loading()" [attr.aria-label]="'Refresh health data'">
+        <span class="material-icons" [class.spinner]="loading()">refresh</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  @if (error(); as err) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ err }}</span>
+      <button class="error-dismiss" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (!health() && loading()) {
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  }
+
+  @if (health(); as h) {
+    @if (!allHealthy()) {
+      <div class="warning-banner" role="alert">
+        <span class="material-icons">warning</span>
+        <span>Some services are degraded or unavailable</span>
+      </div>
+    }
+
+    <div class="status-grid">
+      <div class="status-card" [class.status-ok]="dbOk()" [class.status-fail]="!dbOk()">
+        <div class="status-indicator">
+          <span class="material-icons status-icon">{{ dbOk() ? 'check_circle' : 'error' }}</span>
+        </div>
+        <div class="status-body">
+          <div class="status-title">Database</div>
+          <div class="status-message">{{ h.db.message || 'Connected' }}</div>
+          @if (h.db.latencyMs != null) {
+            <div class="status-meta">{{ h.db.latencyMs }}ms</div>
+          }
+        </div>
+      </div>
+
+      <div class="status-card" [class.status-ok]="llmOk()" [class.status-fail]="!llmOk()">
+        <div class="status-indicator">
+          <span class="material-icons status-icon">{{ llmOk() ? 'check_circle' : 'error' }}</span>
+        </div>
+        <div class="status-body">
+          <div class="status-title">AI / LLM</div>
+          <div class="status-message">{{ h.llm.message || 'Available' }}</div>
+        </div>
+      </div>
+
+      <div class="status-card" [class.status-ok]="jobOk()" [class.status-fail]="!jobOk()">
+        <div class="status-indicator">
+          <span class="material-icons status-icon">{{ jobOk() ? 'check_circle' : 'error' }}</span>
+        </div>
+        <div class="status-body">
+          <div class="status-title">Job Provider</div>
+          <div class="status-message">{{ h.jobProvider.message || 'Available' }}</div>
+          @if (h.lastSyncTime) {
+            <div class="status-meta">
+              Last sync: {{ formatTimestamp(h.lastSyncTime) }}
+              @if (!h.lastSyncSuccess) { <span class="sync-failed">(failed)</span> }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="status-card"
+        [class.status-ok]="h.storage.status === 'healthy'"
+        [class.status-warn]="h.storage.status === 'warning'"
+        [class.status-fail]="h.storage.status === 'unhealthy'">
+        <div class="status-indicator">
+          <span class="material-icons status-icon">{{
+            h.storage.status === 'healthy' ? 'check_circle' :
+            h.storage.status === 'warning' ? 'warning' : 'error'
+          }}</span>
+        </div>
+        <div class="status-body">
+          <div class="status-title">Storage</div>
+          <div class="status-message">{{ h.storage.message || 'Sufficient space' }}</div>
+          @if (h.storage.totalBytes > 0) {
+            <div class="storage-bar-wrapper">
+              <div class="storage-bar">
+                <div class="storage-bar-fill"
+                  [style.width.%]="h.storage.usedPercent"
+                  [class.fill-warning]="h.storage.usedPercent >= 80 && h.storage.usedPercent < 95"
+                  [class.fill-danger]="h.storage.usedPercent >= 95">
+                </div>
+              </div>
+              <span class="storage-text">{{ h.storage.usedPercent }}% used</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <section class="info-section">
+      <h2>System Info</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Uptime</span>
+          <span class="info-value">{{ h.uptime }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Version</span>
+          <span class="info-value">{{ h.version }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Last Updated</span>
+          <span class="info-value">{{ lastUpdated() | date:'MMM d, y, h:mm:ss a' }}</span>
+        </div>
+      </div>
+    </section>
+  } @else if (!loading()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">monitor_heart</span>
+      <p>No health data available</p>
+    </div>
+  }
+</div>

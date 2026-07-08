@@ -1,0 +1,258 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Roadmap Templates</h1>
+      <p class="subtitle">{{ totalCount() }} templates · {{ embeddedCount() }} with embeddings</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadTemplates()" [disabled]="loading()">
+        <span class="material-icons">refresh</span> Refresh
+      </button>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <span class="material-icons">add</span> New Template
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="dismiss-btn" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (loading() && templates().length === 0) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading templates…</p>
+    </div>
+  }
+
+  @if (!loading() && templates().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">map</span>
+      <h3>No roadmap templates yet</h3>
+      <p>Create your first template to power personalized roadmap generation.</p>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <span class="material-icons">add</span> New Template
+      </button>
+    </div>
+  }
+
+  @if (templates().length > 0) {
+    <div class="table-wrapper card">
+      <table>
+        <thead>
+          <tr>
+            <th>Track</th>
+            <th>Title</th>
+            <th>Steps</th>
+            <th>Embedding</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of templates(); track t.id) {
+            <tr>
+              <td><span class="track-badge">{{ t.track }}</span></td>
+              <td class="title-cell">{{ t.title }}</td>
+              <td>{{ t.steps.length }}</td>
+              <td>
+                @if (t.hasEmbedding) {
+                  <span class="status-badge status-active">Ready</span>
+                } @else {
+                  <span class="status-badge status-pending">Pending</span>
+                }
+              </td>
+              <td class="actions-cell">
+                <button class="btn-icon btn-sm" (click)="openTest(t)" title="Test match">
+                  <span class="material-icons">science</span>
+                </button>
+                <button class="btn-icon btn-sm" (click)="openEdit(t)" title="Edit">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="btn-icon btn-sm btn-icon-danger" (click)="requestDelete(t.id)" title="Delete">
+                  <span class="material-icons">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editingTemplate() ? 'Edit Template' : 'New Template' }}</h2>
+          <button class="btn-icon" (click)="closeForm()" aria-label="Close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="tmpl-track">Track <span class="required">*</span></label>
+            <select id="tmpl-track" [ngModel]="formData().track" (ngModelChange)="updateFormField('track', $event)">
+              <option value="">Select track…</option>
+              <option value="Behavioral">Behavioral</option>
+              <option value="Technical">Technical</option>
+              <option value="SystemDesign">System Design</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tmpl-title">Title <span class="required">*</span></label>
+            <input id="tmpl-title" type="text" [ngModel]="formData().title" (ngModelChange)="updateFormField('title', $event)" placeholder="e.g. Senior .NET Developer Roadmap" />
+          </div>
+
+          <div class="form-group">
+            <label for="tmpl-desc">Description <span class="required">*</span></label>
+            <textarea id="tmpl-desc" rows="3" [ngModel]="formData().description" (ngModelChange)="updateFormField('description', $event)" placeholder="What this roadmap covers…"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="tmpl-order">Order Index</label>
+            <input id="tmpl-order" type="number" min="0" [ngModel]="formData().orderIndex" (ngModelChange)="updateFormField('orderIndex', $event === '' ? 0 : +$event)" />
+          </div>
+
+          <div class="steps-section">
+            <div class="steps-header">
+              <h3>Steps <span class="required">*</span></h3>
+              <button class="btn btn-sm btn-secondary" (click)="addStep()">
+                <span class="material-icons">add</span> Add Step
+              </button>
+            </div>
+
+            @for (step of formData().steps; track idx; let idx = $index) {
+              <div class="step-card">
+                <div class="step-card-header">
+                  <span class="step-number">Step {{ idx + 1 }}</span>
+                  <button class="btn-icon btn-sm btn-icon-danger" (click)="removeStep(idx)" aria-label="Remove step">
+                    <span class="material-icons">close</span>
+                  </button>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Title <span class="required">*</span></label>
+                    <input type="text" [ngModel]="step.title" (ngModelChange)="updateStepField(idx, 'title', $event)" placeholder="Step title" />
+                  </div>
+                  <div class="form-group" style="max-width: 160px;">
+                    <label>Level</label>
+                    <select [ngModel]="step.level" (ngModelChange)="updateStepField(idx, 'level', $event)">
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="max-width: 100px;">
+                    <label>Order</label>
+                    <input type="number" min="1" [ngModel]="step.orderIndex" (ngModelChange)="updateStepField(idx, 'orderIndex', +$event)" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Description</label>
+                  <textarea rows="2" [ngModel]="step.description" (ngModelChange)="updateStepField(idx, 'description', $event)" placeholder="Description of this step"></textarea>
+                </div>
+
+                <div class="resources-section">
+                  <label>Resources</label>
+                  @for (res of step.resources; track ri; let ri = $index) {
+                    <div class="resource-row">
+                      <input type="text" [ngModel]="res" (ngModelChange)="updateResourceField(idx, ri, $event)" placeholder="URL or text" />
+                      <button class="btn-icon btn-sm btn-icon-danger" (click)="removeResource(idx, ri)" aria-label="Remove resource">
+                        <span class="material-icons">remove_circle</span>
+                      </button>
+                    </div>
+                  }
+                  <button class="btn btn-sm btn-ghost" (click)="addResource(idx)" style="margin-top: 4px;">
+                    <span class="material-icons">add</span> Resource
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="save()" [disabled]="saving()">
+            @if (saving()) {
+              <div class="spinner"></div>
+              Saving…
+            } @else {
+              <span class="material-icons">save</span>
+              {{ editingTemplate() ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (pendingDeleteId() !== null) {
+    <app-confirm-modal
+      title="Delete Template"
+      [message]="deleteMessage(pendingDeleteTemplate()?.title ?? '')"
+      confirmText="Delete"
+      cancelText="Cancel"
+      variant="danger"
+      [loading]="deleting()"
+      (confirm)="confirmDelete()"
+      (cancel)="cancelDelete()"
+    />
+  }
+
+  @if (testTemplateId() !== null) {
+    <div class="modal-overlay" (click)="closeTest()">
+      <div class="modal modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Test Match: {{ testTemplateName() }}</h2>
+          <button class="btn-icon" (click)="closeTest()" aria-label="Close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="test-cv">CV Text (optional)</label>
+            <textarea id="test-cv" rows="5" class="test-textarea" [ngModel]="testCvText()" (ngModelChange)="testCvText.set($event)" placeholder="Paste CV text to test similarity match…"></textarea>
+            <p class="test-hint">Enter CV text to see how well it matches this template.</p>
+          </div>
+
+          @if (testScore() !== null) {
+            <div class="test-result"
+                 [class.score-high]="testScore()! >= 0.7"
+                 [class.score-medium]="testScore()! >= 0.4 && testScore()! < 0.7"
+                 [class.score-low]="testScore()! < 0.4">
+              <span class="material-icons">{{ testScore()! >= 0.7 ? 'check_circle' : testScore()! >= 0.4 ? 'info' : 'warning' }}</span>
+              <span class="test-score-value">{{ testScore()! | percent:'1.0-2' }}</span>
+              <span class="test-score-label">
+                {{ testScore()! >= 0.7 ? 'Strong match' : testScore()! >= 0.4 ? 'Partial match' : 'Weak match' }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeTest()">Close</button>
+          <button class="btn btn-primary" (click)="runTest()" [disabled]="testProcessing()">
+            @if (testProcessing()) {
+              <div class="spinner"></div>
+              Testing…
+            } @else {
+              <span class="material-icons">play_arrow</span>
+              Run Test
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,3 +1,4 @@
+using AICareerCoach.DAL;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Admin;
 using AICareerCoach.BLL.DTOs.Subscription;
@@ -125,8 +126,22 @@ namespace AICareerCoach.BLL.Services
                 .FirstOrDefaultAsync();
 
             var hasActive = activeSub != null;
+            var planLimits = hasActive && activeSub?.Subscription != null
+                ? PlanLimits.FromJson(activeSub.Subscription.LimitsJson)
+                : null;
+
             var interviewUsed = await _context.InterviewSessions.CountAsync(s => s.UserId == userId);
             var roadmapUsed = await _context.UserRoadmaps.CountAsync(r => r.UserId == userId);
+
+            var interviewLimit = hasActive && planLimits != null
+                ? planLimits.InterviewSessions
+                : FreeLimits.InterviewSessions;
+            var roadmapLimit = hasActive && planLimits != null
+                ? planLimits.RoadmapGenerations
+                : FreeLimits.RoadmapGenerations;
+            var jobsLimit = hasActive && planLimits != null
+                ? planLimits.JobRecommendations
+                : FreeLimits.JobRecommendations;
 
             return new SubscriptionGateStatusDto
             {
@@ -138,19 +153,19 @@ namespace AICareerCoach.BLL.Services
                     Interview = new GateFeatureStatus
                     {
                         Used = interviewUsed,
-                        Limit = hasActive ? -1 : FreeLimits.InterviewSessions,
-                        Allowed = hasActive || interviewUsed < FreeLimits.InterviewSessions,
+                        Limit = interviewLimit,
+                        Allowed = interviewLimit == -1 || interviewUsed < interviewLimit,
                     },
                     Roadmap = new GateFeatureStatus
                     {
                         Used = roadmapUsed,
-                        Limit = hasActive ? -1 : FreeLimits.RoadmapGenerations,
-                        Allowed = hasActive || roadmapUsed < FreeLimits.RoadmapGenerations,
+                        Limit = roadmapLimit,
+                        Allowed = roadmapLimit == -1 || roadmapUsed < roadmapLimit,
                     },
                     Jobs = new GateFeatureStatus
                     {
                         Used = 0,
-                        Limit = hasActive ? -1 : FreeLimits.JobRecommendations,
+                        Limit = jobsLimit,
                         Allowed = true,
                     },
                 },

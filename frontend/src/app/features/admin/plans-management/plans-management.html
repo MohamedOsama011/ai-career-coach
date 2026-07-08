@@ -38,6 +38,7 @@
             <th>Name</th>
             <th>Price</th>
             <th>Duration</th>
+            <th>Limits</th>
             <th class="actions-col">Actions</th>
           </tr>
         </thead>
@@ -45,8 +46,16 @@
           @for (plan of plans(); track plan.id) {
             <tr>
               <td class="name-cell">{{ plan.name }}</td>
-              <td>${{ plan.price }}</td>
+              <td>EGP {{ plan.price }}</td>
               <td>{{ plan.durationMonths }}mo</td>
+              <td class="limits-cell">
+                @if (plan.limitsJson) {
+                  <span class="limit-badge">{{ parseLimit(plan.limitsJson, 'interviewSessions') }} int.</span>
+                  <span class="limit-badge">{{ parseLimit(plan.limitsJson, 'roadmapGenerations') }} rm.</span>
+                } @else {
+                  <span class="limit-badge default">default</span>
+                }
+              </td>
               <td class="actions-col">
                 <button class="btn-icon" (click)="openEdit(plan)" aria-label="Edit plan">
                   <span class="material-icons">edit</span>

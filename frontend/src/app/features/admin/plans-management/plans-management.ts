@@ -69,7 +69,17 @@ export class PlansManagement implements OnInit {
     this.editingPlan.set(null);
   }
 
-  savePlan(data: { name: string; price: number; durationMonths: number }): void {
+  parseLimit(json: string, key: string): string {
+    try {
+      const parsed = JSON.parse(json);
+      const val = parsed[key];
+      return val === -1 ? '∞' : String(val);
+    } catch {
+      return '?';
+    }
+  }
+
+  savePlan(data: { name: string; price: number; durationMonths: number; limitsJson: string | null }): void {
     const editing = this.editingPlan();
     if (editing) {
       this.subscriptionService.update(String(editing.id), data).subscribe({

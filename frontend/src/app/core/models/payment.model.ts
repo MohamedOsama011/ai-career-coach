@@ -3,17 +3,26 @@ export interface GeneralResponse<T = any> {
   data: T;
 }
 
+export interface PlanLimits {
+  interviewSessions: number;
+  roadmapGenerations: number;
+  jobRecommendations: number;
+  roadmapRescan: boolean;
+}
+
 export interface SubscriptionPlan {
   id: number;
   name: string;
   price: number;
   durationMonths: number;
+  limitsJson?: string | null;
 }
 
 export interface CreateSubscriptionRequest {
   name: string;
   price: number;
   durationMonths: number;
+  limitsJson?: string | null;
 }
 
 export interface CreatePaymentRequest {

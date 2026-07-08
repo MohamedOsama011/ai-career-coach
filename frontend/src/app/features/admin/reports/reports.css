@@ -1,0 +1,267 @@
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5E7EB;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.chart-subtitle {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 16px;
+}
+
+.chart-wrap {
+  height: 280px;
+  position: relative;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.list-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+}
+
+.list-card-header {
+  padding: 16px 20px 0;
+}
+
+.list-card-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+tbody td {
+  padding: 12px 20px;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.num-col {
+  text-align: right;
+  width: 80px;
+  font-variant-numeric: tabular-nums;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.export-dropdown {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #E5E7EB;
+  min-width: 200px;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.export-item:hover {
+  background: #F9FAFB;
+}
+
+.export-item .material-icons {
+  font-size: 20px;
+  color: #6B7280;
+}
+
+.dropdown-arrow {
+  font-size: 18px !important;
+  margin-left: -4px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 4px 0 0;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  color: #991B1B;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #FECACA;
+}
+
+.error-banner .material-icons {
+  font-size: 20px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 48px 0;
+  color: #6B7280;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+  color: #6B7280;
+}
+
+.empty-state.small {
+  padding: 32px 0;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #D1D5DB;
+  margin-bottom: 8px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-primary {
+  background: #2563EB;
+  color: #fff;
+  border-color: #2563EB;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1D4ED8;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6B7280;
+  padding: 0;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .charts-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

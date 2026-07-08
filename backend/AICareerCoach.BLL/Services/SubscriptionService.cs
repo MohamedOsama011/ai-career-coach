@@ -42,6 +42,7 @@ namespace AICareerCoach.BLL.Services
                 Name = dto.Name,
                 Price = dto.Price,
                 DurationMonths = dto.DurationMonths,
+                LimitsJson = dto.LimitsJson,
             };
             _context.Subscriptions.Add(subscription);
             await _context.SaveChangesAsync();
@@ -78,6 +79,7 @@ namespace AICareerCoach.BLL.Services
             sub.Price = dto.Price;
             sub.Name = dto.Name;
             sub.DurationMonths = dto.DurationMonths;
+            sub.LimitsJson = dto.LimitsJson;
             await _context.SaveChangesAsync();
 
             return new GeneralResponse<string> { Success = true, Data = "updated successfully" };

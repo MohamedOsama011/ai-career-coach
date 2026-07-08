@@ -46,6 +46,11 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.18);
 
+  --sidebar-width: 260px;
+  --breakpoint-lg: 1024px;
+  --z-sidebar: 100;
+  --z-overlay: 90;
+
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-fast: 150ms;

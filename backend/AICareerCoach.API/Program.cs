@@ -77,7 +77,12 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
             builder.Services.AddScoped<ISubscriptionGateService, SubscriptionGateService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IAdminSubscriptionService, AdminSubscriptionService>();
+builder.Services.AddScoped<IAdminRoadmapService, AdminRoadmapService>();
+            builder.Services.AddScoped<IAdminInterviewService, AdminInterviewService>();
             builder.Services.AddHttpClient<IFawaterakService, FawaterakService>();
             builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
             builder.Services.AddMemoryCache();
@@ -152,8 +157,11 @@ namespace AICareerCoach.API
             {
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
                 await RoleSeeder.SeedAsync(roleManager);
+                await AdminSeeder.SeedAsync(userManager, logger);
                 //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
                 await SubscriptionSeeder.SeedAsync(context);

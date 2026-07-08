@@ -1,0 +1,125 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="header-left">
+      <div>
+        <h1>Chat Sessions</h1>
+        <p class="subtitle">View user chat transcripts</p>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons" aria-hidden="true">error</span>
+      {{ error() }}
+    </div>
+  }
+
+  @if (selectedSession(); as session) {
+    <div class="detail-view">
+      <div class="detail-header">
+        <button class="back-btn" (click)="backToList()">
+          <span class="material-icons" aria-hidden="true">arrow_back</span>
+          Back to sessions
+        </button>
+        <div class="detail-meta">
+          <div class="detail-user">
+            <span class="material-icons" aria-hidden="true">person</span>
+            {{ session.userName }}
+          </div>
+          <div class="detail-title">{{ session.title || 'Untitled' }}</div>
+          <div class="detail-time">{{ session.createdAt | date:'medium' }}</div>
+        </div>
+      </div>
+
+      <div class="transcript-panel">
+        @if (messagesLoading()) {
+          <div class="loading-state">Loading messages...</div>
+        } @else if (messages().length === 0) {
+          <div class="empty-state">
+            <span class="material-icons" aria-hidden="true">chat_bubble_outline</span>
+            <p>No messages in this session</p>
+          </div>
+        } @else {
+          <div class="transcript">
+            @for (m of messages(); track m.id) {
+              <div class="message" [class.user-msg]="m.role === 'User'" [class.assistant-msg]="m.role === 'Assistant'" [class.tool-msg]="m.role === 'Tool'">
+                <div class="msg-role-badge">
+                  @switch (m.role) {
+                    @case ('User') { person }
+                    @case ('Assistant') { smart_toy }
+                    @case ('Tool') { build }
+                  }
+                  <span>{{ m.role }}</span>
+                </div>
+                <div class="msg-content">
+                  @if (m.content) {
+                    <pre>{{ m.content }}</pre>
+                  }
+                  @if (m.toolName) {
+                    <div class="tool-badge">
+                      <span class="material-icons" aria-hidden="true">build</span>
+                      {{ m.toolName }}
+                    </div>
+                  }
+                </div>
+                <div class="msg-time">{{ m.createdAt | date:'medium' }}</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="split-layout">
+      <div class="list-panel">
+        @if (loading()) {
+          <div class="loading-state">Loading sessions...</div>
+        } @else if (sessions().length === 0) {
+          <div class="empty-state">
+            <span class="material-icons" aria-hidden="true">chat</span>
+            <p>No chat sessions yet</p>
+          </div>
+        } @else {
+          <div class="session-list">
+            @for (s of sessions(); track s.id) {
+              <div class="session-item" (click)="selectSession(s)">
+                <div class="session-user">
+                  <span class="material-icons avatar-icon" aria-hidden="true">person</span>
+                  <div class="session-info">
+                    <div class="session-name">{{ s.userName }}</div>
+                    <div class="session-email">{{ s.userEmail }}</div>
+                  </div>
+                </div>
+                <div class="session-preview">
+                  <div class="session-title">{{ s.title || 'Untitled' }}</div>
+                  <div class="session-meta">
+                    <span>{{ s.messageCount }} msg</span>
+                    <span>{{ s.createdAt | date:'short' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="pagination">
+            <button class="page-btn" [disabled]="!hasPreviousPage()" (click)="prevPage()">
+              <span class="material-icons" aria-hidden="true">chevron_left</span>
+              Previous
+            </button>
+            <span class="page-info">Page {{ page() }} of {{ totalPages() }} ({{ totalCount() }} total)</span>
+            <button class="page-btn" [disabled]="!hasNextPage()" (click)="nextPage()">
+              Next
+              <span class="material-icons" aria-hidden="true">chevron_right</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="detail-panel-placeholder">
+        <span class="material-icons" aria-hidden="true">chat</span>
+        <p>Select a session to view its transcript</p>
+      </div>
+    </div>
+  }
+</div>

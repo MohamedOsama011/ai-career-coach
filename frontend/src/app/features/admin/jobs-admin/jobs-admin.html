@@ -6,13 +6,8 @@
     </div>
     <div class="header-actions">
       <button class="btn btn-secondary" (click)="triggerSync()" [disabled]="syncing()">
-        @if (syncing()) {
-          <span class="spinner"></span>
-          <span>Syncing...</span>
-        } @else {
-          <span class="material-icons">sync</span>
-          <span>Sync Now</span>
-        }
+        <span class="material-icons">sync</span>
+        <span>{{ syncing() ? 'Starting...' : 'Sync Now' }}</span>
       </button>
       <button class="btn btn-primary" (click)="openAdd()">
         <span class="material-icons">add</span>
@@ -21,9 +16,22 @@
     </div>
   </header>
 
+  @if (syncMessage(); as msg) {
+    <div class="success-banner">
+      <span class="material-icons">check_circle</span>
+      <span>{{ msg }}</span>
+    </div>
+  }
+
   @if (syncStatus(); as status) {
     <div class="card sync-status-card">
-      <h3>Sync Status</h3>
+      <div class="sync-header">
+        <h3>Sync Status</h3>
+        <button class="btn btn-ghost btn-sm" (click)="toggleHistory()">
+          <span class="material-icons">{{ showHistory() ? 'expand_less' : 'history' }}</span>
+          <span>History</span>
+        </button>
+      </div>
       <div class="sync-grid">
         <div>
           <span class="label">Last sync</span>
@@ -42,6 +50,62 @@
           <span class="value">{{ status.enabled ? 'Every ' + status.intervalHours + 'h' : 'Disabled' }}</span>
         </div>
       </div>
+
+      @if (showHistory()) {
+        <div class="sync-history">
+          <h4>Recent Syncs</h4>
+          @if (syncLogsLoading()) {
+            <div class="spinner" style="margin: var(--space-4) auto;"></div>
+          } @else if (syncLogs().length === 0) {
+            <p class="history-empty">No sync logs yet. Run a sync to see results here.</p>
+          } @else {
+            <div class="timeline">
+              @for (log of syncLogs(); track log.id) {
+                <div class="timeline-card">
+                  <div class="timeline-dot" [class]="syncStatusClass(log.status)"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <span class="timeline-time">{{ log.syncedAt | date:'MMM d, yyyy HH:mm:ss' }}</span>
+                      <span class="status-badge" [class]="syncStatusClass(log.status)">{{ log.status }}</span>
+                      <span class="timeline-duration">{{ formatDuration(log.durationMs) }}</span>
+                    </div>
+                    <div class="timeline-stats">
+                      <div class="stat-item">
+                        <span class="stat-value">{{ log.fetchedCount }}</span>
+                        <span class="stat-label">Fetched</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-value stat-new">{{ log.newCount }}</span>
+                        <span class="stat-label">New</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-value stat-skipped">{{ log.skippedCount }}</span>
+                        <span class="stat-label">Skipped</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-value stat-embedded">{{ log.embeddedCount }}</span>
+                        <span class="stat-label">Embedded</span>
+                      </div>
+                      @if (log.errorCount > 0) {
+                        <div class="stat-item">
+                          <span class="stat-value stat-errors">{{ log.errorCount }}</span>
+                          <span class="stat-label">Errors</span>
+                        </div>
+                      }
+                    </div>
+                    @if (log.errorMessages && log.errorCount > 0) {
+                      <details class="error-details">
+                        <summary>Error details</summary>
+                        <pre class="error-messages">{{ log.errorMessages }}</pre>
+                      </details>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 

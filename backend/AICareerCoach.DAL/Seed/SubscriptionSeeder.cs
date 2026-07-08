@@ -15,20 +15,41 @@ namespace AICareerCoach.DAL.Seed
                 new()
                 {
                     Name = "Basic",
-                    Price = 9.99m,
+                    Price = 0m,
                     DurationMonths = 1,
+                    LimitsJson = new PlanLimits
+                    {
+                        InterviewSessions = 1,
+                        RoadmapGenerations = 1,
+                        JobRecommendations = 3,
+                        RoadmapRescan = false,
+                    }.ToJson(),
                 },
                 new()
                 {
                     Name = "Pro",
-                    Price = 29.99m,
+                    Price = 399m,
                     DurationMonths = 1,
+                    LimitsJson = new PlanLimits
+                    {
+                        InterviewSessions = 10,
+                        RoadmapGenerations = 5,
+                        JobRecommendations = 10,
+                        RoadmapRescan = true,
+                    }.ToJson(),
                 },
                 new()
                 {
                     Name = "Premium",
-                    Price = 59.99m,
+                    Price = 999m,
                     DurationMonths = 1,
+                    LimitsJson = new PlanLimits
+                    {
+                        InterviewSessions = -1,
+                        RoadmapGenerations = -1,
+                        JobRecommendations = -1,
+                        RoadmapRescan = true,
+                    }.ToJson(),
                 },
             };
 

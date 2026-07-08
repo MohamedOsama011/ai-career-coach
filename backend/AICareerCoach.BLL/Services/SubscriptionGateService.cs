@@ -1,3 +1,4 @@
+using AICareerCoach.DAL;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Entities;
 using AICareerCoach.BLL.Interfaces;
@@ -29,16 +30,45 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<GateResult> CheckAccessAsync(string userId, Feature feature)
         {
-            if (await HasActiveSubscriptionAsync(userId))
+            var activeSub = await _context.UserSubscriptions
+                .Include(us => us.Subscription)
+                .Where(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.UtcNow)
+                .OrderByDescending(us => us.EndDate)
+                .FirstOrDefaultAsync();
+
+            if (activeSub?.Subscription != null)
             {
-                _logger.LogInformation("Gate: User {UserId} has active sub, allowed {Feature}", userId, feature);
-                return new GateResult(Allowed: true, Reason: "active_subscription", Used: 0, Limit: -1);
+                var planLimits = PlanLimits.FromJson(activeSub.Subscription.LimitsJson);
+                return feature switch
+                {
+                    Feature.InterviewSession => await CheckWithPlanLimitAsync(
+                        userId, feature, planLimits.InterviewSessions,
+                        () => _context.InterviewSessions.CountAsync(s => s.UserId == userId)),
+                    Feature.RoadmapGeneration => await CheckWithPlanLimitAsync(
+                        userId, feature, planLimits.RoadmapGenerations,
+                        () => _context.UserRoadmaps.CountAsync(r => r.UserId == userId)),
+                    Feature.RoadmapRescan => new GateResult(
+                        Allowed: planLimits.RoadmapRescan,
+                        Reason: planLimits.RoadmapRescan ? "ok" : "rescan_not_in_plan",
+                        Used: 0,
+                        Limit: planLimits.RoadmapRescan ? -1 : 0),
+                    Feature.JobRecommendations => new GateResult(
+                        Allowed: true,
+                        Reason: "active_subscription",
+                        Used: 0,
+                        Limit: planLimits.JobRecommendations),
+                    _ => new GateResult(Allowed: false, Reason: "unknown_feature", Used: 0, Limit: 0),
+                };
             }
 
             return feature switch
             {
-                Feature.InterviewSession => await CheckInterviewAsync(userId),
-                Feature.RoadmapGeneration => await CheckRoadmapGenerationAsync(userId),
+                Feature.InterviewSession => await CheckFreeLimitAsync(
+                    userId, Feature.InterviewSession, FreeLimits.InterviewSessions,
+                    () => _context.InterviewSessions.CountAsync(s => s.UserId == userId)),
+                Feature.RoadmapGeneration => await CheckFreeLimitAsync(
+                    userId, Feature.RoadmapGeneration, FreeLimits.RoadmapGenerations,
+                    () => _context.UserRoadmaps.CountAsync(r => r.UserId == userId)),
                 Feature.RoadmapRescan => new GateResult(
                     Allowed: false,
                     Reason: "rescan_is_paid",
@@ -53,26 +83,32 @@ namespace AICareerCoach.BLL.Services
             };
         }
 
-        private async Task<GateResult> CheckInterviewAsync(string userId)
+        private async Task<GateResult> CheckWithPlanLimitAsync(
+            string userId, Feature feature, int limit, Func<Task<int>> countFunc)
         {
-            var used = await _context.InterviewSessions.CountAsync(s => s.UserId == userId);
-            var limit = FreeLimits.InterviewSessions;
+            if (limit == -1)
+            {
+                _logger.LogInformation("Gate: User {UserId} has unlimited {Feature} via plan", userId, feature);
+                return new GateResult(true, "unlimited_plan", 0, -1);
+            }
+
+            var used = await countFunc();
             if (used >= limit)
             {
-                _logger.LogWarning("Gate blocked: User {UserId} interview limit reached ({Used}/{Limit})", userId, used, limit);
-                return new GateResult(false, "interview_limit_reached", used, limit);
+                _logger.LogWarning("Gate blocked: User {UserId} {Feature} limit reached ({Used}/{Limit}) via plan", userId, feature, used, limit);
+                return new GateResult(false, $"{feature.ToString().ToLower()}_limit_reached", used, limit);
             }
             return new GateResult(true, "ok", used, limit);
         }
 
-        private async Task<GateResult> CheckRoadmapGenerationAsync(string userId)
+        private async Task<GateResult> CheckFreeLimitAsync(
+            string userId, Feature feature, int limit, Func<Task<int>> countFunc)
         {
-            var used = await _context.UserRoadmaps.CountAsync(r => r.UserId == userId);
-            var limit = FreeLimits.RoadmapGenerations;
+            var used = await countFunc();
             if (used >= limit)
             {
-                _logger.LogWarning("Gate blocked: User {UserId} roadmap limit reached ({Used}/{Limit})", userId, used, limit);
-                return new GateResult(false, "roadmap_limit_reached", used, limit);
+                _logger.LogWarning("Gate blocked: User {UserId} {Feature} free limit reached ({Used}/{Limit})", userId, feature, used, limit);
+                return new GateResult(false, $"{feature.ToString().ToLower()}_limit_reached", used, limit);
             }
             return new GateResult(true, "ok", used, limit);
         }

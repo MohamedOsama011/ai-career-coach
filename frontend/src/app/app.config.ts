@@ -3,6 +3,8 @@ import { provideRouter } from '@angular/router';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import {
   ArcElement,
+  BarController,
+  BarElement,
   CategoryScale,
   DoughnutController,
   Filler,
@@ -26,6 +28,8 @@ export const appConfig: ApplicationConfig = {
       LineController,
       LineElement,
       PointElement,
+      BarController,
+      BarElement,
       DoughnutController,
       ArcElement,
       CategoryScale,

@@ -1,0 +1,252 @@
+<div class="admin-page">
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()" aria-label="Go back">
+      <span class="material-icons">arrow_back</span> Back
+    </button>
+    <div class="page-title-section">
+      <h1>User Details</h1>
+      @if (user(); as u) {
+        <p class="page-subtitle">Viewing profile for {{ u.fullName }}</p>
+      }
+    </div>
+    @if (user()) {
+    <div class="header-actions">
+      <button class="btn-outline" (click)="requestDeleteUser()" [disabled]="deleting()">
+        <span class="material-icons">delete_outline</span> Delete User
+      </button>
+    </div>
+    }
+  </div>
+
+  @if (error(); as err) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ err }}</span>
+      <button class="error-dismiss" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (loading() && !detail()) {
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  }
+
+  @if (user(); as u) {
+    <div class="profile-card">
+      <div class="profile-avatar">{{ initials() }}</div>
+      <div class="profile-info">
+        <h2>{{ u.fullName }}</h2>
+        <div class="profile-meta">
+          <span class="profile-email">{{ u.email }}</span>
+          <span class="meta-sep">·</span>
+          <span [class.role-admin]="u.role === 'Admin'" [class.role-user]="u.role !== 'Admin'" class="role-badge">{{ u.role }}</span>
+          @if (u.phone) {
+            <span class="meta-sep">·</span>
+            <span>{{ u.phone }}</span>
+          }
+        </div>
+        @if (u.careerGoal) {
+          <p class="career-goal">{{ u.careerGoal }}</p>
+        }
+        <p class="join-date">Joined {{ u.createdAt | date:'mediumDate' }}</p>
+      </div>
+      <div class="profile-actions">
+        <div class="role-selector">
+          <label>Role</label>
+          <select
+            [value]="u.role"
+            (change)="requestChangeRole($any($event.target).value)"
+            [disabled]="roleUpdating()"
+          >
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <span class="stat-icon material-icons" style="background:#DBEAFE;color:#2563EB">description</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ cvs().length }}</span>
+          <span class="stat-label">CVs</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon material-icons" style="background:#FEF3C7;color:#D97706">record_voice_over</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ interviews()?.totalCount ?? 0 }}</span>
+          <span class="stat-label">Interviews</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon material-icons" style="background:#D1FAE5;color:#059669">route</span>
+        <div class="stat-info">
+          @if (roadmaps().length > 0) {
+            <span class="stat-value">{{ roadmaps().length }}</span>
+            <span class="stat-label">Roadmap{{ roadmaps().length !== 1 ? 's' : '' }}</span>
+          } @else {
+            <span class="stat-value">—</span>
+            <span class="stat-label">No Roadmap</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn" [class.active]="activeTab() === 'cvs'" (click)="switchTab('cvs')">
+        <span class="material-icons">description</span> CVs
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'interviews'" (click)="switchTab('interviews')">
+        <span class="material-icons">record_voice_over</span> Interviews
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'roadmaps'" (click)="switchTab('roadmaps')">
+        <span class="material-icons">route</span> Roadmaps
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'payments'" (click)="switchTab('payments')">
+        <span class="material-icons">payments</span> Payments
+      </button>
+    </div>
+
+    <div class="tab-content">
+      @switch (activeTab()) {
+        @case ('cvs') {
+          @if (cvs().length > 0) {
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Uploaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (cv of cvs(); track cv.cvId) {
+                  <tr>
+                    <td>{{ cv.fileName }}</td>
+                    <td>{{ cv.uploadedAt | date:'medium' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-section">
+              <span class="material-icons">cloud_off</span>
+              <p>No CVs uploaded yet.</p>
+            </div>
+          }
+        }
+        @case ('interviews') {
+          @if ((interviews()?.recentSessions?.length ?? 0) > 0) {
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Track</th>
+                  <th>Difficulty</th>
+                  <th>Target Role</th>
+                  <th>Status</th>
+                  <th>Questions</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of interviews()?.recentSessions ?? []; track s.id) {
+                  <tr>
+                    <td>{{ s.track }}</td>
+                    <td>{{ s.difficulty }}</td>
+                    <td>{{ s.targetRole }}</td>
+                    <td><span class="status-badge" [class]="statusClass(s.status)">{{ s.status }}</span></td>
+                    <td>{{ s.questionsAsked }}/{{ s.maxQuestions }}</td>
+                    <td>{{ s.createdAt | date:'medium' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if ((interviews()?.totalCount ?? 0) > 5) {
+              <p class="show-all-note">Showing last 5 of {{ interviews()?.totalCount }} sessions.</p>
+            }
+          } @else {
+            <div class="empty-section">
+              <span class="material-icons">mic_off</span>
+              <p>No interviews taken yet.</p>
+            </div>
+          }
+        }
+        @case ('roadmaps') {
+          @if (roadmaps().length > 0) {
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Target Role</th>
+                  <th>Track</th>
+                  <th>Generated</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of roadmaps(); track r.id) {
+                  <tr>
+                    <td>{{ r.targetRole }}</td>
+                    <td>{{ r.templateTrack }}</td>
+                    <td>{{ r.createdAt | date:'medium' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-section">
+              <span class="material-icons">signpost</span>
+              <p>No roadmaps generated yet.</p>
+            </div>
+          }
+        }
+        @case ('payments') {
+          @if (payments().length > 0) {
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Plan</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Method</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of payments(); track p.paymentId) {
+                  <tr>
+                    <td>{{ p.invoiceNumber ?? '—' }}</td>
+                    <td>{{ p.planName }}</td>
+                    <td>{{ p.currency }} {{ p.amount.toLocaleString() }}</td>
+                    <td><span class="status-badge" [class]="statusClass(p.status)">{{ p.status }}</span></td>
+                    <td>{{ p.paymentMethod ?? '—' }}</td>
+                    <td>{{ p.paidAt | date:'medium' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-section">
+              <span class="material-icons">payments</span>
+              <p>No payments recorded.</p>
+            </div>
+          }
+        }
+      }
+    </div>
+  } @else if (!loading()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">person_off</span>
+      <p>User not found.</p>
+    </div>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="confirmAction() !== null"
+  [title]="confirmAction()?.title ?? ''"
+  [message]="confirmAction()?.message ?? ''"
+  [variant]="confirmAction()?.type === 'delete' ? 'danger' : 'default'"
+  [loading]="roleUpdating() || deleting()"
+  (confirm)="handleConfirm()"
+  (cancel)="closeConfirm()"
+/>

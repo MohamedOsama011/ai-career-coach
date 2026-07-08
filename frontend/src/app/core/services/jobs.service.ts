@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, timeout } from 'rxjs/operators';
-import { Job, JobRecommendationResult, SyncResultDto, SyncStatusDto, UpdateJobDto } from '../models/job.model';
+import { Job, JobRecommendationResult, SyncStatusDto, UpdateJobDto } from '../models/job.model';
 
 
 @Injectable({
@@ -99,9 +99,9 @@ export class JobsService {
     );
   }
 
-  syncJobs(): Observable<SyncResultDto> {
-    return this.http.post<SyncResultDto>(`${this.apiUrl}/sync`, {}).pipe(
-      timeout(30000)
+  syncJobs(): Observable<{ status: string; message: string }> {
+    return this.http.post<{ status: string; message: string }>(`${this.apiUrl}/sync`, {}).pipe(
+      timeout(7000)
     );
   }
 

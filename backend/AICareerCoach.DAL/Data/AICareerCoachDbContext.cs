@@ -2,6 +2,7 @@ using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json;
 
 namespace AICareerCoach.DAL.Data
@@ -69,11 +70,21 @@ namespace AICareerCoach.DAL.Data
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
                 );
+            builder.Entity<JobEmbedding>()
+                .Property(e => e.Embedding)
+                .Metadata.SetValueComparer(new ValueComparer<float[]>(
+                    (a, b) => (a ?? Array.Empty<float>()).SequenceEqual(b ?? Array.Empty<float>()),
+                    v => (v ?? Array.Empty<float>()).Aggregate(0, (hash, f) => HashCode.Combine(hash, f.GetHashCode())),
+                    v => (v ?? Array.Empty<float>()).ToArray()
+                ));
 
-            builder.Entity<Job>()
-                .HasIndex(j => new { j.ExternalId, j.Source })
-                .IsUnique()
-                .HasFilter("[ExternalId] IS NOT NULL");
+            builder.Entity<Job>(e =>
+            {
+                e.Property(j => j.Salary).HasPrecision(18, 2);
+                e.HasIndex(j => new { j.ExternalId, j.Source })
+                    .IsUnique()
+                    .HasFilter("[ExternalId] IS NOT NULL");
+            });
 
             builder.Entity<RoadmapTemplateEmbedding>()
                 .Property(e => e.Embedding)
@@ -81,6 +92,13 @@ namespace AICareerCoach.DAL.Data
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>()
                 );
+            builder.Entity<RoadmapTemplateEmbedding>()
+                .Property(e => e.Embedding)
+                .Metadata.SetValueComparer(new ValueComparer<float[]>(
+                    (a, b) => (a ?? Array.Empty<float>()).SequenceEqual(b ?? Array.Empty<float>()),
+                    v => (v ?? Array.Empty<float>()).Aggregate(0, (hash, f) => HashCode.Combine(hash, f.GetHashCode())),
+                    v => (v ?? Array.Empty<float>()).ToArray()
+                ));
 
             builder.Entity<RoadmapTemplateEmbedding>()
                 .HasIndex(e => e.RoadmapId)
@@ -100,11 +118,53 @@ namespace AICareerCoach.DAL.Data
             ConfigurePaymentEntities(builder);
             ConfigureSubscriptionAuditLogEntity(builder);
 
-            builder.Entity<JobSyncLog>(e =>
+        builder.Entity<JobSyncLog>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.ErrorMessages).HasMaxLength(-1);
+            e.HasIndex(x => x.SyncedAt);
+        });
+
+        ConfigureAdminAuditLogEntity(builder);
+        ConfigureNotificationEntity(builder);
+        }
+
+        private static void ConfigureNotificationEntity(ModelBuilder builder)
+        {
+            builder.Entity<Notification>(e =>
             {
-                e.HasKey(x => x.Id);
-                e.Property(x => x.ErrorMessages).HasMaxLength(-1);
-                e.HasIndex(x => x.SyncedAt);
+                e.Property(n => n.UserId).HasMaxLength(450);
+                e.Property(n => n.Title).HasMaxLength(256);
+                e.Property(n => n.Body).HasMaxLength(-1);
+                e.Property(n => n.Type).HasMaxLength(32);
+
+                e.HasOne(n => n.User)
+                    .WithMany()
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(n => n.UserId);
+                e.HasIndex(n => new { n.UserId, n.IsRead, n.CreatedAt });
+            });
+        }
+
+        private static void ConfigureAdminAuditLogEntity(ModelBuilder builder)
+        {
+            builder.Entity<AdminAuditLog>(e =>
+            {
+                e.Property(a => a.Action).HasMaxLength(64);
+                e.Property(a => a.TargetType).HasMaxLength(64);
+                e.Property(a => a.TargetId).HasMaxLength(450);
+                e.Property(a => a.Details).HasMaxLength(-1);
+
+                e.HasOne(a => a.AdminUser)
+                    .WithMany()
+                    .HasForeignKey(a => a.AdminUserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasIndex(a => a.AdminUserId);
+                e.HasIndex(a => a.TargetType);
+                e.HasIndex(a => a.Timestamp);
             });
         }
 
@@ -138,6 +198,7 @@ namespace AICareerCoach.DAL.Data
             builder.Entity<Subscription>(e =>
             {
                 e.Property(s => s.Name).HasMaxLength(256);
+                e.Property(s => s.Price).HasPrecision(18, 2);
 
                 e.HasMany(s => s.UserSubscriptions)
                     .WithOne(us => us.Subscription)
@@ -164,6 +225,7 @@ namespace AICareerCoach.DAL.Data
 
             builder.Entity<Payment>(e =>
             {
+                e.Property(p => p.Amount).HasPrecision(18, 2);
                 e.Property(p => p.IntentKey).HasMaxLength(256);
                 e.Property(p => p.InvoiceNumber).HasMaxLength(256);
                 e.Property(p => p.TransactionId).HasMaxLength(256);
@@ -310,5 +372,7 @@ namespace AICareerCoach.DAL.Data
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<UserSubscription> UserSubscriptions { get; set; }
         public DbSet<SubscriptionAuditLog> SubscriptionAuditLogs { get; set; }
+        public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }

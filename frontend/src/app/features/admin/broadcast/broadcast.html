@@ -1,0 +1,139 @@
+<div class="admin-page">
+  <div class="page-header centered-header">
+    <div>
+      <h1>Send Broadcast</h1>
+      <p class="subtitle">Send notifications to users</p>
+    </div>
+  </div>
+
+  @if (sent()) {
+    <div class="success-banner" role="alert">
+      <span class="material-icons" aria-hidden="true">check_circle</span>
+      <span>Broadcast sent successfully!</span>
+      <button class="success-dismiss" (click)="sent.set(false)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons" aria-hidden="true">error</span>
+      {{ error() }}
+    </div>
+  }
+
+  <div class="broadcast-card">
+    <div class="form-group">
+      <label class="form-label">Target Audience</label>
+      <div class="target-options" role="radiogroup" aria-label="Target audience">
+        <button class="target-option" [class.active]="targetType() === 'all'" (click)="targetType.set('all')" role="radio" [attr.aria-checked]="targetType() === 'all'">
+          <span class="material-icons" aria-hidden="true">public</span>
+          <div>
+            <div class="option-label">All Users</div>
+            <div class="option-desc">Send to every registered user</div>
+          </div>
+        </button>
+        <button class="target-option" [class.active]="targetType() === 'plan'" (click)="targetType.set('plan')" role="radio" [attr.aria-checked]="targetType() === 'plan'">
+          <span class="material-icons" aria-hidden="true">card_membership</span>
+          <div>
+            <div class="option-label">By Plan</div>
+            <div class="option-desc">Send to users on a specific plan</div>
+          </div>
+        </button>
+        <button class="target-option" [class.active]="targetType() === 'user'" (click)="targetType.set('user')" role="radio" [attr.aria-checked]="targetType() === 'user'">
+          <span class="material-icons" aria-hidden="true">person</span>
+          <div>
+            <div class="option-label">Specific User</div>
+            <div class="option-desc">Send to a single user by ID</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    @if (targetType() !== 'all') {
+      <div class="form-group">
+        <label class="form-label">
+          {{ targetType() === 'plan' ? 'Plan Name' : 'User ID' }}
+        </label>
+        @if (targetType() === 'plan') {
+          <select class="form-select" [ngModel]="targetValue()" (ngModelChange)="targetValue.set($event)">
+            <option value="">Select a plan...</option>
+            <option value="Basic">Basic</option>
+            <option value="Pro">Pro</option>
+            <option value="Premium">Premium</option>
+          </select>
+        } @else {
+          <input class="form-input" type="text" placeholder="Enter user ID" [ngModel]="targetValue()" (ngModelChange)="targetValue.set($event)" />
+        }
+      </div>
+    }
+
+    <div class="form-group">
+      <label class="form-label">Notification Type</label>
+      <div class="type-options" role="radiogroup" aria-label="Notification type">
+        @for (t of ['broadcast', 'info', 'success', 'warning']; track t) {
+          <button class="type-pill" [class.active]="notificationType() === t" (click)="setNotificationType(t)" role="radio" [attr.aria-checked]="notificationType() === t">
+            <span class="material-icons" aria-hidden="true">{{ t === 'broadcast' ? 'campaign' : t === 'info' ? 'info' : t === 'success' ? 'check_circle' : 'warning' }}</span>
+            {{ t }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="title-input">Title</label>
+      <input id="title-input" class="form-input" type="text" placeholder="e.g. New Feature Available" [ngModel]="title()" (ngModelChange)="title.set($event)" maxlength="256" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="body-input">Message</label>
+      <textarea id="body-input" class="form-textarea" rows="4" placeholder="Write your notification message..." [ngModel]="body()" (ngModelChange)="body.set($event)"></textarea>
+    </div>
+
+    <div class="preview-toggle">
+      <button class="toggle-btn" (click)="showPreview.set(!showPreview())">
+        <span class="material-icons" aria-hidden="true">{{ showPreview() ? 'visibility_off' : 'visibility' }}</span>
+        {{ showPreview() ? 'Hide' : 'Show' }} Preview
+      </button>
+    </div>
+
+    @if (showPreview()) {
+      <div class="preview-card">
+        <div class="preview-header">Preview</div>
+        <div class="preview-body">
+          <div class="preview-item">
+            <div class="preview-icon-wrapper">
+              <span class="material-icons" [class]="'preview-icon preview-' + notificationType()" aria-hidden="true">{{ typeIcon }}</span>
+            </div>
+            <div class="preview-content">
+              <div class="preview-title">{{ previewTitle }}</div>
+              <div class="preview-body-text">{{ previewBody }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="form-actions">
+      <button class="btn btn-primary" [disabled]="!isFormValid() || sending()" (click)="openConfirm()">
+        @if (sending()) {
+          <span class="spinner"></span>
+          Sending...
+        } @else {
+          <span class="material-icons" aria-hidden="true">send</span>
+          Send Broadcast
+        }
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-confirm-modal
+  [open]="confirmOpen()"
+  title="Send Broadcast?"
+  [message]="'This will send a notification to ' + (targetType() === 'all' ? 'all users' : targetType() === 'plan' ? 'users on the ' + targetValue() + ' plan' : 'the specified user') + '. Continue?'"
+  confirmText="Send"
+  variant="default"
+  [loading]="sending()"
+  (confirm)="send()"
+  (cancel)="confirmOpen.set(false)"
+/>

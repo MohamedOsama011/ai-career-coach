@@ -1,10 +1,25 @@
 <header class="navbar">
-  <div class="navbar-actions">
+  <div class="navbar-left">
+    <button class="hamburger-btn" (click)="togglemenu.emit()" aria-label="Toggle menu">
+      <span class="material-icons">menu</span>
+    </button>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-actions">
+    @if (isAdmin) {
+      <button class="admin-btn" (click)="toggleAdmin()" [attr.aria-label]="isAdminRoute ? 'Back to Dashboard' : 'Admin Panel'">
+        <span class="material-icons" aria-hidden="true">admin_panel_settings</span>
+        <span>{{ isAdminRoute ? 'Exit Admin' : 'Admin' }}</span>
+      </button>
+    }
     <button class="icon-btn" (click)="themeService.toggle()" [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'" title="Toggle theme">
       <span class="material-icons" aria-hidden="true">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
     </button>
-    <button class="avatar-wrapper" (click)="logout()" title="Logout" aria-label="Logout">
-      <span class="material-icons avatar-icon" aria-hidden="true">logout</span>
+    <app-notification-bell />
+    
+    <button class="icon-btn" (click)="logout()" title="Logout" aria-label="Logout">
+      <span class="material-icons" aria-hidden="true">logout</span>
     </button>
+    </div>
   </div>
 </header>
