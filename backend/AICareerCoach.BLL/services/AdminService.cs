@@ -44,7 +44,7 @@ namespace AICareerCoach.BLL.services
                 await _context.Set<CV>().CountAsync();
 
             var interviewsCount =
-                await _context.Set<mockInterview>().CountAsync();
+                await _context.Set<InterviewSession>().CountAsync();
 
             return new DashboardStatisticsDto
             {
@@ -214,7 +214,7 @@ namespace AICareerCoach.BLL.services
                     HasCv = await _context.CVs
                         .AnyAsync(c => c.UserId == user.Id),
 
-                    InterviewsCount = await _context.Interviews
+                    InterviewsCount = await _context.InterviewSessions
                         .CountAsync(i => i.UserId == user.Id),
 
                     // For now
