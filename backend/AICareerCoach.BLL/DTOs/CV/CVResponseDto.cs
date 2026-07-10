@@ -13,5 +13,6 @@ namespace AICareerCoach.BLL.DTOs.CV
         public string DownloadUrl { get; set; }
         public DateTime UploadedAt { get; set; }
         public string UserId { get; set; }
+        public bool IsNew { get; set; }
     }
 }

@@ -14,6 +14,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ResetPassword implements OnInit {
   password = '';
   confirmPassword = '';
+  passwordTouched = false;
+  confirmPasswordTouched = false;
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');

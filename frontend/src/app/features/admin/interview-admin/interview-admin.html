@@ -1,0 +1,156 @@
+@if (pendingDeleteSession(); as session) {
+  <app-confirm-modal
+    [open]="true"
+    title="Delete Interview Session"
+    [message]="deleteMessage(session.userName)"
+    confirmText="Delete"
+    cancelText="Cancel"
+    variant="danger"
+    [loading]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()" />
+}
+
+@if (pendingAbortSession(); as session) {
+  <app-confirm-modal
+    [open]="true"
+    title="Abort Interview Session"
+    [message]="abortMessage(session.userName)"
+    confirmText="Abort"
+    cancelText="Cancel"
+    variant="danger"
+    [loading]="aborting()"
+    (confirm)="confirmAbort()"
+    (cancel)="cancelAbort()" />
+}
+
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Interview Sessions</h1>
+      <p class="subtitle">
+        {{ totalItems() }} total sessions
+      </p>
+    </div>
+  </header>
+
+  @if (error(); as msg) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ msg }}</span>
+      <button class="dismiss-btn" (click)="error.set(null)">&times;</button>
+    </div>
+  }
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="status-pills">
+        @for (s of ['All', 'Active', 'Completed', 'Abandoned']; track s) {
+          <button
+            class="pill"
+            [class.pill-active]="statusFilter() === s"
+            (click)="selectStatus(s)"
+          >{{ s }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Track</label>
+      <select [(ngModel)]="trackFilter" (ngModelChange)="onFilterChange()">
+        <option value="All">All Tracks</option>
+        <option value="Behavioral">Behavioral</option>
+        <option value="Technical">Technical</option>
+        <option value="SystemDesign">System Design</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event); onFilterChange()" />
+    </div>
+
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" [ngModel]="toDate()" (ngModelChange)="toDate.set($event); onFilterChange()" />
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="btn btn-ghost btn-sm" (click)="resetFilters()">
+        <span class="material-icons">clear</span> Reset
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="spinner"></div>
+  } @else if (sessions().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons">record_voice_over</span>
+      <p>No interview sessions found.</p>
+    </div>
+  } @else {
+    <div class="table-wrapper card">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Track</th>
+            <th>Difficulty</th>
+            <th>Status</th>
+            <th>Questions</th>
+            <th>Started</th>
+            <th>Duration</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of sessions(); track s.id) {
+            <tr>
+              <td class="user-cell">
+                <div class="user-info">
+                  <div class="user-avatar">{{ s.userName[0] }}</div>
+                  <div>
+                    <div class="user-name">{{ s.userName }}</div>
+                    <div class="user-email">{{ s.userEmail }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ s.track }}</td>
+              <td>{{ s.difficulty }}</td>
+              <td>
+                <span class="status-badge" [class]="statusClass(s.status)">{{ s.status }}</span>
+              </td>
+              <td>{{ s.questionsAsked }}/{{ s.maxQuestions }}</td>
+              <td>{{ s.createdAt | date:'medium' }}</td>
+              <td>{{ s.duration }}</td>
+              <td class="actions-cell">
+                @if (canAbort(s)) {
+                  <button class="btn btn-icon btn-sm" title="Abort session" (click)="requestAbort(s.id)">
+                    <span class="material-icons">stop_circle</span>
+                  </button>
+                }
+                <button class="btn btn-icon btn-sm btn-icon-danger" title="Delete session" (click)="requestDelete(s.id)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn btn-ghost btn-sm" [disabled]="!hasPreviousPage()" (click)="goToPage(page() - 1)">
+          <span class="material-icons">chevron_left</span> Previous
+        </button>
+        <span class="page-info">Page {{ page() }} of {{ totalPages() }}</span>
+        <button class="btn btn-ghost btn-sm" [disabled]="!hasNextPage()" (click)="goToPage(page() + 1)">
+          Next <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    }
+  }
+</div>

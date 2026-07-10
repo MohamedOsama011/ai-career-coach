@@ -1,7 +1,19 @@
-<app-sidebar />
+<app-sidebar [open]="sidebarOpen()" (closedrawer)="closeSidebar()" />
+@if (sidebarOpen()) {
+  <div class="sidebar-overlay" (click)="closeSidebar()" aria-label="Close sidebar"></div>
+}
 <div class="main-area">
-  <app-navbar />
+  <app-navbar (togglemenu)="toggleSidebar()" />
   <main class="main-content">
     <router-outlet />
   </main>
 </div>
+<app-chat-assistant />
+
+@if (store.upgradeModalOpen(); as modal) {
+  <app-upgrade-modal
+    [feature]="modal.feature"
+    [used]="modal.used"
+    [limit]="modal.limit"
+  />
+}

@@ -1,0 +1,123 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Users</h1>
+      <p class="page-subtitle">{{ filteredCount() }} of {{ totalCount() }} users</p>
+    </div>
+    <button class="refresh-btn" (click)="loadUsers()" [attr.aria-label]="'Refresh users'">
+      <span class="material-icons">refresh</span> Refresh
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ err }}</span>
+      <button class="error-dismiss" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (loading() && users().length === 0) {
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  }
+
+  <div class="toolbar">
+    <div class="search-wrapper">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name or email..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+      @if (hasActiveFilters()) {
+        <button class="clear-btn" (click)="searchQuery.set('')" aria-label="Clear search">
+          <span class="material-icons">close</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (users().length === 0 && !loading()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">people_outline</span>
+      <p>No users found.</p>
+    </div>
+  } @else if (filteredUsers().length === 0 && hasActiveFilters()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">search_off</span>
+      <p>No users match your search.</p>
+    </div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>CV</th>
+            <th>Interviews</th>
+            <th>Plan</th>
+            <th>Joined</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of filteredUsers(); track u.id) {
+            <tr class="clickable-row" (click)="viewUser(u.id)">
+              <td class="user-name-cell">
+                <span class="user-initials">{{ u.fullName.charAt(0).toUpperCase() }}</span>
+                <span>{{ u.fullName }}</span>
+              </td>
+              <td class="email-cell">{{ u.email }}</td>
+              <td>
+                <span class="role-badge" [class]="roleBadgeClass(u.role)">{{ u.role }}</span>
+              </td>
+              <td>
+                @if (u.hasCv) {
+                  <span class="yes-badge">Yes</span>
+                } @else {
+                  <span class="no-badge">No</span>
+                }
+              </td>
+              <td>{{ u.interviewsCount }}</td>
+              <td>{{ u.plan }}</td>
+              <td>{{ u.createdAt | date:'shortDate' }}</td>
+              <td class="actions-col" (click)="$event.stopPropagation()">
+                <div class="row-actions">
+                  @if (u.role === 'User') {
+                    <button class="action-btn promote" (click)="requestChangeRole(u)" [disabled]="roleUpdatingId() === u.id" title="Promote to Admin">
+                      <span class="material-icons">admin_panel_settings</span>
+                    </button>
+                  } @else {
+                    <button class="action-btn demote" (click)="requestChangeRole(u)" [disabled]="roleUpdatingId() === u.id" title="Demote to User">
+                      <span class="material-icons">person</span>
+                    </button>
+                  }
+                  <button class="action-btn delete" (click)="requestDeleteUser(u)" [disabled]="deletingId() === u.id" title="Delete user">
+                    <span class="material-icons">delete_outline</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="confirmAction() !== null"
+  [title]="confirmAction()?.type === 'delete' ? 'Delete User?' : 'Change User Role?'"
+  [message]="confirmAction()?.type === 'delete'
+    ? 'Are you sure you want to permanently delete ' + (confirmAction()?.userName ?? 'this user') + '? This action cannot be undone.'
+    : 'Change ' + (confirmAction()?.userName ?? 'this user') + '\'s role to ' + (confirmAction()?.role ?? '') + '?'
+  "
+  [variant]="confirmAction()?.type === 'delete' ? 'danger' : 'default'"
+  [loading]="roleUpdatingId() !== null || deletingId() !== null"
+  (confirm)="handleConfirm()"
+  (cancel)="closeConfirm()"
+/>

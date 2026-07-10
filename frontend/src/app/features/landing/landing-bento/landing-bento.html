@@ -1,0 +1,199 @@
+<section
+  class="bento-section"
+  id="bento"
+  #sectionRoot
+  aria-labelledby="bento-section-heading"
+>
+  <div class="bento-container">
+    <!-- Header -->
+    <header class="bento-header">
+      <span class="bento-eyebrow">
+        <span class="material-symbols-rounded" aria-hidden="true">apps</span>
+        The AI Career Engine
+      </span>
+      <h2 id="bento-section-heading" class="bento-title">One platform, end-to-end</h2>
+      <p class="bento-subtitle">
+        Five capabilities, one unified loop. Each module feeds the next — so the
+        CV you upload today becomes the interview you ace tomorrow.
+      </p>
+    </header>
+
+    <!-- 6-cell bento grid: 1 hero (2x2) + 5 features (1x1 or 2x1 wide) -->
+    <div class="bento-grid" role="list" aria-label="AI Career Coach capabilities">
+      <!-- ── Hero hub cell (2x2) ─────────────────────────────────── -->
+      <article
+        class="bento-cell bento-hero"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-hero-title"
+      >
+        <div class="bento-hero-content">
+          <span class="bento-hero-eyebrow">Hub</span>
+          <h3 id="bento-hero-title" class="bento-hero-title">
+            The engine behind every career win
+          </h3>
+          <p class="bento-hero-sub">
+            Upload your CV once. The engine maps your skills, finds your gaps,
+            builds a roadmap, practices with you, and matches you to roles —
+            all from the same data, all in real time.
+          </p>
+        </div>
+
+        <div class="bento-hero-morph" aria-hidden="true">
+          <svg
+            class="bento-hero-svg"
+            viewBox="0 0 50 50"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="bentoHeroStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#3B82F6" />
+                <stop offset="100%" stop-color="#60A5FA" />
+              </linearGradient>
+            </defs>
+            <path
+              #heroMorph
+              id="bento-hero-morph"
+              d="M12 8 L30 8 L40 18 L40 42 L12 42 Z M30 8 L30 18 L40 18"
+              fill="none"
+              stroke="url(#bentoHeroStroke)"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="bento-hero-label" #heroLabel>{{ heroLabels[0] }}</span>
+        </div>
+      </article>
+
+      <!-- ── CV Analysis (1x1) ────────────────────────────────────── -->
+      <article
+        class="bento-cell bento-feature bento-cv"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-cv-title"
+      >
+        <div class="bento-feature-head">
+          <span class="bento-feature-icon material-symbols-rounded" aria-hidden="true">description</span>
+          <h3 id="bento-cv-title" class="bento-feature-title">CV Analysis</h3>
+        </div>
+        <p class="bento-feature-desc">
+          Parse, score, and surface what your CV is missing.
+        </p>
+        <div class="bento-microviz bento-microviz--cv-card" aria-hidden="true">
+          <div class="cv-card-mini">
+            <span class="cv-card-mini-label">CV</span>
+            <span class="cv-card-mini-score">87/100</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── Skills Gap (1x1) ────────────────────────────────────── -->
+      <article
+        class="bento-cell bento-feature bento-gap"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-gap-title"
+      >
+        <div class="bento-feature-head">
+          <span class="bento-feature-icon material-symbols-rounded" aria-hidden="true">compare_arrows</span>
+          <h3 id="bento-gap-title" class="bento-feature-title">Skills Gap</h3>
+        </div>
+        <p class="bento-feature-desc">
+          See the exact skills separating you from your target.
+        </p>
+        <div class="bento-microviz bento-microviz--bars" aria-hidden="true">
+          <div class="bar-row">
+            <span class="bar-label">You</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--current" style="width: 50%"></div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Target</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--target" style="width: 90%"></div></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── Personalized Roadmap (2x1 wide) ────────────────────── -->
+      <article
+        class="bento-cell bento-feature bento-feature--wide bento-roadmap"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-roadmap-title"
+      >
+        <div class="bento-feature-head">
+          <span class="bento-feature-icon material-symbols-rounded" aria-hidden="true">route</span>
+          <h3 id="bento-roadmap-title" class="bento-feature-title">Personalized Roadmap</h3>
+        </div>
+        <p class="bento-feature-desc">
+          A gap-driven learning path, ordered by priority. Skip what you already know.
+        </p>
+        <div class="bento-microviz bento-microviz--roadmap" aria-hidden="true">
+          <svg class="roadmap-svg" viewBox="0 0 220 32" xmlns="http://www.w3.org/2000/svg">
+            <line x1="12" y1="16" x2="208" y2="16" stroke="rgba(59,130,246,0.45)" stroke-width="1.5" stroke-dasharray="2 3" />
+            <g class="roadmap-node">
+              <circle cx="12"  cy="16" r="6" fill="rgba(59,130,246,0.15)" stroke="#3B82F6" stroke-width="1.5" />
+              <text x="12"  y="19" text-anchor="middle" fill="#fff" font-size="7" font-weight="600" font-family="Inter, sans-serif">1</text>
+            </g>
+            <g class="roadmap-node">
+              <circle cx="78"  cy="16" r="6" fill="rgba(59,130,246,0.15)" stroke="#3B82F6" stroke-width="1.5" />
+              <text x="78"  y="19" text-anchor="middle" fill="#fff" font-size="7" font-weight="600" font-family="Inter, sans-serif">2</text>
+            </g>
+            <g class="roadmap-node">
+              <circle cx="142" cy="16" r="6" fill="rgba(96,165,250,0.2)"  stroke="#60A5FA" stroke-width="1.5" />
+              <text x="142" y="19" text-anchor="middle" fill="#fff" font-size="7" font-weight="600" font-family="Inter, sans-serif">3</text>
+            </g>
+            <g class="roadmap-node">
+              <circle cx="208" cy="16" r="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" />
+              <text x="208" y="19" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="7" font-weight="600" font-family="Inter, sans-serif">4</text>
+            </g>
+          </svg>
+        </div>
+      </article>
+
+      <!-- ── Mock Interview (1x1) ─────────────────────────────────── -->
+      <article
+        class="bento-cell bento-feature bento-interview"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-interview-title"
+      >
+        <div class="bento-feature-head">
+          <span class="bento-feature-icon material-symbols-rounded" aria-hidden="true">graphic_eq</span>
+          <h3 id="bento-interview-title" class="bento-feature-title">Mock Interview</h3>
+        </div>
+        <p class="bento-feature-desc">
+          Practice with an AI coach that knows your weak spots.
+        </p>
+        <div class="bento-microviz bento-microviz--waveform" aria-hidden="true">
+          @for (h of [0.3, 0.7, 0.4, 0.9, 0.5, 1, 0.6, 0.3, 0.8, 0.4]; track $index) {
+            <div class="waveform-mini-bar" [style.transform]="'scaleY(' + h + ')'"></div>
+          }
+        </div>
+      </article>
+
+      <!-- ── Job Match (1x1) ─────────────────────────────────────── -->
+      <article
+        class="bento-cell bento-feature bento-jobs"
+        #bentoCell
+        role="listitem"
+        aria-labelledby="bento-jobs-title"
+      >
+        <div class="bento-feature-head">
+          <span class="bento-feature-icon material-symbols-rounded" aria-hidden="true">work</span>
+          <h3 id="bento-jobs-title" class="bento-feature-title">Job Match</h3>
+        </div>
+        <p class="bento-feature-desc">
+          See real openings ranked by fit + missing skills.
+        </p>
+        <div class="bento-microviz bento-microviz--job-card" aria-hidden="true">
+          <div class="job-card-mini">
+            <span class="job-card-mini-pill">78%</span>
+            <span class="job-card-mini-title">Senior .NET</span>
+            <span class="job-card-mini-meta">Stripe · Remote</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

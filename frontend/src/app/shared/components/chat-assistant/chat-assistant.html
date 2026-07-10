@@ -1,0 +1,164 @@
+@if (visible()) {
+  @if (!isOpen()) {
+    <button class="chat-fab" (click)="open()" aria-label="Open AI Coach">
+      <span class="material-icons" aria-hidden="true">smart_toy</span>
+    </button>
+  }
+
+  @if (isOpen()) {
+    <div class="chat-panel" role="dialog" aria-label="AI Coach">
+      <header class="chat-header">
+        <div class="chat-header-left">
+          <div class="ai-avatar-sm" aria-hidden="true">
+            <span class="material-icons">smart_toy</span>
+          </div>
+          <div class="chat-header-meta">
+            <span class="chat-header-title">{{ activeSessionTitle() }}</span>
+            @if (activeSessionRelative()) {
+              <span class="chat-header-subtitle">{{ activeSessionRelative() }}</span>
+            }
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="header-btn" (click)="openSessionsList()" aria-label="Show past sessions" title="Past sessions">
+            <span class="material-icons" aria-hidden="true">history</span>
+          </button>
+          <button class="header-btn" (click)="newChat()" aria-label="Start a new chat" title="New chat">
+            <span class="material-icons" aria-hidden="true">add</span>
+          </button>
+          <button class="header-btn" (click)="close()" aria-label="Close chat" title="Close">
+            <span class="material-icons" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </header>
+
+      @if (showSessionsList()) {
+        <div class="sessions-overlay" role="region" aria-label="Past sessions">
+          <div class="sessions-overlay-header">
+            <button class="back-btn" (click)="backFromSessions()" aria-label="Back to chat">
+              <span class="material-icons" aria-hidden="true">arrow_back</span>
+              <span>Back</span>
+            </button>
+            <span class="sessions-overlay-title">Past sessions</span>
+          </div>
+
+          @if (loadingSessions()) {
+            <div class="sessions-loading">
+              <span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span>Loading…</span>
+            </div>
+          } @else if (sessions().length === 0) {
+            <div class="sessions-empty">
+              <span class="material-icons sessions-empty-icon" aria-hidden="true">chat_bubble_outline</span>
+              <p>No past sessions yet. Start a conversation to see it here.</p>
+            </div>
+          } @else {
+            <ul class="sessions-list">
+              @for (s of sessions(); track s.id) {
+                <li class="sessions-item" (click)="openSession(s.id)">
+                  <div class="sessions-item-title">{{ s.title || 'New chat' }}</div>
+                  <div class="sessions-item-time">{{ formatRelative(s.updatedAt) }}</div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <div class="chat-body">
+        @if (error()) {
+          <div class="chat-error" role="alert">
+            <span class="material-icons" aria-hidden="true">error_outline</span>
+            <span class="chat-error-text">{{ error() }}</span>
+            <button class="error-dismiss" (click)="dismissError()" aria-label="Dismiss error">
+              <span class="material-icons" aria-hidden="true">close</span>
+            </button>
+          </div>
+        }
+
+        @if (!hasMessages()) {
+          <div class="chat-welcome">
+            <div class="welcome-avatar" aria-hidden="true">
+              <span class="material-icons">smart_toy</span>
+            </div>
+            <h3 class="welcome-title">Hi, I'm Coach</h3>
+            <p class="welcome-subtitle">I can help you find jobs, analyze your CV, and learn new skills. What would you like to do?</p>
+            <div class="welcome-suggestions">
+              <button class="suggestion-chip" (click)="useSuggestion('Find me .NET jobs')">Find me .NET jobs</button>
+              <button class="suggestion-chip" (click)="useSuggestion('Analyze my CV')">Analyze my CV</button>
+              <button class="suggestion-chip" (click)="useSuggestion('Show me the Backend roadmap')">Show me the Backend roadmap</button>
+              <button class="suggestion-chip" (click)="useSuggestion(&quot;What's my career goal?&quot;)">What's my career goal?</button>
+            </div>
+          </div>
+        } @else {
+          <div #messageList class="messages" aria-live="polite" aria-label="Chat messages">
+            @for (msg of messages(); track trackByMessageIndex($index)) {
+              @if (msg.role === 'user') {
+                <div class="message message-user">
+                  <div class="bubble bubble-user">
+                    <div class="bubble-content">{{ msg.content }}</div>
+                  </div>
+                  <div class="avatar avatar-user" aria-hidden="true">{{ userInitials() }}</div>
+                </div>
+              } @else {
+                <div class="message message-bot">
+                  <div class="avatar avatar-bot" aria-hidden="true">
+                    <span class="material-icons">smart_toy</span>
+                  </div>
+                  <div class="bubble bubble-bot">
+                    @if (msg.content) {
+                      <div class="bubble-content" [innerHTML]="renderMessage(msg.content)"></div>
+                    }
+                    @if (msg.toolsUsed && msg.toolsUsed.length > 0) {
+                      <div class="tools-used">
+                        @for (tool of msg.toolsUsed; track tool) {
+                          <span class="tool-badge" [attr.aria-label]="toolLabel(tool)">
+                            <span class="material-icons" aria-hidden="true">{{ toolIcon(tool) }}</span>
+                            <span>{{ toolLabel(tool) }}</span>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+            @if (sending()) {
+              <div class="message message-bot">
+                <div class="avatar avatar-bot" aria-hidden="true">
+                  <span class="material-icons">smart_toy</span>
+                </div>
+                <div class="bubble bubble-bot bubble-typing" role="status" aria-live="polite">
+                  <span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="status-label">{{ statusMessage() }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <footer class="chat-input">
+        <textarea
+          #textarea
+          class="chat-textarea"
+          [value]="currentMessage()"
+          (input)="updateMessage($event)"
+          (keydown)="onKeydown($event)"
+          placeholder="Type your message…"
+          rows="1"
+          maxlength="2000"
+          [disabled]="sending()"
+          aria-label="Your message"></textarea>
+        <button
+          class="send-btn"
+          (click)="sendMessage()"
+          [disabled]="!canSend()"
+          aria-label="Send message"
+          title="Send (Enter)">
+          <span class="material-icons" aria-hidden="true">send</span>
+        </button>
+      </footer>
+    </div>
+  }
+}

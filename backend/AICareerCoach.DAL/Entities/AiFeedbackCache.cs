@@ -11,10 +11,10 @@ namespace AICareerCoach.DAL.Entities
     {
         public int Id { get; set; }
         public string UserId { get; set; }
-        public string CvHash { get; set; } = string.Empty;  
+        public string CvHash { get; set; } = string.Empty;   
         public string FeedbackJson { get; set; } = string.Empty; 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public User User { get; set; } = null!; 
+        public User User { get; set; } = null!;
     }
 }

@@ -1,11 +1,18 @@
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.BLL.services;
+using AICareerCoach.BLL.Interfaces.AI;
+using AICareerCoach.BLL.Interfaces.External;
 using AICareerCoach.BLL.Services;
+using AICareerCoach.BLL.Services.AI;
+using AICareerCoach.BLL.Services.External;
+using AICareerCoach.BLL.Services.Interfaces;
+using AICareerCoach.BLL.Services.Pdf;
+using QuestPDF.Infrastructure;
 using AICareerCoach.DAL.Data;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -42,12 +49,43 @@ namespace AICareerCoach.API
             builder.Services.AddScoped<ICVService, CVService>();
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IJobService, JobService>();
             builder.Services.AddScoped<IRoadmapService, RoadmapService>();
-
+            
             builder.Services.AddScoped<IPdfExtractorService, PdfExtractorService>();
             builder.Services.AddScoped<ILlmService, LlmService>();
             builder.Services.AddScoped<ICvFeedbackService, CvFeedbackService>();
+
+            builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+            builder.Services.AddScoped<ILlmExplanationService, LlmExplanationService>();
+            builder.Services.AddScoped<IJobRecommendationService, JobRecommendationService>();
+            builder.Services.AddScoped<IRoadmapTemplateStore, RoadmapTemplateStore>();
+            builder.Services.AddScoped<IRoadmapLlmService, RoadmapLlmService>();
+            builder.Services.AddScoped<IInterviewLlmService, InterviewLlmService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
+            builder.Services.AddScoped<IUserRoadmapService, UserRoadmapService>();
+            builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
+            builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
+
+            builder.Services.AddHttpClient<IJobProvider, JoobleJobProvider>();
+            builder.Services.AddScoped<ISkillExtractionService, SkillExtractionService>();
+            builder.Services.AddScoped<IJobSyncService, JobSyncService>();
+            builder.Services.AddHostedService<JobSyncHostedService>();
+            builder.Services.AddScoped<IPdfReportService, PdfReportService>();
+
+            builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
+            builder.Services.AddScoped<ISubscriptionGateService, SubscriptionGateService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IAdminSubscriptionService, AdminSubscriptionService>();
+builder.Services.AddScoped<IAdminRoadmapService, AdminRoadmapService>();
+            builder.Services.AddScoped<IAdminInterviewService, AdminInterviewService>();
+            builder.Services.AddHttpClient<IFawaterakService, FawaterakService>();
+            builder.Services.AddHttpClient<IFawaterakTokenService, FawaterakTokenService>();
+            builder.Services.AddMemoryCache();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -69,6 +107,16 @@ namespace AICareerCoach.API
                 };
             });
 
+            // Fail-closed default: every endpoint requires an authenticated user
+            // unless it explicitly opts out via [AllowAnonymous]. Individual
+            // controllers may still add role requirements on top of this.
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
@@ -77,11 +125,19 @@ namespace AICareerCoach.API
                           .AllowAnyMethod());
             });
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    options.JsonSerializerOptions.Converters.Add(
+                        new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            QuestPDF.Settings.License = LicenseType.Community;
 
             if (app.Environment.IsDevelopment())
             {
@@ -101,10 +157,21 @@ namespace AICareerCoach.API
             {
                 var context = scope.ServiceProvider.GetRequiredService<AICareerCoachDbContext>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                // Ensure LimitsJson column exists (migration was hand-written but never applied)
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Subscriptions') AND name = 'LimitsJson')
+                    BEGIN
+                        ALTER TABLE Subscriptions ADD LimitsJson nvarchar(max) NULL;
+                    END");
 
                 await RoleSeeder.SeedAsync(roleManager);
-                await JobSeeder.SeedAsync(context);
+                await AdminSeeder.SeedAsync(userManager, logger);
+                //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
+                await SubscriptionSeeder.SeedAsync(context);
             }
 
             app.MapControllers();

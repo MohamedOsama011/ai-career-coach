@@ -12,11 +12,14 @@ public class CV
 
     public string FilePath { get; set; } = string.Empty;
 
+    public string FileHash { get; set; } = string.Empty;
     public DateTime UploadedAt { get; set; }
+    public string? ExtractedData { get; set; }
 
-    public User User { get; set; } = null!;
+    public User? User { get; set; } = null!;
 
-    public ICollection<Roadmap> Roadmaps { get; set; } = new List<Roadmap>();
 
-    public ICollection<mockInterview> Interviews { get; set; } = new List<mockInterview>();
+    public virtual ICollection<Roadmap>? Roadmaps { get; set; } = new List<Roadmap>();
+
+
 }

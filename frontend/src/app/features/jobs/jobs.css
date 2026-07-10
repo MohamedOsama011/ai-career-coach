@@ -1,9 +1,9 @@
-.jobs-page-container {
+﻿.jobs-page-container {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 }
 
 .jobs-header {
@@ -11,33 +11,26 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 24px;
+  flex-wrap: wrap;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
-}
-
-.recommendations-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9CA3AF;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  gap: 6px;
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: #111827;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+  font-size: 28px;
+  font-weight: 750;
+  color: var(--brand-text);
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
-.page-subtitle {
-  font-size: 15px;
-  color: #6B7280;
+.panel-subtitle {
+  font-size: 14px;
+  color: var(--brand-text-secondary);
   margin: 0;
 }
 
@@ -46,20 +39,22 @@
   align-items: center;
 }
 
+.view-tabs,
 .filter-pills {
   display: flex;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
 }
 
+.view-tab,
 .filter-pill {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   border: none;
   background: transparent;
   border-radius: 8px;
@@ -67,14 +62,36 @@
   transition: all 0.2s ease;
 }
 
+.view-tab:hover,
 .filter-pill:hover {
-  color: #374151;
-  background: #F9FAFB;
+  color: var(--brand-text);
+  background: var(--brand-card-hover);
 }
 
+.view-tab.active,
 .filter-pill.active {
-  background: #111827;
-  color: #FFFFFF;
+  background: var(--brand-text);
+  color: var(--brand-on-primary);
+}
+
+.panel-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 750;
+  color: var(--brand-text);
+  margin: 0 0 4px 0;
 }
 
 .jobs-list {
@@ -83,51 +100,730 @@
   gap: 16px;
 }
 
-.empty-state {
+.recommendation-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 901px) {
+  .recommendation-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.is-rec .skeleton-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 901px) {
+  .is-rec .skeleton-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.view-panel {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.view-panel.is-rec {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.view-panel.is-all {
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.recommendation-card {
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardFadeIn 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 0.08s);
+}
+
+.recommendation-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-color: var(--brand-border);
+  transform: translateY(-2px);
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.recommendation-topline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 10px;
+}
+
+.badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.content-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-group h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand-text);
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.salary {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brand-text);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  /* gap: 2px; */
+}
+
+.salary .meta-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.company-line {
+  margin: 4px 0 0 0;
+  color: var(--brand-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.company-line .dot {
+  margin: 0 6px;
+  color: var(--brand-text-secondary);
+}
+
+.logo-area {
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+}
+
+.company-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand-text-secondary);
+  background: var(--brand-card);
+  letter-spacing: 0.5px;
+}
+
+.company-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.progress-ring-wrapper {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--brand-border);
+  stroke-width: 4;
+}
+
+.ring-arc {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 175.93;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-ring-wrapper.badge-high .ring-arc { stroke: var(--brand-success); }
+.progress-ring-wrapper.badge-medium .ring-arc { stroke: var(--brand-warning); }
+.progress-ring-wrapper.badge-low .ring-arc { stroke: var(--brand-danger); }
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--brand-text-secondary);
+  font-weight: 500;
+}
+
+.meta-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: var(--brand-text-secondary);
+}
+
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.badge-star {
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+}
+
+.match-badge.badge-high {
+  background: var(--brand-success-bg);
+  color: var(--brand-success);
+}
+
+.match-badge.badge-medium {
+  background: var(--brand-warning-bg);
+  color: var(--brand-warning);
+}
+
+.match-badge.badge-low {
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
+}
+
+.description-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding-left: 10px;
+}
+
+.recommendation-description {
+  margin: 0;
+  color: var(--brand-text);
+  font-size: 14px;
+  line-height: 1.6;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.explanation-box {
+  transition: border-color 0.2s ease;
+}
+
+.explanation-box.expanded {
+  background: var(--brand-warning-bg);
+  border: 1px solid var(--brand-warning-bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.explanation-box.expanded:hover {
+  border-color: var(--brand-warning-bg);
+}
+
+.explanation-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--brand-warning);
+  transition: color 0.2s ease;
+}
+
+.explanation-toggle:hover {
+  color: var(--brand-warning);
+}
+
+.explanation-toggle .material-icons {
+  font-size: 13px;
+  width: 13px;
+  height: 13px;
+}
+
+.explanation-label {
+  flex: 1;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.expand-icon {
+  transition: transform 0.25s ease;
+}
+
+.explanation-box.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.explanation-text {
+  margin: 0;
+  padding: 0 10px 8px;
+  color: var(--brand-warning);
+  line-height: 1.4;
+  font-size: 12px;
+  animation: explanationFadeIn 0.2s ease both;
+}
+
+.missing-skills-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #f3f3ef;
+  border: 1px solid var(--brand-warning-bg);
+  border-radius: 10px;
+}
+
+.missing-skills-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.missing-skills-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-warning);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.missing-skills-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.skill-pill {
+  background: var(--brand-card);
+  border: 1px solid var(--brand-warning-bg);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-warning);
+}
+
+.view-skills-link {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-warning);
+  text-decoration: none;
+}
+
+.view-skills-link:hover { text-decoration: underline; }
+
+@keyframes explanationFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bookmark-btn {
+  background: none;
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--brand-text-secondary);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bookmark-btn:hover {
+  background: var(--brand-card-hover);
+  border-color: var(--brand-border);
+  color: var(--brand-text);
+}
+
+.bookmark-btn.is-saved {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary-bg);
+  background: var(--brand-primary-bg);
+}
+
+.apply-btn {
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.apply-btn:hover {
+  background: var(--brand-primary-hover);
+}
+
+.state-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 32px;
-  background: #FFFFFF;
-  border: 1px dashed #D1D5DB;
+  padding: 56px 32px;
+  background: var(--brand-card);
+  border: 1px dashed var(--brand-border);
   border-radius: 16px;
   text-align: center;
+  gap: 10px;
+}
+
+.state-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand-text);
+  margin: 0;
+}
+
+.state-box p {
+  font-size: 14px;
+  color: var(--brand-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.state-box.error {
+  border-color: var(--brand-danger-bg);
+  color: var(--brand-danger);
+  background: var(--brand-danger-bg);
 }
 
 .empty-icon {
   font-size: 48px;
-  color: #9CA3AF;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  font-size: 14px;
-  color: #6B7280;
-  margin: 0;
+  color: var(--brand-text-secondary);
 }
 
 @media (max-width: 768px) {
-  .jobs-header {
+  .jobs-header,
+  .panel-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
   }
-  .header-right {
-    width: 100%;
-  }
+
+  .header-right,
+  .view-tabs,
   .filter-pills {
     width: 100%;
   }
+
+  .view-tab,
   .filter-pill {
     flex: 1;
     text-align: center;
   }
+
+  .recommendation-topline {
+    flex-wrap: wrap;
+  }
+
+  .logo-area,
+  .company-logo-img {
+    display: none;
+  }
+
+  .description-row {
+    flex-direction: column;
+  }
+
+  .apply-btn {
+    width: 100%;
+  }
+}
+
+/* â”€â”€ Skeleton: Recommendation Cards â”€â”€ */
+
+.skeleton-card {
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: cardFadeIn 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 0.08s);
+}
+
+.sk-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sk-badge      { width: 100px; height: 18px; border-radius: 999px; }
+.sk-icon-btn   { width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0; }
+
+.sk-content-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sk-logo        { width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0; }
+
+.sk-title-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-title-line   { width: 70%; height: 20px; }
+.sk-company-line { width: 40%; height: 14px; }
+
+.sk-description  { width: 100%; height: 42px; }
+.sk-explanation  { width: 160px; height: 14px; }
+
+/* â”€â”€ Skeleton: All Jobs Grid Cards â”€â”€ */
+
+.skeleton-grid-card {
+  display: grid;
+  grid-template-columns: 52px 2fr 1.5fr 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  animation: cardFadeIn 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 0.08s);
+  margin-bottom: 16px;
+}
+
+.skeleton-grid-card:last-child {
+  margin-bottom: 0;
+}
+
+.sk-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-grid-title  { width: 60%; height: 20px; }
+.sk-meta        { width: 40%; height: 14px; }
+
+.sk-skills-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sk-skill-tag   { width: 50px; height: 24px; border-radius: 6px; }
+
+.sk-salary      { width: 80px; height: 16px; }
+
+.sk-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.sk-btn         { width: 70px; height: 36px; border-radius: 8px; }
+
+/* â”€â”€ Pagination â”€â”€ */
+
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--brand-border);
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--brand-text-secondary);
+  font-weight: 500;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-text);
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background: var(--brand-card-hover);
+  border-color: var(--brand-text-secondary);
+}
+
+.pagination-btn.disabled,
+.pagination-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn .material-icons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.pagination-page {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-text-secondary);
+  white-space: nowrap;
+}
+
+.recommendation-card.locked-card {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(37, 99, 235, 0.08));
+  border: 1px dashed #93C5FD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  position: relative;
+  opacity: 0.95;
+}
+
+.recommendation-card.locked-card .locked-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px;
+  max-width: 360px;
+}
+
+.recommendation-card.locked-card .locked-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+}
+
+.recommendation-card.locked-card .locked-icon .material-icons {
+  font-size: 28px;
+}
+
+.recommendation-card.locked-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand-text);
+}
+
+.recommendation-card.locked-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--brand-text-secondary);
+  line-height: 1.5;
+}
+
+.recommendation-card.locked-card .unlock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  margin-top: 4px;
+}
+
+.recommendation-card.locked-card .unlock-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.recommendation-card.locked-card .unlock-btn .material-icons {
+  font-size: 18px;
 }

@@ -1,5 +1,4 @@
-﻿
-namespace AICareerCoach.BLL.Interfaces
+﻿namespace AICareerCoach.BLL.Services.Interfaces
 {
     public interface IPdfExtractorService
     {

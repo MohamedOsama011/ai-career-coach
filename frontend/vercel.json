@@ -1,0 +1,6 @@
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "buildCommand": "npx ng build --configuration production",
+  "outputDirectory": "dist/ai-career-coach/browser",
+  "installCommand": "npm ci"
+}

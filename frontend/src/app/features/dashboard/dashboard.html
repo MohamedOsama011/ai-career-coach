@@ -1,4 +1,15 @@
 <div class="dashboard-page-container">
+  <!-- Top loading bar -->
+  <div class="dashboard-loading-bar" *ngIf="loading()">
+    <div class="dashboard-loading-bar__fill"></div>
+  </div>
+
+  <!-- Error banner -->
+  <div class="dashboard-error-banner" *ngIf="error()">
+    <span class="material-icons">error_outline</span>
+    <span>{{ error() }}</span>
+  </div>
+
   <header class="dashboard-header">
     <div class="header-left">
       <span class="user-greeting">{{ greeting() }}, {{ userName() }}</span>
@@ -14,19 +25,18 @@
   </header>
 
   <!-- Row 1: Metrics Row -->
-  <div class="metrics-grid" *ngIf="metrics">
+  <div class="metrics-grid">
     <!-- Card 1: CV Score -->
     <div class="metric-card" (click)="viewCV()">
       <span class="metric-label">CV ANALYSIS SCORE</span>
       <div class="score-display">
-        <span class="score-num">{{ metrics.cvScore }}</span>
-        <span class="score-change">{{ metrics.cvScoreChange }}</span>
+        <span class="score-num">{{ cvScore() ?? '—' }}</span>
       </div>
       <div class="progress-bar-container">
         <div class="progress-bar-track"></div>
-        <div class="progress-bar-fill" [style.width.%]="metrics.cvScore"></div>
+        <div class="progress-bar-fill" [style.width.%]="cvScore() ?? 0"></div>
       </div>
-      <p class="metric-footer">Top matches: {{ metrics.cvTopMatches }}</p>
+      <p class="metric-footer">Top matches: {{ cvTopMatches() }}</p>
       <a class="report-link" (click)="viewCV(); $event.stopPropagation()">Open full report &nearr;</a>
     </div>
 
@@ -34,32 +44,24 @@
     <div class="metric-card" (click)="viewRoadmap()">
       <span class="metric-label">ROADMAP PROGRESS</span>
       <div class="score-display">
-        <span class="score-num">{{ metrics.roadmapCompleted }}</span>
-        <span class="score-total">/ {{ metrics.roadmapTotal }} milestones</span>
+        <span class="score-num">{{ roadmapTotal() }}</span>
+        <span class="score-total">milestones</span>
       </div>
-      <div class="roadmap-segments">
-        @for (seg of roadmapSegments; track $index) {
-          <div 
-            class="segment" 
-            [class.active]="$index < metrics.roadmapCompleted"
-          ></div>
-        }
-      </div>
-      <p class="metric-footer footer-next">Next: {{ metrics.roadmapNext }}</p>
+      <p class="metric-footer footer-next">Next: {{ roadmapNext() }}</p>
     </div>
 
     <!-- Card 3: Interview Readiness -->
     <div class="metric-card" (click)="startInterview()">
       <span class="metric-label">INTERVIEW READINESS</span>
       <div class="score-display">
-        <span class="score-num">{{ metrics.interviewGrade }}</span>
+        <span class="score-num">{{ interviewGrade() }}</span>
         <a class="sessions-link" (click)="startInterview(); $event.stopPropagation()">
-          {{ metrics.interviewSessions }} sessions logged
+          {{ interviewSessions() }} sessions logged
         </a>
       </div>
-      <div class="interview-tags">
-        @for (topic of metrics.interviewTopics; track topic) {
-          <span class="topic-tag">{{ topic.toUpperCase() }}</span>
+      <div class="interview-tags" *ngIf="interviewTopics().length > 0">
+        @for (topic of interviewTopics(); track topic) {
+          <span class="topic-tag">{{ trackLabel(topic) }}</span>
         }
       </div>
     </div>
@@ -73,8 +75,8 @@
         <span class="metric-label">SKILLS GAP ANALYSIS</span>
         <span class="sync-status">SYSTEM_SYNC_ACTIVE</span>
       </div>
-      <div class="skills-list">
-        @for (skill of skills; track skill.name) {
+      <div class="skills-list" *ngIf="skills().length > 0">
+        @for (skill of skills(); track skill.name) {
           <div class="skill-row">
             <div class="skill-meta">
               <span class="skill-name">{{ skill.name }}</span>
@@ -82,21 +84,24 @@
             </div>
             <div class="skill-bar-container">
               <div class="skill-bar-track"></div>
-              <div 
-                class="skill-bar-fill" 
-                [class]="skill.type" 
+              <div
+                class="skill-bar-fill"
+                [class]="skill.type"
                 [style.width.%]="skill.progress"
               ></div>
             </div>
           </div>
         }
       </div>
+      <p class="metric-footer" *ngIf="skills().length === 0">
+        Generate a roadmap to see your skills gap analysis.
+      </p>
     </div>
 
     <!-- Upcoming List (1/3 width) -->
     <div class="upcoming-card">
       <span class="metric-label">UPCOMING</span>
-      <div class="events-list">
+      <div class="events-list" *ngIf="events.length > 0">
         @for (ev of events; track ev.title) {
           <div class="event-row">
             <div class="event-day">{{ ev.day }}</div>
@@ -104,6 +109,7 @@
           </div>
         }
       </div>
+      <p class="metric-footer" *ngIf="events.length === 0">No upcoming events.</p>
     </div>
   </div>
 
@@ -113,8 +119,8 @@
       <span class="metric-label">RECOMMENDED FOR YOU</span>
       <a class="view-all-link" (click)="viewJobs()">View all &nearr;</a>
     </div>
-    <div class="recommendations-grid">
-      @for (job of recommendations; track job.title) {
+    <div class="recommendations-grid" *ngIf="recommendations().length > 0">
+      @for (job of recommendations(); track job.title) {
         <div class="job-mini-card" (click)="viewJobs()">
           <span class="job-match-score">{{ job.match }}% MATCH</span>
           <h3 class="job-title">{{ job.title }}</h3>
@@ -123,5 +129,8 @@
         </div>
       }
     </div>
+    <p class="metric-footer" *ngIf="recommendations().length === 0">
+      Upload a CV to see personalized job recommendations.
+    </p>
   </div>
 </div>

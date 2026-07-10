@@ -1,0 +1,79 @@
+<div class="container">
+    <div class="header">
+        <h2>Payment History</h2>
+        <p class="subtitle">{{ totalCount() }} total payment{{ totalCount() === 1 ? '' : 's' }}</p>
+    </div>
+
+    @if (error()) {
+        <div class="error-banner">
+            <span class="material-icons">error_outline</span>
+            <span>{{ error() }}</span>
+        </div>
+    }
+
+    @if (loading()) {
+        <div class="loading-state">
+            <span class="spinner"></span>
+            <p>Loading payments...</p>
+        </div>
+    } @else if (payments().length === 0) {
+        <div class="empty-state">
+            <span class="material-icons">receipt_long</span>
+            <p>No payments yet.</p>
+            <a class="btn btn-primary" routerLink="/subscriptions">View Plans</a>
+        </div>
+    } @else {
+        <div class="table-wrapper card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Transaction</th>
+                        <th>Status</th>
+                        <th class="actions-col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (p of payments(); track p.paymentId) {
+                        <tr>
+                            <td class="date-cell">{{ p.paidAt | date: 'medium' }}</td>
+                            <td>{{ p.planName }}</td>
+                            <td class="amount-cell">{{ p.currency }} {{ p.amount }}</td>
+                            <td>{{ p.paymentMethod || '—' }}</td>
+                            <td class="tx-cell" [title]="p.transactionId || ''">
+                                {{ p.transactionId ? (p.transactionId.length > 12 ? (p.transactionId.substring(0, 12) + '…') : p.transactionId) : '—' }}
+                            </td>
+                            <td>
+                                <span class="status-badge" [class.paid]="p.status === 'Paid'" [class.pending]="p.status === 'Pending'" [class.failed]="p.status === 'Failed'">
+                                    {{ p.status }}
+                                </span>
+                            </td>
+                            <td class="actions-col">
+                                <a class="btn-icon" [routerLink]="['/invoice', p.paymentId]" aria-label="View invoice">
+                                    <span class="material-icons">description</span>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (payments().length > 0) {
+            <div class="pagination">
+                <button class="btn btn-secondary" (click)="prevPage()" [disabled]="!canGoPrev() || loading()">
+                    <span class="material-icons">chevron_left</span>
+                    Previous
+                </button>
+                <span class="page-info">Page {{ page() }}</span>
+                <button class="btn btn-secondary" (click)="nextPage()" [disabled]="!canGoNext() || loading()">
+                    Next
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        }
+    }
+</div>

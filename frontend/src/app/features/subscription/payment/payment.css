@@ -1,0 +1,178 @@
+.payment-container {
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.payment-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.payment-card h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.plan-header {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  text-align: center;
+}
+
+.plan-name {
+  margin: 0 0 0.5rem !important;
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  color: #1E3A8A !important;
+}
+
+.plan-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.plan-price {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #1D4ED8;
+}
+
+.plan-duration {
+  font-size: 0.9375rem;
+  color: #4B5563;
+  font-weight: 500;
+}
+
+.methods-title {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.payment-loading {
+  text-align: center;
+  padding: 2rem 0;
+  color: #6B7280;
+}
+
+.spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.payment-error {
+  text-align: center;
+  padding: 2rem 0;
+  color: #DC2626;
+}
+
+.payment-error span {
+  font-size: 2rem;
+}
+
+.payment-error .btn {
+  margin-top: 1rem;
+}
+
+.payment-empty {
+  text-align: center;
+  padding: 2rem 0;
+  color: #6B7280;
+}
+
+.methods-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.method-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+  color: #111827;
+  text-align: left;
+  width: 100%;
+}
+
+.method-card:hover:not(:disabled) {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.method-card.selected {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.method-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.method-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.method-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.method-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #BFDBFE;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+}

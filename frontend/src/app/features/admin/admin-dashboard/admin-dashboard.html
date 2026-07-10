@@ -1,0 +1,128 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Admin Dashboard</h1>
+      <p class="page-subtitle">System overview and management</p>
+    </div>
+    <div class="header-actions">
+      <button class="customize-btn" (click)="toggleCustomizer()" [attr.aria-label]="'Customize dashboard widgets'">
+        <span class="material-icons">widgets</span> Customize
+      </button>
+      <button class="refresh-btn" (click)="loadAll()" [attr.aria-label]="'Refresh data'">
+        <span class="material-icons">refresh</span> Refresh
+      </button>
+      @if (showCustomizer()) {
+        <div class="customizer-backdrop" (click)="closeCustomizer()"></div>
+        <div class="customizer-panel">
+          <div class="customizer-header">
+            <span class="customizer-title">Widgets</span>
+            <button class="customizer-close" (click)="closeCustomizer()" aria-label="Close">&times;</button>
+          </div>
+          <p class="customizer-drag-note">Drag cards to reorder &middot; Toggle to show/hide</p>
+          @for (def of widgetDefs; track def.key) {
+            <label class="customizer-row">
+              <input type="checkbox" [checked]="!hiddenWidgets().includes(def.key)" (change)="toggleWidget(def.key)" />
+              <span class="customizer-dot" [style.background]="def.color"></span>
+              <span class="customizer-label">{{ def.label }}</span>
+            </label>
+          }
+          <div class="customizer-footer">
+            <button class="reset-link" (click)="resetToDefault()">Reset to default</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (error(); as err) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ err }}</span>
+      <button class="error-dismiss" (click)="error.set(null)" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (loading() && !stats()) {
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  }
+
+  @if (cacheClearResult(); as result) {
+    <div class="result-banner" [class.success]="result.startsWith('AI cache cleared')" [class.failure]="!result.startsWith('AI cache cleared')" role="alert">
+      <span class="material-icons">{{ result.startsWith('AI cache cleared') ? 'check_circle' : 'error_outline' }}</span>
+      <span>{{ result }}</span>
+      <button class="result-dismiss" (click)="cacheClearResult.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (stats(); as s) {
+    @if (displayedKeys().length === 0) {
+      <div class="empty-state">
+        <span class="material-icons empty-icon">widgets</span>
+        <p>All widgets are hidden. Open <strong>Customize</strong> to show some.</p>
+      </div>
+    } @else {
+      <div class="stat-grid" cdkDropList (cdkDropListDropped)="onDrop($event)">
+        @for (key of displayedKeys(); track key) {
+          <div cdkDrag cdkDragLockAxis="y" class="drag-item">
+            <app-stat-card
+              [label]="widgetDef(key).label"
+              [value]="widgetDef(key).getValue(s)"
+              [icon]="widgetDef(key).icon"
+              [color]="widgetDef(key).color"
+            />
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">insights</span>
+      <p>{{ loading() ? 'Loading statistics...' : 'No data available' }}</p>
+    </div>
+  }
+
+  <section class="quick-section">
+    <h2>Quick Access</h2>
+    <div class="quick-grid">
+      @for (link of quickLinks; track link.path) {
+        <a class="tile-card" [routerLink]="link.path">
+          <div class="tile-icon-wrapper">
+            <span class="material-icons tile-icon">{{ link.icon }}</span>
+          </div>
+          <div class="tile-label">{{ link.label }}</div>
+          <div class="tile-desc">{{ link.desc }}</div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="tools-section">
+    <h2>Tools</h2>
+    <div class="tool-card">
+      <div class="tool-icon-wrapper">
+        <span class="material-icons tool-icon">cached</span>
+      </div>
+      <div class="tool-body">
+        <div class="tool-label">Clear AI Cache</div>
+        <div class="tool-desc">Remove all cached AI feedback and job recommendation results. Forces regeneration on next request.</div>
+      </div>
+      <button class="tool-action" (click)="requestClearCache()" [disabled]="cacheClearing()">
+        @if (cacheClearing()) {
+          <span class="material-icons spinner">refresh</span> Clearing...
+        } @else {
+          <span class="material-icons">delete_sweep</span> Clear Cache
+        }
+      </button>
+    </div>
+  </section>
+</div>
+
+<app-confirm-modal
+  [open]="showClearCacheModal()"
+  title="Clear AI Cache?"
+  message="This will delete all cached CV feedback and job recommendations. Users will see fresh regenerated results on their next request. This action cannot be undone."
+  confirmText="Clear Cache"
+  variant="danger"
+  (confirm)="confirmClearCache()"
+  (cancel)="cancelClearCache()"
+/>

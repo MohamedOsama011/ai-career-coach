@@ -1,0 +1,94 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Plans Management</h1>
+      <p class="subtitle">{{ totalPlans() }} plan(s) in database</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openAdd()">
+        <span class="material-icons">add</span>
+        <span>Add Plan</span>
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Loading plans...</p>
+    </div>
+  } @else if (plans().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons" style="font-size: 3rem; color: #9CA3AF;">card_membership</span>
+      <p>No plans yet. Click "Add Plan" to create one.</p>
+    </div>
+  } @else {
+    <div class="table-wrapper card">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Duration</th>
+            <th>Limits</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (plan of plans(); track plan.id) {
+            <tr>
+              <td class="name-cell">{{ plan.name }}</td>
+              <td>EGP {{ plan.price }}</td>
+              <td>{{ plan.durationMonths }}mo</td>
+              <td class="limits-cell">
+                @if (plan.limitsJson) {
+                  <span class="limit-badge">{{ parseLimit(plan.limitsJson, 'interviewSessions') }} int.</span>
+                  <span class="limit-badge">{{ parseLimit(plan.limitsJson, 'roadmapGenerations') }} rm.</span>
+                } @else {
+                  <span class="limit-badge default">default</span>
+                }
+              </td>
+              <td class="actions-col">
+                <button class="btn-icon" (click)="openEdit(plan)" aria-label="Edit plan">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="btn-icon danger" (click)="requestDelete(plan.id)" aria-label="Delete plan">
+                  <span class="material-icons">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showForm()) {
+  <app-plan-form-modal
+    [plan]="editingPlan()"
+    (save)="savePlan($event)"
+    (cancel)="closeForm()"
+  />
+}
+
+@if (pendingDeleteId() !== null) {
+  <app-confirm-modal
+    [open]="true"
+    title="Delete plan?"
+    [message]="'Are you sure you want to delete &quot;' + (pendingDeletePlan()?.name ?? 'this plan') + '&quot;? This cannot be undone.'"
+    confirmText="Delete"
+    variant="danger"
+    [loading]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  />
+}

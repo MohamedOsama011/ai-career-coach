@@ -1,0 +1,113 @@
+.upgrade-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 20px;
+}
+
+.upgrade-modal {
+  background: var(--brand-card, #fff);
+  border: 1px solid var(--brand-border, #E5E7EB);
+  border-radius: 16px;
+  padding: 32px 24px 24px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.upgrade-modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.upgrade-modal-icon .material-icons {
+  font-size: 32px;
+}
+
+.upgrade-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-text, #111827);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.upgrade-modal-message {
+  font-size: 14px;
+  color: var(--brand-text-secondary, #6B7280);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.upgrade-modal-usage {
+  font-size: 13px;
+  color: var(--brand-text-secondary, #6B7280);
+  margin: 0;
+  padding: 6px 12px;
+  background: var(--brand-bg, #F3F4F6);
+  border-radius: 6px;
+}
+
+.upgrade-modal-usage strong {
+  color: var(--brand-text, #111827);
+}
+
+.upgrade-modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.upgrade-modal-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border: 1px solid var(--brand-border, #E5E7EB);
+  background: var(--brand-bg, #F3F4F6);
+  color: var(--brand-text, #111827);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.upgrade-modal-btn.cancel:hover {
+  border-color: var(--brand-text-secondary, #6B7280);
+}
+
+.upgrade-modal-btn.confirm {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.upgrade-modal-btn.confirm:hover {
+  filter: brightness(1.05);
+}
+
+.upgrade-modal-btn .material-icons {
+  font-size: 18px;
+}

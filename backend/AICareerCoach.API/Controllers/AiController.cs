@@ -1,4 +1,4 @@
-﻿using AICareerCoach.BLL.Interfaces;
+﻿using AICareerCoach.BLL.Interfaces.AI;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +9,6 @@ namespace AICareerCoach.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class AiController : ControllerBase
     {
         private readonly ICvFeedbackService _feedbackService;

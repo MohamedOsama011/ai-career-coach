@@ -13,5 +13,7 @@ namespace AICareerCoach.BLL.Interfaces
         Task<PagedResult<JobDto>> GetJobsAsync(JobFilterDto filter);
         Task<JobDto> GetByIdAsync(int id);
         Task<JobDto> CreateAsync(CreateJobDto dto);
+        Task<JobDto> UpdateAsync(int id, UpdateJobDto dto);
+        Task DeleteAsync(int id);
     }
 }

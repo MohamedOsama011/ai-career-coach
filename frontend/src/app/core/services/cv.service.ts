@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
@@ -21,11 +23,17 @@ uploadCV(file: File, userId: string) {
       formData
     );}
 
-getUserCVs(userId: string) {
+  getUserCVs(userId: string) {
   return this.http.get<any[]>(
     `${this.apiUrl}/user/${userId}`
   );
 }
+
+  getCvText(cvId: number): Observable<{ extractedData: string }> {
+    return this.http.get<{ extractedData: string }>(
+      `${this.apiUrl}/${cvId}/text`
+    ).pipe(timeout(7000));
+  }
 
 deleteCV(id:number){
   return this.http.delete(

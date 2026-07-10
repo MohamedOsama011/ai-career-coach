@@ -1,9 +1,25 @@
 <div class="skills-page-container">
   <header class="skills-header">
     <div class="header-left">
-      <span class="track-label">DETECTED AGAINST SENIOR FRONTEND TRACK</span>
+      <span class="track-label">SKILLS GAP ANALYSIS</span>
       <h1 class="page-title">Skills Gap Analysis</h1>
-      <p class="page-subtitle">Your current proficiency vs the median requirement for your target role.</p>
+      <p class="page-subtitle">Your current proficiency vs the requirement for your target role, based on your CV.</p>
+    </div>
+    <div class="header-right" *ngIf="categories().length > 0">
+      <label class="sort-label">
+        Sort:
+        <select class="sort-select" [value]="sortMode()" (change)="onSortChange($event)">
+          <option value="priority">Priority</option>
+          <option value="alphabetical">Alphabetical</option>
+        </select>
+      </label>
+      <button class="rescan-btn"
+              (click)="rescan()"
+              [disabled]="rescanning()">
+        <span class="material-icons" *ngIf="!rescanning()">refresh</span>
+        <span class="material-icons spinning" *ngIf="rescanning()">sync</span>
+        {{ rescanning() ? 'Rescanning...' : 'Rescan Gaps' }}
+      </button>
     </div>
   </header>
 
@@ -18,26 +34,104 @@
     </div>
   </div>
 
-  <div class="skills-grid">
-    @for (category of categories; track category.title) {
-      <div class="category-card">
-        <h2 class="category-title">{{ category.title }}</h2>
-        <div class="skills-list">
-          @for (skill of category.skills; track skill.name) {
-            <div class="skill-row">
-              <div class="skill-info">
-                <span class="skill-name">{{ skill.name }}</span>
-                <span class="skill-ratio">{{ skill.current }}/{{ skill.target }}</span>
+  @if (showBanner()) {
+    <div class="context-banner" role="status">
+      <span class="material-icons context-banner-icon">work</span>
+      <div class="context-banner-text">
+        <span class="context-banner-label">Skills relevant to</span>
+        <strong class="context-banner-job">{{ contextJobTitle() }}</strong>
+        @if (skillsNotInRoadmap().length > 0) {
+          <span class="context-banner-note">{{ skillsNotInRoadmap().length }} of {{ highlightedSkills().size }} skill(s) are not yet in your roadmap.</span>
+        } @else {
+          <span class="context-banner-note positive">All listed skills are already in your gap analysis below.</span>
+        }
+      </div>
+      <button class="context-banner-close" (click)="dismissBanner()" type="button" aria-label="Dismiss">
+        <span class="material-icons" aria-hidden="true">close</span>
+      </button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">sync</span>
+      <h2>Loading...</h2>
+      <p>Fetching your skills gap analysis.</p>
+    </div>
+  } @else if (hasServerError()) {
+    <div class="empty-state error">
+      <span class="material-icons empty-icon">cloud_off</span>
+      <h2>Connection Error</h2>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (noRoadmap()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">explore</span>
+      <h2>No Roadmap Yet</h2>
+      <p>You haven't generated a Career Roadmap yet. Go to the Roadmap page, enter a target role, and generate one to see your skills gap analysis here.</p>
+    </div>
+  } @else if (categories().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">insights</span>
+      <h2>No Gap Data</h2>
+      <p>Your roadmap exists but doesn't contain skill gap data. Try regenerating the roadmap.</p>
+    </div>
+  } @else {
+    <div class="skills-container">
+      @for (category of sortedCategories(); track category.category) {
+        <div class="category-section">
+          <div class="category-header">
+            <h2 class="category-title">{{ category.category }}</h2>
+          </div>
+          <div class="category-skills">
+            @for (skill of category.skills; track skill.skillName) {
+              <div class="skill-row" [class.highlighted]="isHighlighted(skill.skillName)">
+                <div class="skill-left">
+                  <div class="skill-info">
+                    <span class="skill-name">{{ skill.skillName }}</span>
+                    <span class="priority-badge" [class]="priorityClass(skill.priority)">{{ skill.priority }}</span>
+                    @if (isHighlighted(skill.skillName)) {
+                      <span class="skill-from-badge">From job</span>
+                    }
+                  </div>
+                  <p class="skill-gap">{{ skill.gap }}</p>
+                </div>
+                <div class="skill-right">
+                  <div class="skill-levels">
+                    <span class="level-text current">{{ skill.currentLevel }}</span>
+                    <span class="level-arrow">→</span>
+                    <span class="level-text target">{{ skill.requiredLevel }}</span>
+                  </div>
+                  <div class="skill-bar-group">
+                    <div class="bar-container">
+                      <div class="bar-fill target" [style.width.%]="levelToPercent(skill.requiredLevel)"></div>
+                      <div class="bar-fill current" [style.width.%]="levelToPercent(skill.currentLevel)"></div>
+                    </div>
+                    <span class="bar-values">{{ levelToPercent(skill.currentLevel) }}% → {{ levelToPercent(skill.requiredLevel) }}%</span>
+                  </div>
+                </div>
               </div>
-              <div class="progress-container">
-                <div class="progress-track"></div>
-                <div class="progress-bar target" [style.width.%]="skill.target"></div>
-                <div class="progress-bar current" [style.width.%]="skill.current"></div>
-              </div>
-            </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (hasContext() && skillsNotInRoadmap().length > 0) {
+      <div class="not-in-roadmap-section">
+        <div class="not-in-roadmap-header">
+          <span class="material-icons">school</span>
+          <h2>Not in your roadmap yet</h2>
+        </div>
+        <p class="not-in-roadmap-subtitle">
+          These skills from <strong>{{ contextJobTitle() }}</strong> aren't tracked in your current roadmap. Consider adding them via a rescan or a fresh roadmap generation.
+        </p>
+        <div class="not-in-roadmap-pills">
+          @for (skill of skillsNotInRoadmap(); track skill) {
+            <span class="not-in-roadmap-pill">{{ skill }}</span>
           }
         </div>
       </div>
     }
-  </div>
+  }
 </div>

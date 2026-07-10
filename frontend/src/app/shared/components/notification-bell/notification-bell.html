@@ -1,0 +1,58 @@
+<div class="notification-bell-wrapper">
+  <button class="bell-btn" (click)="toggleDropdown()" aria-label="Notifications">
+    <span class="material-icons" aria-hidden="true">notifications</span>
+    @if (unreadCount(); as count) {
+      <span class="bell-badge" [attr.aria-label]="count + ' unread notifications'">
+        {{ count > 99 ? '99+' : count }}
+      </span>
+    }
+  </button>
+
+  @if (dropdownOpen()) {
+    <div class="notification-dropdown" role="menu" aria-label="Notifications">
+      <div class="dropdown-header">
+        <span class="dropdown-title">Notifications</span>
+        @if (unreadCount() > 0) {
+          <button class="mark-all-btn" (click)="markAllRead()">Mark all read</button>
+        }
+      </div>
+
+      <div class="dropdown-body">
+        @if (loading()) {
+          <div class="dropdown-loading">Loading...</div>
+        } @else if (recentNotifications().length === 0) {
+          <div class="dropdown-empty">
+            <span class="material-icons" aria-hidden="true">notifications_none</span>
+            <p>No notifications yet</p>
+          </div>
+        } @else {
+          @for (n of recentNotifications(); track n.id) {
+            <div class="notification-item" [class.unread]="!n.isRead" (click)="markRead(n)" role="menuitem">
+              <div class="notification-icon-wrapper">
+                <span class="material-icons notif-icon" [class]="'notif-' + n.type" aria-hidden="true">
+                  @switch (n.type) {
+                    @case ('success') { check_circle }
+                    @case ('warning') { warning }
+                    @case ('broadcast') { campaign }
+                    @default { info }
+                  }
+                </span>
+              </div>
+              <div class="notification-content">
+                <div class="notif-title">{{ n.title }}</div>
+                @if (n.body) {
+                  <div class="notif-body">{{ truncate(n.body, 80) }}</div>
+                }
+                <div class="notif-time">{{ n.timeAgo }}</div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  @if (dropdownOpen()) {
+    <div class="dropdown-backdrop" (click)="closeDropdown()"></div>
+  }
+</div>

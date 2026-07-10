@@ -1,0 +1,117 @@
+<header class="interview-header">
+  <div class="header-left">
+    <span class="lab-label">AI INTERVIEW LAB</span>
+    <h1 class="page-title">Mock Interview</h1>
+    <p class="page-subtitle">{{ userName() ? 'Welcome back, ' + userName() + '! Ready for your next challenge?' : 'Welcome back! Ready for your next challenge?' }}</p>
+  </div>
+</header>
+
+@if (hasActiveInProgress()) {
+  <div class="resume-banner">
+    <span class="material-icons" aria-hidden="true">play_circle</span>
+    <span>You have an interview in progress.</span>
+    <button class="resume-btn" (click)="onResumeActiveInterview()" aria-label="Resume interview in progress">Resume Interview</button>
+  </div>
+}
+
+@if (history().length === 0 && !hasActiveInProgress()) {
+  <app-card class="first-time-cta">
+    <h3 class="first-time-cta-title">Welcome to the AI Interview Lab</h3>
+    <p class="first-time-cta-text">Practice behavioral, technical coding, or system design interviews with AI feedback.</p>
+    <button class="action-btn primary" (click)="onSetupNew()">
+      <span class="material-icons" aria-hidden="true">play_arrow</span>
+      Start Your First Interview
+    </button>
+  </app-card>
+} @else {
+  <div class="dashboard-grid">
+    <div class="left-col">
+      @if (lastSession(); as last) {
+        <app-card class="welcome-card">
+          <p class="welcome-text">
+            Your last session was:
+            <span class="welcome-data">
+              <span class="welcome-data-line-1">
+                <span class="welcome-data-track">{{ trackLabel(last.track) }}</span>
+                <span class="welcome-data-sep">&middot;</span>
+                <span class="welcome-data-difficulty">{{ last.difficulty }}</span>
+              </span>
+              <span class="welcome-data-role">{{ displayRole(last.targetRole) }}</span>
+            </span>
+          </p>
+          <div class="welcome-actions">
+            <button class="action-btn primary" (click)="onViewLastScorecard()">
+              <span class="material-icons" aria-hidden="true">assessment</span>
+              View Last Scorecard Report
+            </button>
+            <button class="action-btn secondary" (click)="onSetupNew()">
+              <span class="material-icons" aria-hidden="true">play_arrow</span>
+              Setup New Interview
+            </button>
+          </div>
+        </app-card>
+      }
+
+      <app-card class="history-card">
+        <div class="history-header">
+          <h3 class="history-title">Past Sessions</h3>
+          @if (selectedTrackFilter(); as filter) {
+            <span class="filter-label">
+              {{ trackLabel(filter) }}
+              <button class="filter-clear" (click)="onClearTrackFilter()" aria-label="Clear track filter">&times;</button>
+            </span>
+          }
+        </div>
+        @if (filteredHistory().length > 0) {
+          <ul class="history-list">
+            @for (item of filteredHistory(); track item.id) {
+              <li class="history-item" (click)="onLoadScorecardById(item.id)" title="View scorecard">
+                <span class="history-track">{{ trackLabel(item.track) }}</span>
+                <span class="history-difficulty">{{ item.difficulty }}</span>
+                @if (item.letterGrade) {
+                  <span class="history-grade" [class]="gradeClass(item.letterGrade)" [attr.aria-label]="gradeLabel(item.letterGrade)">{{ item.letterGrade }}</span>
+                }
+                <span class="history-date">{{ item.createdAt | date:'shortDate' }}</span>
+                <button class="history-delete-btn" (click)="onRequestDeleteSession(item.id, $event)" [attr.aria-label]="'Delete session from ' + (item.createdAt | date:'shortDate')" title="Delete session" type="button">
+                  <span class="material-icons" aria-hidden="true">delete_outline</span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="history-empty">
+            @if (selectedTrackFilter()) {
+              No sessions found for this track.
+            } @else {
+              No past sessions yet.
+            }
+          </p>
+        }
+      </app-card>
+    </div>
+
+    <div class="right-col">
+      @if (lastSession(); as last) {
+        @if (last.overallScore != null && last.letterGrade) {
+          <app-card class="last-score-card">
+            <span class="last-score-label">LAST SCORE</span>
+            <span class="last-score-grade">{{ last.letterGrade }}</span>
+            <span class="last-score-meta">{{ trackLabel(last.track) }} &middot; {{ last.difficulty }}</span>
+          </app-card>
+        }
+      }
+
+      <div class="tracks-sidebar">
+        <span class="tracks-sidebar-label" id="tracks-sidebar-label">TRACKS</span>
+        @for (t of trackOptions(); track t.value) {
+          @let count = trackCounts()[t.value];
+          <app-card class="track-card" [class.selected]="selectedTrackFilter() === t.value" (click)="onSelectTrackFilter(t.value)">
+            <h4 class="track-card-title">{{ t.label }}</h4>
+            <p class="track-card-subtitle">{{ trackSubtitle(t.value) }}</p>
+            <span class="track-card-count" [attr.aria-label]="count + ' ' + (count === 1 ? 'session' : 'sessions') + ' in ' + t.label">{{ count }} {{ count === 1 ? 'session' : 'sessions' }}</span>
+          </app-card>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -6,6 +6,43 @@
   gap: 32px;
 }
 
+.dashboard-loading-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dashboard-loading-bar__fill {
+  height: 100%;
+  width: 40%;
+  background: var(--brand-primary);
+  animation: dashboard-loading-bar-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes dashboard-loading-bar-slide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(150%); }
+  100% { transform: translateX(350%); }
+}
+
+.dashboard-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
+  border: 1px solid var(--brand-danger-bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -21,7 +58,7 @@
 .user-greeting {
   font-size: 11px;
   font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   margin-bottom: 6px;
@@ -30,20 +67,20 @@
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 15px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 0;
 }
 
 .start-interview-btn {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
   border: none;
   padding: 10px 22px;
   font-size: 14px;
@@ -57,7 +94,7 @@
 }
 
 .start-interview-btn:hover {
-  background: #1D4ED8;
+  background: var(--brand-primary-hover);
 }
 
 .sparkles-icon {
@@ -72,8 +109,8 @@
 }
 
 .metric-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -84,14 +121,14 @@
 
 .metric-card:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border-color: #D1D5DB;
+  border-color: var(--brand-border);
   transform: translateY(-2px);
 }
 
 .metric-label {
   font-size: 11px;
   font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
@@ -106,20 +143,20 @@
 .score-num {
   font-size: 40px;
   font-weight: 800;
-  color: #111827;
+  color: var(--brand-text);
   line-height: 1;
 }
 
 .score-change {
   font-size: 14px;
   font-weight: 600;
-  color: #2563EB;
+  color: var(--brand-primary);
 }
 
 .score-total {
   font-size: 14px;
   font-weight: 600;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
 }
 
 .progress-bar-container {
@@ -134,7 +171,7 @@
   top: 0;
   right: 0;
   bottom: 0;
-  background: #F3F4F6;
+  background: var(--brand-bg);
   border-radius: 9999px;
 }
 
@@ -143,19 +180,19 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background: #2563EB;
+  background: var(--brand-primary);
   border-radius: 9999px;
 }
 
 .metric-footer {
   font-size: 13px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 16px 0 0 0;
 }
 
 .report-link {
   font-size: 13px;
-  color: #2563EB;
+  color: var(--brand-primary);
   font-weight: 600;
   text-decoration: none;
   margin-top: 12px;
@@ -176,12 +213,12 @@
 .segment {
   flex: 1;
   height: 6px;
-  background: #F3F4F6;
+  background: var(--brand-bg);
   border-radius: 9999px;
 }
 
 .segment.active {
-  background: #2563EB;
+  background: var(--brand-primary);
 }
 
 .footer-next {
@@ -191,7 +228,7 @@
 /* Interview Readiness */
 .sessions-link {
   font-size: 13px;
-  color: #2563EB;
+  color: var(--brand-primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -208,12 +245,12 @@
 }
 
 .topic-tag {
-  background: #F3F4F6;
+  background: var(--brand-bg);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 10px;
   font-weight: 700;
-  color: #4B5563;
+  color: var(--brand-text-secondary);
   letter-spacing: 0.5px;
 }
 
@@ -225,8 +262,8 @@
 }
 
 .skills-gap-card, .upcoming-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -240,7 +277,7 @@
 
 .skills-gap-card:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border-color: #D1D5DB;
+  border-color: var(--brand-border);
   transform: translateY(-2px);
 }
 
@@ -248,7 +285,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid var(--brand-bg);
   padding-bottom: 16px;
   margin-bottom: 20px;
 }
@@ -256,7 +293,7 @@
 .sync-status {
   font-size: 11px;
   font-weight: 700;
-  color: #2563EB;
+  color: var(--brand-primary);
   letter-spacing: 0.5px;
 }
 
@@ -281,7 +318,7 @@
 .skill-name {
   font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: var(--brand-text);
 }
 
 .skill-status {
@@ -291,11 +328,11 @@
 }
 
 .skill-status.mastered, .skill-status.strong {
-  color: #111827;
+  color: var(--brand-text);
 }
 
 .skill-status.leveling, .skill-status.gap {
-  color: #2563EB;
+  color: var(--brand-primary);
 }
 
 .skill-bar-container {
@@ -310,7 +347,7 @@
   top: 0;
   right: 0;
   bottom: 0;
-  background: #F3F4F6;
+  background: var(--brand-bg);
   border-radius: 9999px;
 }
 
@@ -324,11 +361,11 @@
 }
 
 .skill-bar-fill.mastered, .skill-bar-fill.strong {
-  background: #111827;
+  background: var(--brand-text);
 }
 
 .skill-bar-fill.leveling, .skill-bar-fill.gap {
-  background: #2563EB;
+  background: var(--brand-primary);
 }
 
 /* Upcoming Events Card */
@@ -343,7 +380,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid var(--brand-bg);
   padding-bottom: 12px;
 }
 
@@ -355,20 +392,20 @@
 .event-day {
   font-size: 12px;
   font-weight: 700;
-  color: #9CA3AF;
+  color: var(--brand-text-secondary);
   width: 40px;
 }
 
 .event-title {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--brand-text);
 }
 
 /* Row 3: Recommended Jobs */
 .recommended-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -377,7 +414,7 @@
 
 .view-all-link {
   font-size: 13px;
-  color: #2563EB;
+  color: var(--brand-primary);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -395,7 +432,7 @@
 }
 
 .job-mini-card {
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--brand-border);
   border-radius: 12px;
   padding: 18px;
   cursor: pointer;
@@ -403,39 +440,39 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: #FFFFFF;
+  background: var(--brand-card);
 }
 
 .job-mini-card:hover {
-  border-color: #D1D5DB;
-  background: #F9FAFB;
+  border-color: var(--brand-border);
+  background: var(--brand-card-hover);
   transform: translateY(-2px);
 }
 
 .job-match-score {
   font-size: 11px;
   font-weight: 700;
-  color: #2563EB;
+  color: var(--brand-primary);
   letter-spacing: 0.5px;
 }
 
 .job-mini-card .job-title {
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: var(--brand-text);
   margin: 0;
 }
 
 .job-mini-card .job-company {
   font-size: 13px;
-  color: #6B7280;
+  color: var(--brand-text-secondary);
   margin: 0;
 }
 
 .job-salary {
   font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: var(--brand-text);
   margin-top: 4px;
 }
 

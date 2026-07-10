@@ -1,0 +1,162 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Reports &amp; Data Export</h1>
+      <p class="subtitle">
+        @if (hasData()) {
+          Platform growth trends and raw data export
+        } @else {
+          Loading reports...
+        }
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadReports()" [disabled]="loading()">
+        <span class="material-icons">refresh</span>
+        <span>Refresh</span>
+      </button>
+      <div class="export-dropdown">
+        <button class="btn btn-primary" (click)="toggleExport()" [disabled]="exporting()">
+          @if (exporting()) {
+            <span class="material-icons spinner">refresh</span>
+            <span>Exporting...</span>
+          } @else {
+            <span class="material-icons">download</span>
+            <span>Export CSV</span>
+            <span class="material-icons dropdown-arrow">arrow_drop_down</span>
+          }
+        </button>
+        @if (exportOpen()) {
+          <div class="export-menu">
+            <button class="export-item" (click)="exportCsv('users'); exportOpen.set(false)">
+              <span class="material-icons">people</span> Users
+            </button>
+            <button class="export-item" (click)="exportCsv('interviews'); exportOpen.set(false)">
+              <span class="material-icons">record_voice_over</span> Interviews
+            </button>
+            <button class="export-item" (click)="exportCsv('payments'); exportOpen.set(false)">
+              <span class="material-icons">payments</span> Payments
+            </button>
+            <button class="export-item" (click)="exportCsv('cvs'); exportOpen.set(false)">
+              <span class="material-icons">description</span> CVs
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+      <button class="btn-icon" (click)="error.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (exportError()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <span>{{ exportError() }}</span>
+      <button class="btn-icon" (click)="exportError.set(null)" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Loading reports...</p>
+    </div>
+  } @else if (!hasData()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">bar_chart</span>
+      <p>No report data available yet.</p>
+    </div>
+  } @else {
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2 class="chart-title">Users Over Time</h2>
+        <p class="chart-subtitle">New user registrations per month</p>
+        <div class="chart-wrap">
+          <canvas
+            baseChart
+            [type]="'line'"
+            [data]="lineChartData()"
+            [options]="lineChartOptions">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2 class="chart-title">Interviews Per Day</h2>
+        <p class="chart-subtitle">Daily interview sessions (last 30 days)</p>
+        <div class="chart-wrap">
+          <canvas
+            baseChart
+            [type]="'bar'"
+            [data]="barChartData()"
+            [options]="barChartOptions">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="card list-card">
+        <div class="list-card-header">
+          <h3>Top Target Roles</h3>
+        </div>
+        @if (topRequestedRoles().length === 0) {
+          <div class="empty-state small">
+            <p>No role data yet.</p>
+          </div>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th class="num-col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (role of topRequestedRoles(); track role.label) {
+                <tr>
+                  <td>{{ role.label }}</td>
+                  <td class="num-col">{{ role.count }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="card list-card">
+        <div class="list-card-header">
+          <h3>Top In-Demand Skills</h3>
+        </div>
+        @if (popularSkills().length === 0) {
+          <div class="empty-state small">
+            <p>No skill data yet.</p>
+          </div>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Skill</th>
+                <th class="num-col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (skill of popularSkills(); track skill.label) {
+                <tr>
+                  <td>{{ skill.label }}</td>
+                  <td class="num-col">{{ skill.count }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+</div>

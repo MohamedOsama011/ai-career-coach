@@ -1,57 +1,268 @@
 <div class="jobs-page-container">
   <header class="jobs-header">
     <div class="header-left">
-      <span class="recommendations-label">RECOMMENDATIONS</span>
       <h1 class="page-title">Job Matches</h1>
-      <p class="page-subtitle">Curated against your CV, roadmap goals, and target seniority.</p>
     </div>
+
     <div class="header-right">
-      <div class="filter-pills">
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'all'" 
-          (click)="setFilter('all')"
+      <div class="view-tabs" role="tablist" aria-label="Job views">
+        <button
+          class="view-tab"
+          [class.active]="activeView() === 'recommendations'"
+          (click)="setView('recommendations')"
+          type="button"
         >
-          All
+          Recommendations
         </button>
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'remote'" 
-          (click)="setFilter('remote')"
+        <button
+          class="view-tab"
+          [class.active]="activeView() === 'all'"
+          (click)="setView('all')"
+          type="button"
         >
-          Remote
-        </button>
-        <button 
-          class="filter-pill" 
-          [class.active]="activeFilter() === 'saved'" 
-          (click)="setFilter('saved')"
-        >
-          Saved
+          All Jobs
         </button>
       </div>
     </div>
   </header>
 
-  <main class="jobs-list">
-    @for (job of filteredJobs(); track job.id) {
-      <app-job-card
-        [matchPercentage]="job.matchPercentage"
-        [title]="job.title"
-        [company]="job.company"
-        [location]="job.location"
-        [salary]="job.salary"
-        [skills]="job.requiredSkills"
-        [logoInitials]="job.logoInitials"
-        [saved]="isSaved(job.id)"
-        (saveToggled)="toggleSave(job.id)"
-        (applied)="onApply(job)"
-      />
-    } @empty {
-      <div class="empty-state">
-        <span class="material-icons empty-icon">work_outline</span>
-        <h3>No Job Matches</h3>
-        <p>No jobs are available for the selected filter: <strong>{{ activeFilter() }}</strong></p>
-      </div>
+  <div class="view-panel" [class.is-rec]="activeView() === 'recommendations'" [class.is-all]="activeView() === 'all'">
+    @if (activeView() === 'recommendations') {
+      <section class="panel-shell">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Top Recommendations</h2>
+            @if (recommendationsGeneratedAt()) {
+              <p class="panel-subtitle">Last generated {{ recommendationsGeneratedAt() | date:'medium' }}</p>
+            }
+          </div>
+        </div>
+
+        @if (recommendationsLoading()) {
+          <div class="skeleton-list">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="skeleton-card" [style.--i]="$index">
+                <div class="sk-badge-row">
+                  <span class="skeleton sk-badge"></span>
+                  <span class="skeleton sk-icon-btn"></span>
+                </div>
+                <div class="sk-content-row">
+                  <span class="skeleton sk-logo"></span>
+                  <div class="sk-title-group">
+                    <span class="skeleton sk-title-line"></span>
+                    <span class="skeleton sk-company-line"></span>
+                  </div>
+                </div>
+                <span class="skeleton sk-description"></span>
+                <span class="skeleton sk-explanation"></span>
+              </div>
+            }
+          </div>
+        } @else if (recommendationsError()) {
+          <div class="state-box error">{{ recommendationsError() }}</div>
+        } @else if (recommendations().length === 0) {
+          <div class="state-box">
+            <span class="material-icons empty-icon">travel_explore</span>
+            <h3>No recommendations yet</h3>
+            <p>Index jobs first, then generate recommendations for the signed-in user.</p>
+          </div>
+        } @else {
+          <div class="recommendation-list">
+            @for (job of recommendations(); track job.jobId) {
+              <article class="recommendation-card" [style.--i]="$index">
+                <div class="recommendation-topline">
+                  <div class="badge-row">
+                    <span class="match-badge {{ matchBadgeClass(job.matchScore) }}">
+                      <span class="material-icons badge-star">auto_awesome</span>
+                      {{ job.matchScore }}% match
+                    </span>
+                    <button class="bookmark-btn" [class.is-saved]="isSaved(job.jobId)" (click)="toggleSave(job.jobId); $event.stopPropagation()" type="button">
+                      <span class="material-icons">{{ isSaved(job.jobId) ? 'bookmark' : 'bookmark_border' }}</span>
+                    </button>
+                  </div>
+                  <div class="content-row">
+                    <div class="logo-area">
+                      <div class="progress-ring-wrapper {{ matchBadgeClass(job.matchScore) }}">
+                        <svg class="progress-ring" viewBox="0 0 68 68">
+                          <circle class="ring-track" cx="34" cy="34" r="28" />
+                          <circle class="ring-arc" cx="34" cy="34" r="28"
+                            stroke-dasharray="175.93"
+                            [style.transition-delay]="'calc(0.08s * ' + $index + ' + 0.4s)'"
+                            [style.stroke-dashoffset]="ringReady() ? getRingOffset(job.matchScore) : '175.93'" />
+                        </svg>
+                        @if (job.companyLogoUrl) {
+                          <img [src]="job.companyLogoUrl" alt="" class="company-logo-img" width="44" height="44" />
+                        } @else {
+                          <div class="company-logo">{{ getInitials(job.company) }}</div>
+                        }
+                      </div>
+                    </div>
+                    <div class="title-group">
+                      <div class="title-row">
+                        <h3>{{ job.title }}</h3>
+                        <span class="salary"><span class="material-icons meta-icon">attach_money</span>{{ formatSalary(job.salary) }}</span>
+                      </div>
+                      <p class="company-line">{{ job.company }} <span class="dot">&bull;</span> <span class="meta-item"><span class="material-icons meta-icon">location_on</span>{{ job.location }}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+              <div class="description-row">
+                <p class="recommendation-description">{{ job.description }}</p>
+                <button class="apply-btn" (click)="applyToRecommendation(job)" type="button">Apply</button>
+              </div>
+              <div class="explanation-box" [class.expanded]="isExplanationExpanded(job.jobId)">
+                <button class="explanation-toggle" (click)="toggleExplanation(job.jobId)" type="button">
+                  <span class="material-icons">tips_and_updates</span>
+                  <span class="explanation-label">Why this matches</span>
+                  <span class="material-icons expand-icon">expand_more</span>
+                </button>
+                @if (isExplanationExpanded(job.jobId)) {
+                  <p class="explanation-text">{{ job.matchExplanation }}</p>
+                }
+              </div>
+
+              @if (job.missingSkills && job.missingSkills.length > 0) {
+                <div class="missing-skills-box">
+                  <div class="missing-skills-header">
+                    <span class="material-icons">school</span>
+                    <span class="missing-skills-label">Skills to develop</span>
+                  </div>
+                  <div class="missing-skills-pills">
+                    @for (skill of job.missingSkills; track skill) {
+                      <span class="skill-pill">{{ skill }}</span>
+                    }
+                  </div>
+                  <a class="view-skills-link"
+                     [routerLink]="['/skills']"
+                     [queryParams]="{ fromJob: job.title, highlight: job.missingSkills.join(',') }">
+                    View in Skills Gap →
+                  </a>
+                </div>
+              }
+              </article>
+            }
+            @if (isLimited() && lockedCount() > 0) {
+              @for (_ of lockedCardPlaceholders(); track $index) {
+                <article class="recommendation-card locked-card">
+                  <div class="locked-content">
+                    <div class="locked-icon">
+                      <span class="material-icons">lock</span>
+                    </div>
+                    <h3>Locked match</h3>
+                    <p>Upgrade to Pro to unlock {{ lockedCount() }} more personalized job matches.</p>
+                    <button class="unlock-btn" (click)="showUpgradeForLocked()" type="button">
+                      <span class="material-icons">workspace_premium</span>
+                      Unlock with Pro
+                    </button>
+                  </div>
+                </article>
+              }
+            }
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="panel-shell">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">All Jobs</h2>
+          </div>
+          <div class="filter-pills">
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'all'"
+              (click)="setFilter('all')"
+              type="button"
+            >
+              All
+            </button>
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'remote'"
+              (click)="setFilter('remote')"
+              type="button"
+            >
+              Remote
+            </button>
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter() === 'saved'"
+              (click)="setFilter('saved')"
+              type="button"
+            >
+              Saved
+            </button>
+          </div>
+        </div>
+
+        @if (jobsLoading()) {
+          <div class="skeleton-list">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="skeleton-grid-card" [style.--i]="$index">
+                <span class="skeleton sk-logo"></span>
+                <div class="sk-info">
+                  <span class="skeleton sk-grid-title"></span>
+                  <span class="skeleton sk-meta"></span>
+                </div>
+                <div class="sk-skills-row">
+                  <span class="skeleton sk-skill-tag"></span>
+                  <span class="skeleton sk-skill-tag"></span>
+                  <span class="skeleton sk-skill-tag"></span>
+                </div>
+                <span class="skeleton sk-salary"></span>
+                <div class="sk-actions">
+                  <span class="skeleton sk-icon-btn"></span>
+                  <span class="skeleton sk-btn"></span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (jobsError()) {
+          <div class="state-box error">{{ jobsError() }}</div>
+        } @else {
+          <div class="jobs-list">
+            @for (job of filteredJobs(); track job.id) {
+                <app-job-card
+                [style.--i]="$index"
+                [title]="job.title"
+                [company]="job.company"
+                [location]="job.location"
+                [salary]="displaySalary(job.salary)"
+                [skills]="job.requiredSkills"
+                [logoInitials]="job.logoInitials"
+                [companyLogoUrl]="job.companyLogoUrl ?? ''"
+                [saved]="isSaved(job.id)"
+                [isRemote]="job.isRemote ?? false"
+                [source]="job.source"
+                (saveToggled)="toggleSave(job.id)"
+                (applied)="applyToJob(job)"
+              />
+            } @empty {
+              <div class="state-box">
+                <span class="material-icons empty-icon">work_outline</span>
+                <h3>No Job Matches</h3>
+                <p>No jobs are available for the selected filter: <strong>{{ activeFilter() }}</strong></p>
+              </div>
+            }
+          </div>
+
+          @if (totalPages() > 1 && filteredJobs().length > 0) {
+            <div class="pagination-bar">
+              <span class="pagination-info">{{ rangeStart() }}–{{ rangeEnd() }} of {{ totalCount() }} jobs</span>
+              <div class="pagination-controls">
+                <button class="pagination-btn" [class.disabled]="currentPage() <= 1" (click)="prevPage()" type="button" [disabled]="currentPage() <= 1">
+                  <span class="material-icons">chevron_left</span> Prev
+                </button>
+                <span class="pagination-page">Page {{ currentPage() }} of {{ totalPages() }}</span>
+                <button class="pagination-btn" [class.disabled]="currentPage() >= totalPages()" (click)="nextPage()" type="button" [disabled]="currentPage() >= totalPages()">
+                  Next <span class="material-icons">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </section>
     }
-  </main>
+  </div>
 </div>

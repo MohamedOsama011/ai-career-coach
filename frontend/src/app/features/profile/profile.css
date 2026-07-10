@@ -15,8 +15,8 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #2563EB;
-  color: white;
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,18 +31,18 @@
 
 .header-info p {
   margin: 0.25rem 0 0;
-  color: #666;
+  color: var(--brand-text-secondary);
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--brand-text-secondary);
 }
 
 .error-message {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--brand-danger-bg);
+  color: var(--brand-danger);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -56,8 +56,8 @@
 }
 
 .stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-border);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
@@ -67,20 +67,20 @@
   display: block;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--brand-text);
   margin-bottom: 0.25rem;
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--brand-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .info-section {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--brand-card);
+  border: 1px solid var(--brand-border);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -88,7 +88,7 @@
 .info-section h2 {
   margin: 0 0 1.5rem;
   font-size: 1.1rem;
-  color: #1e293b;
+  color: var(--brand-text);
 }
 
 .info-grid {
@@ -100,7 +100,7 @@
 .info-item label {
   display: block;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--brand-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.35rem;
@@ -108,8 +108,8 @@
 
 .info-value {
   padding: 0.75rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-border);
   border-radius: 8px;
-  color: #1e293b;
+  color: var(--brand-text);
 }

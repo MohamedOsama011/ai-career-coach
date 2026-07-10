@@ -15,5 +15,9 @@ namespace AICareerCoach.BLL.DTOs.Job
         public List<string> RequiredSkills { get; set; } = new();
         public string Location { get; set; } = string.Empty;
         public decimal Salary { get; set; }
+        public string? CompanyLogoUrl { get; set; }
+        public string? Source { get; set; }
+        public bool IsRemote { get; set; }
+        public string? ExternalUrl { get; set; }
     }
 }

@@ -5,6 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AICareerCoach.DAL.Seed
 {
+    /// <summary>
+    /// Fallback seeder — only runs if Adzuna sync fails on first startup.
+    /// Called by JobSyncHostedService, NOT by Program.cs anymore.
+    /// Provides 20 hardcoded Egypt-focused .NET/Angular jobs so the app is
+    /// demoable offline (no Adzuna credentials required).
+    /// </summary>
     public static class JobSeeder
     {
         public static async Task SeedAsync(AICareerCoachDbContext context)
@@ -20,7 +26,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", ".NET 8", "SQL Server", "REST APIs", "Entity Framework"]""",
                     Location = "Cairo, Egypt",
                     Salary = 25000,
-                    PostedAt = DateTime.UtcNow.AddDays(-2)
+                    PostedAt = DateTime.UtcNow.AddDays(-2),
+                    CompanyLogoUrl = "https://img.logo.dev/vodafone.com.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Full Stack Developer",
@@ -29,7 +36,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Angular", "TypeScript", "C#", ".NET", "SQL Server"]""",
                     Location = "Cairo, Egypt",
                     Salary = 30000,
-                    PostedAt = DateTime.UtcNow.AddDays(-5)
+                    PostedAt = DateTime.UtcNow.AddDays(-5),
+                    CompanyLogoUrl = "https://img.logo.dev/banquemisr.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Junior Backend Developer",
@@ -38,7 +46,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", "ASP.NET Core", "Docker", "PostgreSQL"]""",
                     Location = "Cairo, Egypt (Hybrid)",
                     Salary = 18000,
-                    PostedAt = DateTime.UtcNow.AddDays(-1)
+                    PostedAt = DateTime.UtcNow.AddDays(-1),
+                    CompanyLogoUrl = "https://img.logo.dev/instabug.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Angular Frontend Developer",
@@ -47,7 +56,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Angular", "TypeScript", "RxJS", "SCSS", "REST APIs"]""",
                     Location = "Cairo, Egypt",
                     Salary = 22000,
-                    PostedAt = DateTime.UtcNow.AddDays(-3)
+                    PostedAt = DateTime.UtcNow.AddDays(-3),
+                    CompanyLogoUrl = "https://img.logo.dev/breadfast.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Software Engineer",
@@ -56,7 +66,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", "AWS", "Microservices", "System Design", "SQL"]""",
                     Location = "Cairo, Egypt",
                     Salary = 55000,
-                    PostedAt = DateTime.UtcNow.AddDays(-7)
+                    PostedAt = DateTime.UtcNow.AddDays(-7),
+                    CompanyLogoUrl = "https://img.logo.dev/amazon.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Mid-Level .NET Developer",
@@ -65,7 +76,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", ".NET", "WPF", "SQL Server", "LINQ"]""",
                     Location = "Giza, Egypt",
                     Salary = 20000,
-                    PostedAt = DateTime.UtcNow.AddDays(-4)
+                    PostedAt = DateTime.UtcNow.AddDays(-4),
+                    CompanyLogoUrl = "https://img.logo.dev/rayacorp.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "React Frontend Developer",
@@ -74,7 +86,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["React", "JavaScript", "TypeScript", "TailwindCSS"]""",
                     Location = "Cairo, Egypt (Remote)",
                     Salary = 28000,
-                    PostedAt = DateTime.UtcNow.AddDays(-6)
+                    PostedAt = DateTime.UtcNow.AddDays(-6),
+                    CompanyLogoUrl = "https://img.logo.dev/paymob.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "DevOps Engineer",
@@ -83,7 +96,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Docker", "Azure", "GitHub Actions", "Linux", "Kubernetes"]""",
                     Location = "Cairo, Egypt",
                     Salary = 35000,
-                    PostedAt = DateTime.UtcNow.AddDays(-10)
+                    PostedAt = DateTime.UtcNow.AddDays(-10),
+                    CompanyLogoUrl = "https://img.logo.dev/fawry.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Data Engineer",
@@ -92,7 +106,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Python", "SQL", "Apache Spark", "Azure Data Factory"]""",
                     Location = "Cairo, Egypt",
                     Salary = 32000,
-                    PostedAt = DateTime.UtcNow.AddDays(-8)
+                    PostedAt = DateTime.UtcNow.AddDays(-8),
+                    CompanyLogoUrl = "https://img.logo.dev/orange.com.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Mobile Developer (Flutter)",
@@ -101,7 +116,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Flutter", "Dart", "REST APIs", "Firebase"]""",
                     Location = "Cairo, Egypt",
                     Salary = 24000,
-                    PostedAt = DateTime.UtcNow.AddDays(-9)
+                    PostedAt = DateTime.UtcNow.AddDays(-9),
+                    CompanyLogoUrl = "https://img.logo.dev/halan.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Senior .NET Software Engineer",
@@ -110,7 +126,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", ".NET Core", "Redis", "RabbitMQ", "Microservices", "SQL Server"]""",
                     Location = "Cairo, Egypt",
                     Salary = 48000,
-                    PostedAt = DateTime.UtcNow.AddDays(-1)
+                    PostedAt = DateTime.UtcNow.AddDays(-1),
+                    CompanyLogoUrl = "https://img.logo.dev/valu.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Frontend Developer (Angular)",
@@ -119,7 +136,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Angular", "TypeScript", "State Management", "RxJS", "SASS"]""",
                     Location = "Cairo, Egypt (Remote)",
                     Salary = 40000,
-                    PostedAt = DateTime.UtcNow.AddDays(-3)
+                    PostedAt = DateTime.UtcNow.AddDays(-3),
+                    CompanyLogoUrl = "https://img.logo.dev/andela.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "AI Engineer / Prompt Engineer",
@@ -128,7 +146,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Python", "C#", "Semantic Kernel", "OpenAI API", "Prompt Engineering"]""",
                     Location = "Giza, Egypt (Hybrid)",
                     Salary = 35000,
-                    PostedAt = DateTime.UtcNow.AddDays(-2)
+                    PostedAt = DateTime.UtcNow.AddDays(-2),
+                    CompanyLogoUrl = "https://img.logo.dev/rdi.net?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Junior Full Stack Developer",
@@ -137,7 +156,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", "ASP.NET Core", "Angular", "SQL Server", "Git"]""",
                     Location = "Cairo, Egypt",
                     Salary = 16000,
-                    PostedAt = DateTime.UtcNow.AddDays(-4)
+                    PostedAt = DateTime.UtcNow.AddDays(-4),
+                    CompanyLogoUrl = "https://img.logo.dev/sarmady.net?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Cybersecurity Specialist",
@@ -146,7 +166,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Web Security", "Penetration Testing", "OWASP", "SQL Injection defense", "Network Security"]""",
                     Location = "Giza, Egypt",
                     Salary = 38000,
-                    PostedAt = DateTime.UtcNow.AddDays(-12)
+                    PostedAt = DateTime.UtcNow.AddDays(-12),
+                    CompanyLogoUrl = "https://img.logo.dev/cibeg.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Mid-Level Angular Engineer",
@@ -155,7 +176,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["Angular", "TypeScript", "Bootstrap", "RESTful APIs", "RxJS"]""",
                     Location = "Cairo, Egypt",
                     Salary = 23000,
-                    PostedAt = DateTime.UtcNow.AddDays(-6)
+                    PostedAt = DateTime.UtcNow.AddDays(-6),
+                    CompanyLogoUrl = "https://img.logo.dev/bbi.com.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Cloud Backend Developer",
@@ -164,7 +186,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", "ASP.NET Core", "Docker", "Kubernetes", "Cloud Computing"]""",
                     Location = "Cairo, Egypt (Hybrid)",
                     Salary = 50000,
-                    PostedAt = DateTime.UtcNow.AddDays(-5)
+                    PostedAt = DateTime.UtcNow.AddDays(-5),
+                    CompanyLogoUrl = "https://img.logo.dev/ibm.com?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "UI/UX Developer",
@@ -173,7 +196,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["HTML5", "CSS3", "SCSS", "Angular", "Figma", "UI Design"]""",
                     Location = "Cairo, Egypt",
                     Salary = 21000,
-                    PostedAt = DateTime.UtcNow.AddDays(-8)
+                    PostedAt = DateTime.UtcNow.AddDays(-8),
+                    CompanyLogoUrl = "https://img.logo.dev/wuzzuf.net?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "SQL Server Database Administrator",
@@ -182,7 +206,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["SQL Server", "T-SQL", "Database Tuning", "Backup & Recovery", "Indexing"]""",
                     Location = "Cairo, Egypt",
                     Salary = 27000,
-                    PostedAt = DateTime.UtcNow.AddDays(-11)
+                    PostedAt = DateTime.UtcNow.AddDays(-11),
+                    CompanyLogoUrl = "https://img.logo.dev/telecomegypt.com.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 },
                 new() {
                     Title = "Software Development Engineer in Test (SDET)",
@@ -191,7 +216,8 @@ namespace AICareerCoach.DAL.Seed
                     RequiredSkills = """["C#", "xUnit", "Selenium", "API Testing", "Automation", "CI/CD"]""",
                     Location = "Cairo, Egypt (Hybrid)",
                     Salary = 29000,
-                    PostedAt = DateTime.UtcNow.AddDays(-7)
+                    PostedAt = DateTime.UtcNow.AddDays(-7),
+                    CompanyLogoUrl = "https://img.logo.dev/etisalat.eg?token=pk_Y-0y45UETNSPK67lM2VJdg"
                 }
             };
 

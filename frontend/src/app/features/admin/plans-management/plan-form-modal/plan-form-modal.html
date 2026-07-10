@@ -1,0 +1,60 @@
+<div class="modal-overlay" (click)="cancel.emit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <h2>{{ isEdit() ? 'Edit Plan' : 'Add Plan' }}</h2>
+      <button class="btn-icon" (click)="cancel.emit()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Name *</label>
+        <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" required placeholder="e.g. Premium" />
+      </div>
+
+      <div class="form-row">
+        <label>Price *</label>
+        <input type="number" [ngModel]="price()" (ngModelChange)="price.set(+$event)" min="0" step="0.01" required placeholder="e.g. 399" />
+      </div>
+
+      <div class="form-row">
+        <label>Duration (months) *</label>
+        <input type="number" [ngModel]="durationMonths()" (ngModelChange)="durationMonths.set(+$event)" min="1" step="1" required placeholder="e.g. 1" />
+      </div>
+
+      <div class="form-divider">
+        <span>Feature Limits</span>
+      </div>
+
+      <div class="form-row">
+        <label>Max Mock Interviews <span class="hint">(-1 = unlimited)</span></label>
+        <input type="number" [ngModel]="maxInterviews()" (ngModelChange)="maxInterviews.set(+$event)" min="-1" step="1" placeholder="e.g. 10" />
+      </div>
+
+      <div class="form-row">
+        <label>Max Career Roadmaps <span class="hint">(-1 = unlimited)</span></label>
+        <input type="number" [ngModel]="maxRoadmaps()" (ngModelChange)="maxRoadmaps.set(+$event)" min="-1" step="1" placeholder="e.g. 5" />
+      </div>
+
+      <div class="form-row">
+        <label>Max Job Recommendations <span class="hint">(-1 = unlimited)</span></label>
+        <input type="number" [ngModel]="maxJobs()" (ngModelChange)="maxJobs.set(+$event)" min="-1" step="1" placeholder="e.g. 10" />
+      </div>
+
+      <div class="form-row checkbox-row">
+        <label class="checkbox-label">
+          <input type="checkbox" [ngModel]="allowRescan()" (ngModelChange)="allowRescan.set($event)" />
+          <span>Allow Skills Gap Rescan</span>
+        </label>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancel.emit()">Cancel</button>
+      <button class="btn btn-primary" (click)="onSave()" [disabled]="!name().trim() || price() <= 0 || durationMonths() < 1">
+        {{ isEdit() ? 'Save changes' : 'Create plan' }}
+      </button>
+    </footer>
+  </div>
+</div>

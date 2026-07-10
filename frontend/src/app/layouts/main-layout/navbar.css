@@ -11,38 +11,44 @@
   z-index: 50;
 }
 
-.navbar-search {
+.navbar-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #F3F4F6;
-  border-radius: 8px;
-  padding: 8px 16px;
-  width: 320px;
 }
 
-.search-icon {
-  font-size: 20px;
-  color: var(--brand-text-secondary);
-}
-
-.search-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  color: var(--brand-text);
-  width: 100%;
-}
-
-.search-input::placeholder {
-  color: var(--brand-text-secondary);
+.navbar-right {
+  display: flex;
+  align-items: center;
 }
 
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--brand-text);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.hamburger-btn:hover {
+  background: var(--brand-bg);
+}
+
+@media (max-width: 1024px) {
+  .navbar {
+    padding: 0 16px;
+  }
+  .hamburger-btn {
+    display: inline-flex;
+  }
 }
 
 .icon-btn {
@@ -60,8 +66,33 @@
 }
 
 .icon-btn:hover {
-  background: #F3F4F6;
+  background: var(--brand-bg);
   color: var(--brand-text);
+}
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--brand-border);
+  background: var(--brand-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--brand-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.admin-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: #EFF6FF;
+}
+
+.admin-btn .material-icons {
+  font-size: 18px;
 }
 
 .avatar-wrapper {
@@ -69,6 +100,8 @@
   align-items: center;
   gap: 8px;
   padding: 6px 12px 6px 6px;
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -76,7 +109,8 @@
 }
 
 .avatar-wrapper:hover {
-  background: #F3F4F6;
+  background: var(--brand-bg);
+  border-color: var(--brand-border);
 }
 
 .avatar-icon {

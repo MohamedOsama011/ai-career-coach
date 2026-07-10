@@ -1,0 +1,21 @@
+<div class="upgrade-modal-overlay" (click)="onClose()">
+  <div class="upgrade-modal" role="alertdialog" aria-modal="true" [attr.aria-labelledby]="'upgrade-modal-title'" (click)="$event.stopPropagation()">
+    <div class="upgrade-modal-icon">
+      <span class="material-icons">{{ copy().icon }}</span>
+    </div>
+    <h3 id="upgrade-modal-title" class="upgrade-modal-title">{{ copy().title }}</h3>
+    <p class="upgrade-modal-message">{{ copy().message }}</p>
+    @if (used() !== undefined && limit() !== undefined) {
+      <p class="upgrade-modal-usage">
+        Usage: <strong>{{ used() }}</strong> / <strong>{{ limit() === -1 ? '∞' : limit() }}</strong>
+      </p>
+    }
+    <div class="upgrade-modal-actions">
+      <button class="upgrade-modal-btn cancel" (click)="onClose()" type="button">Maybe later</button>
+      <button class="upgrade-modal-btn confirm" (click)="onViewPlans()" type="button">
+        <span class="material-icons">workspace_premium</span>
+        {{ copy().cta }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -3,13 +3,11 @@ using System.Security.Claims;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
-using AICareerCoach.DAL.Data;
+using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using AICareerCoach.DAL.Entities;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -18,17 +16,18 @@ namespace AICareerCoach.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
-        private readonly AICareerCoachDbContext _context;
 
-        public AuthController(IAuthService authService, UserManager<User> userManager, AICareerCoachDbContext context)
+        public AuthController(IAuthService authService, IUserService userService, UserManager<User> userManager)
         {
             _authService = authService;
+            _userService = userService;
             _userManager = userManager;
-            _context = context;
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             try
@@ -43,6 +42,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             try
@@ -72,6 +72,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("refreshtoken")]
+        [AllowAnonymous]
         public async Task<IActionResult> Refreshtoken([FromBody] Refreshtokendto refreshtokendto)
         {
             var result = await _authService.RefreshTocken(refreshtokendto);
@@ -92,7 +93,23 @@ namespace AICareerCoach.API.Controllers
             return Ok();
         }
 
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
+        {
+            try
+            {
+                var result = await _authService.GoogleLoginAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPassword forgotPassword)
         {
             await _authService.ForgotPassword(forgotPassword);
@@ -100,6 +117,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [HttpPost("ResetPassword")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPassword resetPassword)
         {
             var result = await _authService.ResetPassword(resetPassword);
@@ -110,19 +128,19 @@ namespace AICareerCoach.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User identity could not be verified from the token." });
 
-            var cvCount = await _context.Set<CV>()
-                .CountAsync(c => c.UserId == user!.Id);
-
-            return Ok(new
+            try
             {
-                fullName = user!.FullName,
-                email = user.Email,
-                careerGoal = user.CareerGoal,
-                createdAt = user.CreatedAt,
-                cvCount
-            });
+                var profile = await _userService.GetProfileAsync(userId);
+                return Ok(profile);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [Authorize]
