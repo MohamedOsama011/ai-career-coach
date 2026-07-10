@@ -1,52 +1,236 @@
-<div class="landing-page">
-  <nav class="landing-nav">
-    <span class="logo-text">AICareerCoach</span>
-    <div class="nav-links">
-      <a routerLink="/login" class="btn-outline">Sign In</a>
-      <a routerLink="/register" class="btn-primary">Get Started</a>
+<div class="landing-wrapper">
+
+  <!-- Skip-nav: visible on keyboard focus for a11y -->
+  <a href="#main-content" class="skip-nav">Skip to content</a>
+
+  <!-- =====================
+       Navigation Header
+       ===================== -->
+  <header class="nav-header">
+    <div class="nav-brand">
+      <div class="brand-icon-svg">
+        <!-- Lightning bolt icon matching reference -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L4.09 12.96A1 1 0 0 0 5 14.5h5.5L11 22l8.91-10.96A1 1 0 0 0 19 9.5H13.5L13 2Z"
+                stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.1)"/>
+        </svg>
+      </div>
+      <span class="brand-name">AI Career Coach</span>
     </div>
-  </nav>
 
-  <main>
-    <section class="hero-section">
-      <h1 class="hero-title">Your AI-Powered Career Companion</h1>
-      <p class="hero-subtitle">
-        Personalized career roadmaps, mock interviews, skills gap analysis, and job matching — all powered by AI to accelerate your growth.
-      </p>
-      <div class="hero-actions">
-        <a routerLink="/register" class="btn-primary btn-large">Start Your Journey</a>
-        <a routerLink="/login" class="btn-outline btn-large">Sign In</a>
-      </div>
-    </section>
+    <nav class="nav-menu">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="#workflow" class="nav-link">How it works</a>
+    </nav>
 
-    <section class="features-section">
-      <h2 class="section-title">What You Get</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <span class="feature-icon">&#9670;</span>
-          <h3>Smart Roadmaps</h3>
-          <p>AI-generated learning paths tailored to your target role, current skills, and career goals.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#9670;</span>
-          <h3>Mock Interviews</h3>
-          <p>Practice with AI-driven behavioral, technical, and system design interviews with real-time feedback.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#9670;</span>
-          <h3>Skills Analysis</h3>
-          <p>Identify gaps between your current proficiency and market requirements for your dream role.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#9670;</span>
-          <h3>Job Matching</h3>
-          <p>Discover roles that match your profile with personalized recommendations and application tracking.</p>
-        </div>
-      </div>
-    </section>
-  </main>
+    <div class="nav-actions">
+      <a routerLink="/login" class="nav-link">Sign in</a>
+      <a routerLink="/register" class="btn-white-pill">Get started</a>
+    </div>
+  </header>
 
-  <footer class="landing-footer">
-    <p>&copy; 2026 AICareerCoach. All rights reserved.</p>
-  </footer>
+  <!-- =====================
+       Hero Section
+       ===================== -->
+  <section class="hero-section" id="main-content">
+
+    <!-- Star particles canvas -->
+    <canvas #particleCanvas class="hero-particles" aria-hidden="true"></canvas>
+
+    <!-- Eyebrow tag -->
+    <a class="hero-eyebrow" routerLink="/register" #heroEyebrow>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2L14.09 8.26L20.18 8.26L15.18 12.14L17.27 18.38L12 14.77L6.73 18.38L8.82 12.14L3.82 8.26L9.91 8.26L12 2Z"
+              fill="url(#sparkle-gradient)"/>
+        <defs>
+          <linearGradient id="sparkle-gradient" x1="3" y1="2" x2="21" y2="18">
+            <stop offset="0%" stop-color="#60A5FA"/>
+            <stop offset="100%" stop-color="#3B82F6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>Personalized Career Coaching Powered by AI</span>
+    </a>
+
+    <!-- Main headline -->
+    <h1 class="hero-title" #heroTitle>
+      <span>Land Your Dream Job</span>
+      <span>with the Power of AI.</span>
+    </h1>
+
+    <!-- Sub-headline -->
+    <p class="hero-subtitle" #heroSubtitle>
+      Upload your CV, analyze skill gaps, generate custom learning roadmaps,
+      and practice AI mock interviews before your next job interview.
+    </p>
+
+    <!-- CTA buttons — white pill primary, dark outline secondary -->
+    <div class="hero-cta-group" #heroCta>
+      <a routerLink="/register" class="btn-white-pill" aria-label="Sign up to analyze your CV">Get started</a>
+      <a href="#interactive-demo" class="btn-dark-outline" aria-label="See the AI Career Coach demo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="white" fill-opacity="0.85"/>
+        </svg>
+        See it in action
+      </a>
+    </div>
+
+    <!-- Hero Visual — Blue Glow + Flat Dashboard -->
+    <div class="hero-visual-container" #heroVisualContainer>
+      <!-- Blue aura behind the dashboard -->
+      <div class="dashboard-glow-back" #dashboardGlowBack aria-hidden="true"></div>
+
+      <div class="hero-visual-wrapper" #heroVisualWrapper>
+        <div class="mock-dashboard">
+
+          <!-- Dashboard Chrome Header Bar -->
+          <div class="mock-header">
+            <div class="mock-header-left">
+              <!-- User Selector -->
+              <div class="mock-dropdown">
+                <div class="mock-avatar" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#3B82F6,#60A5FA)"></div>
+                <span>Alex Carter</span>
+                <span class="dropdown-arrow">▾</span>
+              </div>
+              <!-- Tabs -->
+              <div class="mock-tabs">
+                <span class="mock-tab active">Overview</span>
+                <span class="mock-tab">Interviews</span>
+                <span class="mock-tab">Roadmap</span>
+                <span class="mock-tab">Settings</span>
+              </div>
+            </div>
+            <div class="mock-header-right">
+              <div class="mock-search">Search...</div>
+              <div class="mock-avatar"></div>
+            </div>
+          </div>
+
+          <!-- Dashboard Body -->
+          <div class="mock-body">
+            <!-- Title Row -->
+            <div class="mock-body-header">
+              <span class="mock-body-title">Dashboard</span>
+              <div class="mock-body-actions">
+                <div class="mock-datepicker">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="opacity:0.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="white" stroke-width="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <span>Jan 20, 2024 – Feb 09, 2024</span>
+                </div>
+                <div class="mock-download-btn">Download</div>
+              </div>
+            </div>
+
+            <!-- 4-Column Metrics Row — AI Career Coach KPIs (typed model) -->
+            <div class="mock-metrics">
+              @for (metric of heroMetrics; track metric.title) {
+                <div class="metric-card" [attr.data-trend]="metric.trend">
+                  <div class="metric-title">{{ metric.title }}</div>
+                  <div class="metric-val">{{ metric.value }}</div>
+                  <div class="metric-desc">{{ metric.description }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Workspace Split -->
+            <div class="mock-workspace">
+              <!-- Skill Gap bars — typed model, levels per locked
+                   `None=0, Beginner=25, Intermediate=50, Advanced=75, Expert=100` -->
+              <div class="workspace-block">
+                <div class="block-title">Skill Gap Analysis</div>
+                <div class="skills-list">
+                  @for (skill of heroSkills; track skill.name) {
+                    <div class="skill-row" [class.skill-row--highlight]="skill.highlight">
+                      <div class="skill-info">
+                        <span class="skill-name">
+                          {{ skill.name }}
+                          @if (skill.highlight) { <span class="skill-warning" aria-label="Critical gap">⚠</span> }
+                        </span>
+                        <span class="skill-percent">{{ skill.percent }}%</span>
+                      </div>
+                      <div class="skill-bar-outer">
+                        <div
+                          class="skill-bar-inner"
+                          [class.skill-bar-inner--highlight]="skill.highlight"
+                          [style.width.%]="skill.percent"
+                        ></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Mock interview widget -->
+              <div class="interview-preview-card">
+                <div class="block-title">Mock Interview</div>
+                <div class="chat-bubble">
+                  <div class="chat-bubble-author">AI Coach</div>
+                  Explain how Angular Signals differ from RxJS Observables in change detection.
+                </div>
+                <div class="audio-waveform-simulation">
+                  @for (h of waveformHeights; track $index) {
+                    <div class="waveform-bar" [style.transform]="'scaleY(' + h + ')'"></div>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /mock-body -->
+        </div><!-- /mock-dashboard -->
+      </div><!-- /hero-visual-wrapper -->
+    </div><!-- /hero-visual-container -->
+
+  </section>
+
+  <!-- =====================
+       Interactive Demo (Section 03)
+       7-step state machine + 4 preset profiles.
+       The #interactive-demo anchor target now lives here
+       (was on the hero dashboard before Phase 2).
+       ===================== -->
+  <app-landing-demo></app-landing-demo>
+
+  <!-- =====================
+       Bento Capability Grid (Section 04)
+       6-cell asymmetric bento: 1 hero hub (2x2) + 5 feature cells.
+       Features MorphSVG icon morph in the hero + ScrollTrigger reveal.
+       ===================== -->
+  <app-landing-bento></app-landing-bento>
+
+  <!-- =====================
+       Workflow Storyteller (Section 05)
+       7-node vertical timeline with scroll-driven SVG line draw.
+       Alternating L/R cards + center line + numbered circles.
+       ===================== -->
+  <app-landing-workflow></app-landing-workflow>
+
+  <!-- =====================
+       Feature Deep-Dive (Section 06)
+       3 asymmetric 2-col sections: Mock Interview (pinned),
+       Job Matching (interactive slider), Personalized Roadmap.
+       ===================== -->
+  <app-landing-features></app-landing-features>
+
+  <!-- =====================
+       Pricing Cards (Section 07)
+       3 plans: Basic (Free), Pro (highlighted), Premium.
+       Hardcoded from backend seeder data.
+       ===================== -->
+  <app-landing-pricing></app-landing-pricing>
+
+  <!-- =====================
+       Final CTA (Section 08)
+       Centered glow box + single CTA.
+       ===================== -->
+  <app-landing-final-cta></app-landing-final-cta>
+
+  <!-- =====================
+       Footer (Section 09)
+       4-column link grid + brand block + socials.
+       ===================== -->
+  <app-landing-footer></app-landing-footer>
+
 </div>

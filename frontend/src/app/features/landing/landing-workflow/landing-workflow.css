@@ -1,0 +1,411 @@
+/* ==========================================
+   LANDING WORKFLOW — Section 05
+   Launch UI restraint: pure black bg + white type + 1 violet accent.
+   3-col CSS grid timeline: [card | line | card].
+   Center SVG line draws itself on scroll via ScrollTrigger scrub.
+   ========================================== */
+
+.workflow-section {
+  position: relative;
+  padding: 120px 24px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 3;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 800px;
+}
+
+.workflow-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 720px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+}
+
+/* Subtle violet glow above the section */
+.workflow-section::after {
+  content: "";
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 320px;
+  background: radial-gradient(ellipse 70% 80% at 50% 100%, var(--color-purple-glow) 0%, transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+.workflow-header {
+  text-align: center;
+  margin-bottom: 80px;
+  position: relative;
+  z-index: 2;
+}
+
+.workflow-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-brand);
+  margin-bottom: 20px;
+}
+
+.workflow-eyebrow .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.workflow-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.workflow-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  max-width: 620px;
+  margin: 0 auto;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   TIMELINE — 3-col CSS grid
+   Cols: [1fr (left) | 80px (line) | 1fr (right)]
+   Each .workflow-node is a 2-col sub-grid spanning left+line OR line+right.
+   ========================================== */
+.workflow-timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  gap: 32px 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+/* Center line — absolute, full timeline height, center-x aligned.
+   The 80px col 2 is centered at 50% of the parent (since cols 1 and 3
+   are equal 1fr), so `left: 50%` lands on col 2's center. */
+.workflow-line-svg {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.workflow-line-base,
+.workflow-line-fill {
+  vector-effect: non-scaling-stroke;
+}
+
+/* ==========================================
+   NODE — 2-col sub-grid, spans 2 of the 3 outer cols
+   ========================================== */
+.workflow-node {
+  display: grid;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.workflow-node--left {
+  grid-template-columns: 1fr 80px;
+  grid-column: 1 / 3;
+}
+
+.workflow-node--left .workflow-node-card {
+  grid-column: 1;
+  justify-self: end;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.workflow-node--left .workflow-node-card .workflow-card-head,
+.workflow-node--left .workflow-node-card .workflow-card-desc {
+  text-align: right;
+}
+
+.workflow-node--right {
+  grid-template-columns: 80px 1fr;
+  grid-column: 2 / 4;
+}
+
+.workflow-node--right .workflow-node-card {
+  grid-column: 2;
+  text-align: left;
+  align-items: flex-start;
+}
+
+/* For right-side nodes, the inner grid is `80px | 1fr` — the 80px col
+   (col 1, the center line) is where the circle belongs. Default
+   `grid-column: 2` is correct for left-side nodes only. */
+.workflow-node--right .workflow-node-circle {
+  grid-column: 1;
+}
+
+/* ==========================================
+   NUMBER CIRCLE — on the line, 44px
+   ========================================== */
+.workflow-node-circle {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-app);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  transition: border-color 0.4s var(--ease-out),
+              background 0.4s var(--ease-out),
+              box-shadow 0.4s var(--ease-out);
+  z-index: 3;
+  position: relative;
+}
+
+.workflow-node-circle--reached {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18),
+              0 0 24px rgba(99, 102, 241, 0.4);
+}
+
+.workflow-node-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+  transition: color 0.4s var(--ease-out);
+}
+
+.workflow-node-circle--reached .workflow-node-num {
+  color: #fff;
+}
+
+/* ==========================================
+   NODE CARD
+   ========================================== */
+.workflow-node-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  transition: border-color 0.3s var(--ease-out),
+              background 0.3s var(--ease-out);
+}
+
+.workflow-node-card:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.workflow-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-direction: row;
+}
+
+.workflow-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--color-brand);
+  font-size: 18px;
+}
+
+.workflow-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.workflow-card-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Metric pill — the credibility anchor per node */
+.workflow-card-metric {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 4px 10px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  letter-spacing: 0.02em;
+  font-feature-settings: 'tnum';
+}
+
+.workflow-node--left .workflow-card-metric {
+  align-self: flex-end;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+  .workflow-title {
+    font-size: 2.6rem;
+  }
+
+  .workflow-timeline {
+    grid-template-columns: 60px 1fr;
+    gap: 24px 16px;
+  }
+
+  /* All nodes collapse to right side on tablet */
+  .workflow-node--left,
+  .workflow-node--right {
+    grid-template-columns: 60px 1fr;
+    grid-column: 1 / 3;
+  }
+
+  .workflow-node--left .workflow-node-card,
+  .workflow-node--right .workflow-node-card {
+    grid-column: 2;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .workflow-node--left .workflow-node-card .workflow-card-head,
+  .workflow-node--left .workflow-node-card .workflow-card-desc {
+    text-align: left;
+  }
+
+  .workflow-node--left .workflow-card-metric {
+    align-self: flex-start;
+  }
+
+  .workflow-node--right .workflow-node-circle {
+    grid-column: 1;
+  }
+
+  .workflow-node--left .workflow-node-circle {
+    grid-column: 1;
+  }
+
+  .workflow-line-svg {
+    left: 30px;  /* center of the 60px left col */
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .workflow-section {
+    padding: 80px var(--space-lg) 60px;
+  }
+
+  .workflow-title {
+    font-size: 2rem;
+  }
+
+  .workflow-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .workflow-header {
+    margin-bottom: 56px;
+  }
+
+  .workflow-timeline {
+    grid-template-columns: 48px 1fr;
+    gap: 20px 12px;
+  }
+
+  .workflow-node--left,
+  .workflow-node--right {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .workflow-line-svg {
+    left: 24px;  /* center of the 48px left col */
+  }
+
+  .workflow-node-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .workflow-node-num {
+    font-size: 0.75rem;
+  }
+
+  .workflow-node-card {
+    padding: 16px 18px;
+  }
+
+  .workflow-card-title {
+    font-size: 1rem;
+  }
+
+  .workflow-card-desc {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  .workflow-node-circle,
+  .workflow-node-num,
+  .workflow-node-card {
+    transition: none !important;
+  }
+  /* The line is fully drawn + all circles "reached" via the
+     (prefers-reduced-motion: reduce) matchMedia branch in TS. */
+}

@@ -1,0 +1,150 @@
+/* ==========================================
+   LANDING FINAL CTA — Section 08
+   Centered glow box + single CTA.
+   Launch UI restraint: black bg + white type + violet accent.
+   ========================================== */
+
+/* ── Section ── */
+.final-cta-section {
+  position: relative;
+  padding: 120px 24px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+}
+
+/* Top hairline */
+.final-cta-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 720px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+}
+
+/* ── Glow ── */
+.final-cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse 70% 80% at 50% 50%, var(--color-purple-glow) 0%, transparent 65%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── Card ── */
+.final-cta-card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 24px;
+  padding: 80px 48px;
+  max-width: 720px;
+  width: 100%;
+}
+
+/* ── Eyebrow ── */
+.final-cta-card .section-eyebrow {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-brand);
+  margin-bottom: 20px;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* ── Title ── */
+.final-cta-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+  line-height: 1.15;
+}
+
+/* ── Subtitle ── */
+.final-cta-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 36px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ── CTA button ── */
+.final-cta-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #3B82F6, #60A5FA);
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.35);
+}
+
+.final-cta-btn:hover {
+  box-shadow: 0 6px 32px rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ── Note ── */
+.final-cta-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 20px 0 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .final-cta-section {
+    padding: 80px 16px 60px;
+  }
+
+  .final-cta-card {
+    padding: 48px 24px;
+    border-radius: 16px;
+  }
+
+  .final-cta-title {
+    font-size: 2rem;
+  }
+
+  .final-cta-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .final-cta-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

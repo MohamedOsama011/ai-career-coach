@@ -4,11 +4,14 @@ import { Observable } from 'rxjs';
 import { map, timeout } from 'rxjs/operators';
 import { SkillsCategoryDto, UserRoadmapDto } from '../models/roadmap.model';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({
   providedIn: 'root'
 })
 export class SkillsService {
-  private apiUrl = 'https://localhost:7222/api/roadmap';
+  private apiUrl = `${API_BASE_URL}/api/roadmap`;
 
   constructor(private http: HttpClient) {}
 

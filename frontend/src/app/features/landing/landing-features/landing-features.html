@@ -1,0 +1,277 @@
+<section class="features-section" id="features">
+  <div class="features-container">
+
+    <!-- Header -->
+    <header class="features-header">
+      <span class="features-eyebrow">
+        <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+        Feature Deep-Dive
+      </span>
+      <h2 class="features-title">Built for the job you want</h2>
+      <p class="features-subtitle">
+        Every feature is powered by the same AI engine. Here's how each one works — and why it matters.
+      </p>
+    </header>
+
+    <!-- ========================
+         Feature 1 — Mock Interview
+         Two rows: [text] [card]
+         ======================== -->
+    <div class="features-interview">
+
+      <!-- Row 1: Chat card -->
+      <div class="interview-row">
+        <div class="interview-row-text">
+          <span class="step-label">{{ interviewStepsData[0].label }}</span>
+          <h3 class="step-title">{{ interviewStepsData[0].title }}</h3>
+          <p class="step-desc">{{ interviewStepsData[0].description }}</p>
+        </div>
+        <div class="interview-row-visual">
+          <div class="interview-visual-card">
+            <div class="chat-header">
+              <div class="chat-avatar">
+                <span class="material-symbols-rounded">smart_toy</span>
+              </div>
+              <span class="chat-name">AI Interviewer</span>
+              <span class="chat-badge">Live</span>
+            </div>
+            <div class="chat-transcript">
+              <div class="chat-msg chat-msg--bot">
+                <span class="chat-sender">Coach</span>
+                Tell me about a time you led a major architectural migration.
+              </div>
+              <div class="chat-msg chat-msg--user">
+                <span class="chat-sender">You</span>
+                In my last role, I led the migration from AngularJS to Angular 17...
+              </div>
+            </div>
+            <div class="chat-input-mock">
+              <span class="chat-input-text">Type your answer...</span>
+              <span class="chat-input-icon material-symbols-rounded">send</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Scorecard (reversed) -->
+      <div class="interview-row interview-row--reversed">
+        <div class="interview-row-text">
+          <span class="step-label">{{ interviewStepsData[1].label }}</span>
+          <h3 class="step-title">{{ interviewStepsData[1].title }}</h3>
+          <p class="step-desc">{{ interviewStepsData[1].description }}</p>
+        </div>
+        <div class="interview-row-visual">
+          <div class="interview-visual-card interview-visual-card--scorecard">
+            <div class="scorecard-header">
+              <span class="material-symbols-rounded">emoji_events</span>
+              Session Complete
+            </div>
+            <div class="scorecard-score">
+              <svg class="score-ring" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6" />
+                <circle
+                  cx="50" cy="50" r="42"
+                  fill="none"
+                  stroke="url(#scoreGradient)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="circumference"
+                  stroke-dashoffset="26"
+                  transform="rotate(-90 50 50)"
+                />
+                <defs>
+                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3B82F6" />
+                    <stop offset="100%" stop-color="#60A5FA" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="score-value">
+                <span class="score-number">87</span>
+              </div>
+            </div>
+            <span class="score-max">/100</span>
+            <div class="scorecard-grade">
+              <span class="grade-badge grade-badge--a">A-</span>
+              <span class="grade-label">Overall Grade</span>
+            </div>
+            <div class="scorecard-stats">
+              <div class="stat">
+                <span class="stat-val">6</span>
+                <span class="stat-label">Questions</span>
+              </div>
+              <div class="stat">
+                <span class="stat-val">4.2m</span>
+                <span class="stat-label">Duration</span>
+              </div>
+              <div class="stat">
+                <span class="stat-val">87%</span>
+                <span class="stat-label">Clarity</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================
+         Feature 2 — Job Matching (text right, visual left)
+         ======================== -->
+    <div class="features-job">
+      <div class="features-job-visual">
+        <div class="job-cards-stack">
+          @for (job of jobCards; track job.company; let i = $index) {
+            <div class="job-card" [class.job-card--primary]="i === 0">
+              <div class="job-card-top">
+                <div class="job-card-company">
+                  <div class="job-logo">{{ job.company[0] }}</div>
+                  <div>
+                    <div class="job-company-name">{{ job.company }}</div>
+                    <div class="job-role">{{ job.role }}</div>
+                  </div>
+                </div>
+                <div class="job-match-ring">
+                  <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" />
+                    <circle
+                      cx="50" cy="50" r="42"
+                      fill="none"
+                      [attr.stroke]="i === 0 ? '#3B82F6' : 'rgba(59,130,246,0.5)'"
+                      stroke-width="5"
+                      stroke-linecap="round"
+                      [attr.stroke-dasharray]="circumference"
+                      [attr.stroke-dashoffset]="i === 0 ? ringOffset() : circumference * (1 - job.match / 100)"
+                      transform="rotate(-90 50 50)"
+                    />
+                  </svg>
+                  <span class="match-pct">{{ i === 0 ? topCardMatch() : job.match }}%</span>
+                </div>
+              </div>
+              <div class="job-card-location">
+                <span class="material-symbols-rounded">location_on</span>
+                {{ job.location }}
+              </div>
+              <div class="job-card-skills">
+                @for (skill of job.skills; track skill) {
+                  <span class="skill-pill">{{ skill }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="features-job-text">
+        <span class="feature-eyebrow">
+          <span class="material-symbols-rounded" aria-hidden="true">work</span>
+          Smart Matching
+        </span>
+        <h3 class="feature-title">Jobs that fit you, not the other way around</h3>
+        <p class="feature-desc">
+          Your CV is embedded into the same vector space as every job in our index.
+          Cosine similarity finds the real matches — not keyword stuffing.
+        </p>
+        <ul class="feature-bullets">
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Top 5 matches ranked by fit score
+          </li>
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Missing skills highlighted per job
+          </li>
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Real salary ranges from live listings
+          </li>
+        </ul>
+
+        <!-- Interactive slider -->
+        <div class="slider-widget">
+          <label class="slider-label" for="matchSlider">
+            See how you match — drag the slider
+          </label>
+          <div class="slider-row">
+            <input
+              id="matchSlider"
+              type="range"
+              min="40"
+              max="100"
+              [value]="sliderValue()"
+              (input)="onSliderInput($event)"
+              class="match-slider"
+              aria-label="Match percentage slider"
+            />
+            <span class="slider-val">{{ topCardMatch() }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================
+         Feature 3 — Personalized Roadmap (text left, visual right)
+         ======================== -->
+    <div class="features-roadmap">
+      <div class="features-roadmap-text">
+        <span class="feature-eyebrow">
+          <span class="material-symbols-rounded" aria-hidden="true">route</span>
+          Gap-Driven Learning
+        </span>
+        <h3 class="feature-title">Your roadmap, not theirs</h3>
+        <p class="feature-desc">
+          A two-pass LLM assesses your seniority, identifies your exact skill gaps,
+          and builds priority-ordered steps. No generic "learn React" advice.
+        </p>
+        <ul class="feature-bullets">
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Seniority-aware (Junior → Mid ≠ Mid → Senior)
+          </li>
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Priority-ordered by impact
+          </li>
+          <li class="feature-bullet">
+            <span class="material-symbols-rounded bullet-icon">check_circle</span>
+            Rescan gaps anytime as you learn
+          </li>
+        </ul>
+      </div>
+
+      <div class="features-roadmap-visual">
+        <div class="roadmap-mock">
+          <div class="roadmap-mock-header">
+            <span class="material-symbols-rounded">route</span>
+            Senior .NET Developer Roadmap
+          </div>
+          <div class="roadmap-mock-meta">
+            <span class="meta-chip meta-chip--level">Mid → Senior</span>
+            <span class="meta-chip">4 steps</span>
+            <span class="meta-chip">~12 weeks</span>
+          </div>
+          <div class="roadmap-timeline">
+            <div class="roadmap-line"></div>
+            @for (step of roadmapSteps; track step.num) {
+              <div class="roadmap-step">
+                <div class="roadmap-step-circle" [class.high]="step.priority === 'High'">
+                  {{ step.num }}
+                </div>
+                <div class="roadmap-step-content">
+                  <div class="roadmap-step-header">
+                    <span class="roadmap-step-title">{{ step.title }}</span>
+                    <span class="priority-badge" [class]="'priority--' + step.priority.toLowerCase()">
+                      {{ step.priority }}
+                    </span>
+                  </div>
+                  <span class="roadmap-step-desc">{{ step.description }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

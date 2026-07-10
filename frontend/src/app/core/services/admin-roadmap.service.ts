@@ -1,17 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {
-  RoadmapTemplateDto,
-  CreateRoadmapTemplateDto,
-  UpdateRoadmapTemplateDto,
-  TestMatchResultDto,
-} from '../models/admin.model';
+
+import { API_BASE_URL } from '../api-config';
+import { RoadmapTemplateDto, CreateRoadmapTemplateDto, UpdateRoadmapTemplateDto, TestMatchResultDto } from '../models/admin.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminRoadmapService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7222/api/admin/roadmap-templates';
+  private apiUrl = `${API_BASE_URL}/api/admin/roadmap-templates`;
 
   getAll(): Observable<RoadmapTemplateDto[]> {
     return this.http.get<RoadmapTemplateDto[]>(this.apiUrl);

@@ -486,6 +486,8 @@ $RECYCLE.BIN/
 # Windows reserved device names (can appear as phantom untracked files)
 nul
 
+.agents/
+
 AGENTS.md
 docs/
 

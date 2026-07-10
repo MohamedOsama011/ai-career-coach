@@ -1,0 +1,95 @@
+<section
+  class="workflow-section"
+  id="workflow"
+  #sectionRoot
+  aria-labelledby="workflow-section-heading"
+>
+  <div class="workflow-container">
+    <!-- Header -->
+    <header class="workflow-header">
+      <span class="workflow-eyebrow">
+        <span class="material-symbols-rounded" aria-hidden="true">memory</span>
+        Under the hood
+      </span>
+      <h2 id="workflow-section-heading" class="workflow-title">From CV to offer, in 7 stages</h2>
+      <p class="workflow-subtitle">
+        Every recommendation, score, and roadmap step comes from the same pipeline.
+        Here's exactly what runs between your upload and your first interview.
+      </p>
+    </header>
+
+    <!-- Timeline — 3-col CSS grid: [card | line | card] -->
+    <div class="workflow-timeline" role="list" aria-label="AI engine pipeline stages">
+      <!-- Center line — absolute, full height, drawn by ScrollTrigger -->
+      <svg
+        class="workflow-line-svg"
+        viewBox="0 0 4 1000"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <line
+          class="workflow-line-base"
+          x1="2" y1="0" x2="2" y2="1000"
+          stroke="rgba(255, 255, 255, 0.08)"
+          stroke-width="2"
+        />
+        <line
+          #lineFill
+          class="workflow-line-fill"
+          x1="2" y1="0" x2="2" y2="1000"
+          stroke="url(#workflowLineGradient)"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <defs>
+          <linearGradient id="workflowLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="#3B82F6" />
+            <stop offset="100%" stop-color="#60A5FA" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- 7 nodes (display: contents lets the card + circle participate in
+           the 3-col grid without an extra wrapper) -->
+      @for (node of nodes; track trackNode($index, node)) {
+        <li
+          #workflowNode
+          class="workflow-node"
+          [class.workflow-node--left]="node.side === 'left'"
+          [class.workflow-node--right]="node.side === 'right'"
+          role="listitem"
+          [attr.aria-labelledby]="'workflow-' + node.num + '-title'"
+        >
+          <!-- Number circle — sits in the center column on the line -->
+          <div
+            class="workflow-node-circle"
+            [class.workflow-node-circle--reached]="isReached(node.num)"
+            aria-hidden="true"
+          >
+            <span class="workflow-node-num">{{ node.num }}</span>
+          </div>
+
+          <!-- Content card — sits in left or right column -->
+          <article class="workflow-node-card">
+            <div class="workflow-card-head">
+              <span class="workflow-card-icon material-symbols-rounded" aria-hidden="true">
+                {{ node.icon }}
+              </span>
+              <h3 [id]="'workflow-' + node.num + '-title'" class="workflow-card-title">
+                {{ node.title }}
+              </h3>
+            </div>
+            <p class="workflow-card-desc">{{ node.description }}</p>
+            <span
+              class="workflow-card-metric"
+              [attr.aria-label]="'Metric: ' + node.metric"
+            >
+              {{ node.metric }}
+            </span>
+          </article>
+        </li>
+      }
+    </div>
+  </div>
+</section>

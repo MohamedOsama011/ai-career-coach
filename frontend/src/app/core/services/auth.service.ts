@@ -1,12 +1,14 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GeneralResponse, ProfileResponse } from "../models/user.model";
+import { AuthResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GeneralResponse, ProfileResponse, GoogleLoginRequest } from "../models/user.model";
 import { Observable } from "rxjs";
+
+import { API_BASE_URL } from '../api-config';
 
 @Injectable({ providedIn: 'root'})
 
 export class AuthService{
-    private apiUrl = 'https://localhost:7222/api/auth';
+    private apiUrl = `${API_BASE_URL}/api/auth`;
 
     constructor(private http: HttpClient) {}
 
@@ -16,6 +18,10 @@ export class AuthService{
 
     login(data: LoginRequest) : Observable<AuthResponse> {
         return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data);
+    }
+
+    googleLogin(data: GoogleLoginRequest): Observable<AuthResponse> {
+        return this.http.post<AuthResponse>(`${this.apiUrl}/google-login`, data);
     }
 
     forgotPassword(data: ForgotPasswordRequest): Observable<void> {
@@ -30,8 +36,12 @@ export class AuthService{
         return this.http.get<ProfileResponse>(`${this.apiUrl}/profile`);
     }
 
-    saveToken(token: string): void {
-        localStorage.setItem('authToken', token);
+    saveToken(token: string, rememberMe = true): void {
+        if (rememberMe) {
+            localStorage.setItem('authToken', token);
+        } else {
+            sessionStorage.setItem('authToken', token);
+        }
     }
     saveUserInfo(fullName: string, email: string, roles?: string[]): void {
         localStorage.setItem('userFullName', fullName);
@@ -41,7 +51,7 @@ export class AuthService{
         }
     }
     getToken(): string | null {
-        return localStorage.getItem('authToken');
+        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
     getUserFullName(): string {
         return localStorage.getItem('userFullName') || 'User';
@@ -91,9 +101,9 @@ export class AuthService{
 
     logout(): void {
         localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
         localStorage.removeItem('userFullName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userRoles');
     }
 }
-

@@ -5,11 +5,14 @@ import { map, timeout } from 'rxjs/operators';
 import { Job, JobRecommendationResult, SyncStatusDto, UpdateJobDto } from '../models/job.model';
 
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({
   providedIn: 'root'
 })
 export class JobsService {
-  private apiUrl = 'https://localhost:7222/api/job';
+  private apiUrl = `${API_BASE_URL}/api/job`;
 
   private savedJobIdsSubject = new BehaviorSubject<number[]>(this.loadSavedJobIds());
   savedJobIds$ = this.savedJobIdsSubject.asObservable();

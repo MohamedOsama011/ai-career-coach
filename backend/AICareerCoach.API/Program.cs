@@ -160,6 +160,13 @@ builder.Services.AddScoped<IAdminRoadmapService, AdminRoadmapService>();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
+                // Ensure LimitsJson column exists (migration was hand-written but never applied)
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Subscriptions') AND name = 'LimitsJson')
+                    BEGIN
+                        ALTER TABLE Subscriptions ADD LimitsJson nvarchar(max) NULL;
+                    END");
+
                 await RoleSeeder.SeedAsync(roleManager);
                 await AdminSeeder.SeedAsync(userManager, logger);
                 //await JobSeeder.SeedAsync(context);

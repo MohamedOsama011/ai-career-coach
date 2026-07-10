@@ -1,0 +1,536 @@
+/* ==========================================
+   LANDING BENTO — Section 04
+   Launch UI restraint: pure black bg + white type + 1 violet accent.
+   6-cell asymmetric grid: 1 hero hub (2x2) + 5 features (1x1 / 2x1 wide).
+   ========================================== */
+
+.bento-section {
+  position: relative;
+  padding: 120px 24px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 3;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
+.bento-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 720px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+}
+
+/* Subtle violet glow above the section (mirrors landing-demo pattern) */
+.bento-section::after {
+  content: "";
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 320px;
+  background: radial-gradient(ellipse 70% 80% at 50% 100%, var(--color-purple-glow) 0%, transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+.bento-header {
+  text-align: center;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 2;
+}
+
+.bento-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-brand);
+  margin-bottom: 20px;
+}
+
+.bento-eyebrow .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.bento-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.bento-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  max-width: 600px;
+  margin: 0 auto;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   6-CELL GRID
+   ========================================== */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ==========================================
+   BASE CELL
+   ========================================== */
+.bento-cell {
+  position: relative;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  cursor: default;
+  transition: border-color 0.3s var(--ease-out), background 0.3s var(--ease-out);
+  /* Mouse-tracker custom props — GSAP updates these on mousemove */
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
+/* Spotlight radial gradient — reveals on hover, follows the cursor.
+   Matches DESIGN_SYSTEM.md §3.2 spec exactly. */
+.bento-cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    400px circle at var(--mouse-x) var(--mouse-y),
+    rgba(99, 102, 241, 0.15),
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.bento-cell:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.bento-cell:hover::before {
+  opacity: 1;
+}
+
+.bento-cell:focus-within {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+
+/* ==========================================
+   HERO HUB CELL (2x2)
+   ========================================== */
+.bento-hero {
+  grid-area: 1 / 1 / 3 / 3;
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(255, 255, 255, 0.01));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+}
+
+.bento-hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.bento-hero-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-brand);
+}
+
+.bento-hero-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.bento-hero-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 360px;
+}
+
+.bento-hero-morph {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.bento-hero-svg {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 18px rgba(99, 102, 241, 0.35));
+}
+
+.bento-hero-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================
+   FEATURE CELL BASE (1x1)
+   ========================================== */
+.bento-feature {
+  position: relative;
+  z-index: 1;
+}
+
+.bento-feature-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bento-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--color-brand);
+  font-size: 18px;
+}
+
+.bento-feature-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.bento-feature-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.bento-feature--wide .bento-feature-desc {
+  max-width: 540px;
+}
+
+.bento-microviz {
+  margin-top: auto;
+  padding-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Microviz 1: CV card ─────────────────────────────────── */
+.bento-microviz--cv-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-card-mini {
+  width: 88px;
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.cv-card-mini-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.cv-card-mini-score {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* ── Microviz 2: Skill gap bars ─────────────────────────── */
+.bento-microviz--bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  width: 36px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.6s var(--ease-out);
+}
+
+.bar-fill--current {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bar-fill--target {
+  background: linear-gradient(90deg, var(--color-brand), #60A5FA);
+}
+
+/* ── Microviz 3: Roadmap line (wide cell) ──────────────── */
+.bento-microviz--roadmap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.roadmap-svg {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+}
+
+/* ── Microviz 4: Waveform ──────────────────────────────── */
+.bento-microviz--waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  width: 100%;
+}
+
+.waveform-mini-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--color-brand), var(--color-purple-glow));
+  border-radius: 9999px;
+  height: 100%;
+  transform-origin: center;
+  transform: scaleY(0.4);
+}
+
+/* ── Microviz 5: Job card ──────────────────────────────── */
+.bento-microviz--job-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.job-card-mini {
+  width: 100%;
+  max-width: 160px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.job-card-mini-pill {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  align-self: flex-start;
+}
+
+.job-card-mini-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.job-card-mini-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+  .bento-title {
+    font-size: 2.6rem;
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .bento-hero    { grid-area: auto; min-height: 280px; }
+  .bento-cv      { grid-area: auto; }
+  .bento-gap     { grid-area: auto; }
+  .bento-roadmap { grid-area: auto; }
+  .bento-interview { grid-area: auto; }
+  .bento-jobs    { grid-area: auto; }
+
+  .bento-feature--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .bento-section {
+    padding: 80px var(--space-lg) 60px;
+  }
+
+  .bento-title {
+    font-size: 2rem;
+  }
+
+  .bento-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .bento-hero {
+    padding: 24px;
+    min-height: 240px;
+  }
+
+  .bento-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .bento-hero-sub {
+    font-size: 0.875rem;
+  }
+
+  .bento-hero-morph {
+    margin-top: 12px;
+  }
+
+  .bento-hero-svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .bento-feature--wide {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  .bento-cell,
+  .bento-cell::before,
+  .cv-card-mini,
+  .bar-fill {
+    transition: none !important;
+  }
+  /* Hero label/cycle are JS-controlled via matchMedia.add( '(prefers-reduced-motion: no-preference)' );
+     the static path 0 (CV) is shown by default via the SVG `d` attribute. */
+}

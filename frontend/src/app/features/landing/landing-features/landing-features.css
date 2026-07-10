@@ -1,0 +1,968 @@
+/* ==========================================
+   LANDING FEATURES — Section 06
+   Feature Deep-Dive: 3 asymmetric 2-col sections.
+   Launch UI restraint: pure black bg + white type + 1 violet accent.
+   ========================================== */
+
+/* ==========================================
+   SECTION + HEADER (shared pattern)
+   ========================================== */
+.features-section {
+  position: relative;
+  padding: 120px 24px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 3;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 900px;
+}
+
+/* Top hairline */
+.features-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 720px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+}
+
+/* Violet glow above */
+.features-section::after {
+  content: "";
+  position: absolute;
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 320px;
+  background: radial-gradient(ellipse 70% 80% at 50% 100%, var(--color-purple-glow) 0%, transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+.features-header {
+  text-align: center;
+  margin-bottom: 64px;
+  padding: 0 var(--space-xl);
+  position: relative;
+  z-index: 2;
+}
+
+.features-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-brand);
+  margin-bottom: 20px;
+}
+
+.features-eyebrow .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.features-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.features-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  max-width: 580px;
+  margin: 0 auto;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   FEATURE 1 — Mock Interview
+   Vertical stack of [text | card] rows
+   ========================================== */
+.features-interview {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  padding: 0 var(--space-xl);
+}
+
+.interview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.interview-row-text {
+  position: relative;
+  z-index: 2;
+}
+
+.interview-row-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.interview-row--reversed .interview-row-text {
+  order: 2;
+}
+
+.interview-row--reversed .interview-row-visual {
+  order: 1;
+}
+
+.interview-row-text .step-label {
+  margin-bottom: 12px;
+}
+
+.interview-row-text .step-title {
+  margin: 0 0 12px;
+}
+
+.interview-row-text .step-desc {
+  margin: 0;
+}
+
+.step-label {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-brand);
+  margin-bottom: 12px;
+}
+
+.step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.step-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 420px;
+}
+
+/* Visual card — shared by both chat and scorecard */
+.interview-visual-card {
+  width: 100%;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.interview-visual-card--scorecard {
+  align-items: center;
+  text-align: center;
+}
+
+/* ── Chat header (states 1 & 2) ── */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 14px;
+}
+
+.chat-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-brand), #60A5FA);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-avatar .material-symbols-rounded {
+  font-size: 16px;
+  color: #fff;
+}
+
+.chat-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.chat-badge {
+  margin-left: auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+/* ── Chat transcript ── */
+.chat-transcript {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  max-width: 90%;
+}
+
+.chat-msg--bot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  align-self: flex-start;
+}
+
+.chat-msg--user {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #fff;
+  align-self: flex-end;
+}
+
+.chat-sender {
+  display: block;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-brand);
+  margin-bottom: 4px;
+}
+
+.chat-msg--user .chat-sender {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Chat input mock (state 1) ── */
+.chat-input-mock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.chat-input-text {
+  flex: 1;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.chat-input-icon {
+  font-size: 18px;
+  color: var(--color-brand);
+  opacity: 0.5;
+}
+
+/* ── Scorecard (state 3) ── */
+.scorecard-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.scorecard-header .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--color-brand);
+}
+
+.scorecard-score {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 8px;
+}
+
+.score-ring {
+  width: 100%;
+  height: 100%;
+}
+
+.score-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.score-max {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.scorecard-grade {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.grade-badge {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.grade-badge--a {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+.grade-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.scorecard-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.scorecard-stats .stat {
+  text-align: center;
+}
+
+.stat-val {
+  display: block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================
+   FEATURE 2 — Job Matching
+   ========================================== */
+.features-job {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  padding: 100px var(--space-xl) 0;
+  align-items: center;
+}
+
+/* Job cards stack (left visual) */
+.job-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.job-card {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: border-color 0.3s var(--ease-out);
+}
+
+.job-card--primary {
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.job-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.job-card-company {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.job-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  flex-shrink: 0;
+}
+
+.job-company-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.job-role {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+.job-match-ring {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.job-match-ring svg {
+  width: 100%;
+  height: 100%;
+}
+
+.match-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.job-card-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.job-card-location .material-symbols-rounded {
+  font-size: 12px;
+}
+
+.job-card-skills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.skill-pill {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+/* Job text (right side) */
+.feature-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-brand);
+  margin-bottom: 12px;
+}
+
+.feature-eyebrow .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.feature-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 14px;
+}
+
+.feature-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+  max-width: 440px;
+}
+
+.feature-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feature-bullet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.bullet-icon {
+  font-size: 18px;
+  color: var(--color-brand);
+  flex-shrink: 0;
+}
+
+/* ── Slider widget ── */
+.slider-widget {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.slider-label {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.match-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.match-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid #fff;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+  cursor: grab;
+  transition: box-shadow 0.2s;
+}
+
+.match-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+}
+
+.match-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid #fff;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+  cursor: grab;
+}
+
+.slider-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  min-width: 48px;
+  text-align: right;
+}
+
+/* ==========================================
+   FEATURE 3 — Personalized Roadmap
+   ========================================== */
+.features-roadmap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  padding: 100px var(--space-xl) 0;
+  align-items: center;
+}
+
+.features-roadmap-visual {
+  min-width: 0;
+}
+
+/* Roadmap mock card (right visual) */
+.roadmap-mock {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.roadmap-mock-header {
+  order: 1;
+}
+
+.roadmap-mock-meta {
+  order: 2;
+}
+
+.roadmap-timeline {
+  order: 3;
+}
+
+.roadmap-mock-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.roadmap-mock-header .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--color-brand);
+  flex-shrink: 0;
+}
+
+.roadmap-mock-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.meta-chip {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.meta-chip--level {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: var(--color-brand);
+}
+
+/* ── Mini timeline ── */
+.roadmap-timeline {
+  position: relative;
+  padding-left: 28px;
+  min-width: 0;
+}
+
+.roadmap-line {
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.roadmap-step {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+
+.roadmap-step:last-child {
+  padding-bottom: 0;
+}
+
+.roadmap-step-circle {
+  position: absolute;
+  left: -28px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-app);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  z-index: 1;
+}
+
+.roadmap-step-circle.high {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.roadmap-step-content {
+  flex: 1;
+}
+
+.roadmap-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.roadmap-step-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.priority-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.priority--high {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+}
+
+.priority--medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #F59E0B;
+}
+
+.priority--low {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+}
+
+.roadmap-step-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+  .features-title {
+    font-size: 2.6rem;
+  }
+
+  .interview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .interview-row-text {
+    order: 2;
+  }
+
+  .interview-row-visual {
+    order: 1;
+    padding: 20px 0;
+  }
+
+  .interview-row--reversed .interview-row-text {
+    order: 2;
+  }
+
+  .interview-row--reversed .interview-row-visual {
+    order: 1;
+  }
+
+  .interview-visual-card {
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  .features-job,
+  .features-roadmap {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .features-job-visual {
+    order: 2;
+  }
+
+  .features-roadmap-visual {
+    order: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-section {
+    padding: 80px 0 60px;
+  }
+
+  .features-header {
+    margin-bottom: 64px;
+    padding: 0 var(--space-lg);
+  }
+
+  .features-title {
+    font-size: 2rem;
+  }
+
+  .features-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .features-interview,
+  .features-job,
+  .features-roadmap {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+
+  .step-title {
+    font-size: 1.5rem;
+  }
+
+  .feature-title {
+    font-size: 1.75rem;
+  }
+
+  .interview-visual-card {
+    max-width: 100%;
+  }
+
+  .job-cards-stack {
+    gap: 10px;
+  }
+
+  .job-card {
+    padding: 14px;
+  }
+
+  .roadmap-mock {
+    padding: 18px;
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  .interview-visual-card {
+    transform: none !important;
+  }
+}

@@ -3,10 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GeneralResponse, UserSubscriptionDto, PaymentInvoiceDto, PagedPaymentHistoryDto, SubscriberDetailDto } from '../models/payment.model';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({ providedIn: 'root' })
 export class UserSubscriptionService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7222/api/usersubscription';
+  private apiUrl = `${API_BASE_URL}/api/usersubscription`;
 
   getMy(): Observable<GeneralResponse<UserSubscriptionDto[]>> {
     return this.http.get<GeneralResponse<UserSubscriptionDto[]>>(`${this.apiUrl}/my`);

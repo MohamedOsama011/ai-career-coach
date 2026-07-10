@@ -23,6 +23,8 @@ namespace AICareerCoach.BLL.Interfaces
         Task ForgotPassword(ForgotPassword forgotPassword);
 
         Task<Generalresponse> ResetPassword(ResetPassword resetPassword);
+
+        Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto);
         Task<Generalresponse> changepassword(User user,CangePassword cangePassword);
 
         Task<Generalresponse> Getsystemroles();

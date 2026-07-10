@@ -4,11 +4,14 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, timeout } from 'rxjs/operators';
 import { GenerateRoadmapRequestDto, RoadmapTemplateDto, UserRoadmapDto } from '../models/roadmap.model';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({
   providedIn: 'root'
 })
 export class RoadmapService {
-  private apiUrl = 'https://localhost:7222/api/roadmap';
+  private apiUrl = `${API_BASE_URL}/api/roadmap`;
 
   constructor(private http: HttpClient) {}
 

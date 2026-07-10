@@ -28,19 +28,22 @@ namespace AICareerCoach.DAL.Migrations
             // 1. Convert Payments.Status: nvarchar(32) -> int
             migrationBuilder.Sql(@"
                 -- Backup old values in case of rollback
+                -- Idempotent: also check Status_New doesn't exist (from partial failure)
                 IF COL_LENGTH('Payments', 'Status') IS NOT NULL
+                    AND COL_LENGTH('Payments', 'Status_New') IS NULL
                 BEGIN
                     -- Add new int column with temporary name
                     ALTER TABLE [Payments] ADD [Status_New] int NOT NULL
                         CONSTRAINT [DF_Payments_Status_New] DEFAULT 0;
 
                     -- Convert known string values to enum ints
-                    UPDATE [Payments] SET [Status_New] = 0
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'pending';
-                    UPDATE [Payments] SET [Status_New] = 1
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'paid';
-                    UPDATE [Payments] SET [Status_New] = 2
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'failed';
+                    -- Use EXEC() for deferred name resolution (column created above in same batch)
+                    EXEC('UPDATE [Payments] SET [Status_New] = 0
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''pending''');
+                    EXEC('UPDATE [Payments] SET [Status_New] = 1
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''paid''');
+                    EXEC('UPDATE [Payments] SET [Status_New] = 2
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''failed''');
 
                     -- Drop default, then drop old column, rename new
                     ALTER TABLE [Payments] DROP CONSTRAINT [DF_Payments_Status_New];
@@ -52,18 +55,19 @@ namespace AICareerCoach.DAL.Migrations
             // 2. Convert UserSubscriptions.Status: nvarchar(32) -> int
             migrationBuilder.Sql(@"
                 IF COL_LENGTH('UserSubscriptions', 'Status') IS NOT NULL
+                    AND COL_LENGTH('UserSubscriptions', 'Status_New') IS NULL
                 BEGIN
                     ALTER TABLE [UserSubscriptions] ADD [Status_New] int NOT NULL
                         CONSTRAINT [DF_UserSubscriptions_Status_New] DEFAULT 0;
 
-                    UPDATE [UserSubscriptions] SET [Status_New] = 0
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'pending';
-                    UPDATE [UserSubscriptions] SET [Status_New] = 1
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'active';
-                    UPDATE [UserSubscriptions] SET [Status_New] = 2
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'cancelled';
-                    UPDATE [UserSubscriptions] SET [Status_New] = 3
-                        WHERE LOWER(LTRIM(RTRIM([Status]))) = 'expired';
+                    EXEC('UPDATE [UserSubscriptions] SET [Status_New] = 0
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''pending''');
+                    EXEC('UPDATE [UserSubscriptions] SET [Status_New] = 1
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''active''');
+                    EXEC('UPDATE [UserSubscriptions] SET [Status_New] = 2
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''cancelled''');
+                    EXEC('UPDATE [UserSubscriptions] SET [Status_New] = 3
+                        WHERE LOWER(LTRIM(RTRIM([Status]))) = ''expired''');
 
                     ALTER TABLE [UserSubscriptions] DROP CONSTRAINT [DF_UserSubscriptions_Status_New];
                     ALTER TABLE [UserSubscriptions] DROP COLUMN [Status];
@@ -137,8 +141,8 @@ namespace AICareerCoach.DAL.Migrations
             // Revert Payments.Status: int -> nvarchar(32)
             migrationBuilder.Sql(@"
                 ALTER TABLE [Payments] ADD [Status_Old] nvarchar(32) NULL;
-                UPDATE [Payments] SET [Status_Old] = CASE [Status]
-                    WHEN 0 THEN 'pending' WHEN 1 THEN 'paid' WHEN 2 THEN 'failed' END;
+                EXEC('UPDATE [Payments] SET [Status_Old] = CASE [Status]
+                    WHEN 0 THEN ''pending'' WHEN 1 THEN ''paid'' WHEN 2 THEN ''failed'' END');
                 ALTER TABLE [Payments] DROP COLUMN [Status];
                 EXEC sp_rename 'dbo.Payments.Status_Old', 'Status', 'COLUMN';
             ");
@@ -146,9 +150,9 @@ namespace AICareerCoach.DAL.Migrations
             // Revert UserSubscriptions.Status: int -> nvarchar(32)
             migrationBuilder.Sql(@"
                 ALTER TABLE [UserSubscriptions] ADD [Status_Old] nvarchar(32) NULL;
-                UPDATE [UserSubscriptions] SET [Status_Old] = CASE [Status]
-                    WHEN 0 THEN 'pending' WHEN 1 THEN 'active'
-                    WHEN 2 THEN 'cancelled' WHEN 3 THEN 'expired' END;
+                EXEC('UPDATE [UserSubscriptions] SET [Status_Old] = CASE [Status]
+                    WHEN 0 THEN ''pending'' WHEN 1 THEN ''active''
+                    WHEN 2 THEN ''cancelled'' WHEN 3 THEN ''expired'' END');
                 ALTER TABLE [UserSubscriptions] DROP COLUMN [Status];
                 EXEC sp_rename 'dbo.UserSubscriptions.Status_Old', 'Status', 'COLUMN';
             ");

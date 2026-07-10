@@ -1,5 +1,59 @@
-<div class="auth-layout">
-  <div class="auth-card">
-    <router-outlet />
+<!-- ==========================================
+     AUTH LAYOUT — Split-Panel
+     Left: dark branded visual | Right: white form
+     ========================================== -->
+<div class="auth-split">
+
+  <!-- ── Left Panel (dark, branded) ── -->
+  <div class="auth-left">
+    <a routerLink="/" class="auth-left-logo" aria-label="Back to home">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L4.09 12.96A1 1 0 0 0 5 14.5h5.5L11 22l8.91-10.96A1 1 0 0 0 19 9.5H13.5L13 2Z"
+              stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+      </svg>
+      <span>AI Career Coach</span>
+    </a>
+    <div class="auth-left-bg" aria-hidden="true">
+      <div class="auth-shape auth-shape--1"></div>
+      <div class="auth-shape auth-shape--2"></div>
+      <div class="auth-shape auth-shape--3"></div>
+      <div class="auth-shape auth-shape--4"></div>
+    </div>
+
+    <div class="auth-left-content" #authBrand>
+      <div class="auth-brand-line">
+        <div class="auth-brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L4.09 12.96A1 1 0 0 0 5 14.5h5.5L11 22l8.91-10.96A1 1 0 0 0 19 9.5H13.5L13 2Z"
+                  stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.1)"/>
+          </svg>
+        </div>
+        <span class="auth-brand-name">AI Career Coach</span>
+      </div>
+      <p class="auth-brand-tagline auth-brand-line">Your personal career development assistant</p>
+      <div class="auth-brand-features auth-brand-line">
+        <div class="auth-feature-item">
+          <span class="material-symbols-rounded auth-feature-icon">school</span>
+          <span>AI-powered mock interviews</span>
+        </div>
+        <div class="auth-feature-item">
+          <span class="material-symbols-rounded auth-feature-icon">trending_up</span>
+          <span>Personalized learning roadmaps</span>
+        </div>
+        <div class="auth-feature-item">
+          <span class="material-symbols-rounded auth-feature-icon">work</span>
+          <span>Smart job matching</span>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- ── Right Panel (white, form) ── -->
+  <div class="auth-right" #authForm>
+    <div class="auth-form-wrapper">
+      <router-outlet />
+      <p class="auth-footer">&copy; 2026 AI Career Coach. All rights reserved.</p>
+    </div>
+  </div>
+
 </div>

@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
+import { GoogleAuthService } from '../../../core/services/google-auth.service';
 import { Router, RouterLink } from '@angular/router';
 
 @Component({
@@ -11,23 +12,63 @@ import { Router, RouterLink } from '@angular/router';
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
-export class Register {
-  fullName: string = '';
-  email: string = '';
-  password: string = '';
-  confirmPassword: string = '';
+export class Register implements AfterViewInit {
+  fullName = '';
+  email = '';
+  password = '';
+  confirmPassword = '';
+  agreeTerms = false;
+  showPassword = false;
+  showConfirmPassword = false;
+  fullNameTouched = false;
+  emailTouched = false;
+  passwordTouched = false;
+  confirmPasswordTouched = false;
   errorMessage = signal('');
   isLoading = signal(false);
 
+  passwordStrength = computed(() => {
+    const pwd = this.password;
+    if (!pwd) return { score: 0, label: '', color: '', width: '0%' };
+    let score = 0;
+    if (pwd.length >= 6) score += 15;
+    if (pwd.length >= 10) score += 10;
+    if (/[a-z]/.test(pwd)) score += 15;
+    if (/[A-Z]/.test(pwd)) score += 15;
+    if (/\d/.test(pwd)) score += 20;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score += 25;
+    if (pwd.length >= 14) score += 10;
+    score = Math.min(score, 100);
+
+    if (score < 30) return { score, label: 'Weak', color: 'var(--brand-danger)', width: `${score}%` };
+    if (score < 50) return { score, label: 'Fair', color: '#F97316', width: `${score}%` };
+    if (score < 75) return { score, label: 'Good', color: 'var(--brand-warning)', width: `${score}%` };
+    return { score, label: 'Strong', color: 'var(--brand-success)', width: `${score}%` };
+  });
+
   constructor(
     private authService: AuthService,
+    private googleAuth: GoogleAuthService,
     private router: Router
   ) {}
+
+  ngAfterViewInit(): void {
+    this.googleAuth.initializeGoogleButton('google-register-button');
+  }
+
+  onGoogleClick(): void {
+    this.googleAuth.triggerGoogleLogin();
+  }
 
   onSubmit() {
     this.errorMessage.set('');
 
-    if (!this.email || !this.password || !this.confirmPassword) {
+    this.fullNameTouched = true;
+    this.emailTouched = true;
+    this.passwordTouched = true;
+    this.confirmPasswordTouched = true;
+
+    if (!this.fullName || !this.email || !this.password || !this.confirmPassword) {
       this.errorMessage.set('All fields are required');
       return;
     }
@@ -37,13 +78,8 @@ export class Register {
       return;
     }
 
-    if (this.password.length < 6) {
-      this.errorMessage.set('Password must be at least 6 characters long');
-      return;
-    }
-    //password RequireDigit
-    if (!/\d/.test(this.password)) {
-      this.errorMessage.set('Password must contain at least one digit');
+    if (!this.agreeTerms) {
+      this.errorMessage.set('Please agree to the terms and conditions.');
       return;
     }
 
@@ -57,13 +93,11 @@ export class Register {
       finalize(() => this.isLoading.set(false))
     ).subscribe({
       next: (response) => {
-        this.authService.saveToken(response.token);
+        this.authService.saveToken(response.token, true);
         this.authService.saveUserInfo(response.fullName, response.email, response.roles);
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        console.error('Registration failed:', error);
-        console.error('Error body:', JSON.stringify(error.error));
         this.errorMessage.set(
           typeof error.error === 'object' && error.error?.message
             ? error.error.message

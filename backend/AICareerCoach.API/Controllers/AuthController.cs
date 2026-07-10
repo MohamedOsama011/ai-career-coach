@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AICareerCoach.BLL.DTOs;
 using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.BLL.Interfaces;
+using AICareerCoach.BLL.DTOs.Auth;
 using AICareerCoach.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -90,6 +91,21 @@ namespace AICareerCoach.API.Controllers
         {
             await _authService.Logoutall(id);
             return Ok();
+        }
+
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
+        {
+            try
+            {
+                var result = await _authService.GoogleLoginAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("ForgotPassword")]

@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 })
 export class ForgotPassword {
   email = '';
+  emailTouched = false;
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');

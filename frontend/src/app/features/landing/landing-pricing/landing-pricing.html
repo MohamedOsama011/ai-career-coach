@@ -1,0 +1,53 @@
+<!-- ==========================================
+     LANDING PRICING — Section 07
+     3 pricing cards: Basic (Free), Pro (highlighted), Premium.
+     Launch UI restraint: black bg + white type + violet accent.
+     ========================================== -->
+<section class="pricing-section" #pricingSection id="pricing">
+  <div class="pricing-header">
+    <span class="section-eyebrow">Pricing</span>
+    <h2 class="pricing-title">Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start free. Upgrade when you're ready.</p>
+  </div>
+
+  <div class="pricing-grid">
+    @for (plan of plans; track plan.name) {
+      <div class="pricing-card" [class.pricing-card--highlighted]="plan.highlighted">
+        @if (plan.highlighted) {
+          <span class="pricing-badge">Most Popular</span>
+        }
+
+        <div class="pricing-card-header">
+          <h3 class="pricing-plan-name">{{ plan.name }}</h3>
+          <div class="pricing-price-row">
+            <span class="pricing-price">{{ plan.price }}</span>
+            <span class="pricing-period">{{ plan.period }}</span>
+          </div>
+          <p class="pricing-description">{{ plan.description }}</p>
+        </div>
+
+        <div class="pricing-features">
+          @for (feature of plan.features; track feature.label) {
+            <div class="pricing-feature">
+              @if (feature.included) {
+                <span class="material-symbols-rounded pricing-feature-icon pricing-feature-icon--included">check_circle</span>
+              } @else {
+                <span class="material-symbols-rounded pricing-feature-icon pricing-feature-icon--excluded">cancel</span>
+              }
+              <span class="pricing-feature-text">
+                {{ feature.label }}
+                @if (feature.value) {
+                  <span class="pricing-feature-value">{{ feature.value }}</span>
+                }
+              </span>
+            </div>
+          }
+        </div>
+
+        <a class="pricing-cta" [class.pricing-cta--primary]="plan.highlighted" [class.pricing-cta--outline]="!plan.highlighted" [routerLink]="plan.ctaRoute">
+          {{ plan.cta }}
+        </a>
+      </div>
+    }
+  </div>
+</section>

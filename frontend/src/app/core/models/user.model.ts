@@ -1,6 +1,7 @@
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
@@ -22,6 +23,10 @@ export interface User {
   email: string;
   careerGoal?: string;
   createdAt: Date;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
 }
 
 export interface ForgotPasswordRequest {

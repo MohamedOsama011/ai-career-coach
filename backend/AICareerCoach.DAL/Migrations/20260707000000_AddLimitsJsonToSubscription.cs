@@ -23,23 +23,24 @@ namespace AICareerCoach.DAL.Migrations
                 ADD [LimitsJson] nvarchar(max) NULL;
 
                 -- 2. Update existing plans with per-plan limits JSON
+                -- Use EXEC() for deferred name resolution (column created above in same batch)
                 -- Basic: 1 interview, 1 roadmap, 3 jobs, no rescan
-                UPDATE [Subscriptions]
-                SET [Price] = 0,
-                    [LimitsJson] = N'{""InterviewSessions"":1,""RoadmapGenerations"":1,""JobRecommendations"":3,""RoadmapRescan"":false}'
-                WHERE [Name] = N'Basic';
+                EXEC('UPDATE [Subscriptions]
+                    SET [Price] = 0,
+                        [LimitsJson] = N''{""InterviewSessions"":1,""RoadmapGenerations"":1,""JobRecommendations"":3,""RoadmapRescan"":false}''
+                    WHERE [Name] = N''Basic''');
 
                 -- Pro: 10 interviews, 5 roadmaps, 10 jobs, rescan on
-                UPDATE [Subscriptions]
-                SET [Price] = 399,
-                    [LimitsJson] = N'{""InterviewSessions"":10,""RoadmapGenerations"":5,""JobRecommendations"":10,""RoadmapRescan"":true}'
-                WHERE [Name] = N'Pro';
+                EXEC('UPDATE [Subscriptions]
+                    SET [Price] = 399,
+                        [LimitsJson] = N''{""InterviewSessions"":10,""RoadmapGenerations"":5,""JobRecommendations"":10,""RoadmapRescan"":true}''
+                    WHERE [Name] = N''Pro''');
 
                 -- Premium: unlimited, rescan on
-                UPDATE [Subscriptions]
-                SET [Price] = 999,
-                    [LimitsJson] = N'{""InterviewSessions"":-1,""RoadmapGenerations"":-1,""JobRecommendations"":-1,""RoadmapRescan"":true}'
-                WHERE [Name] = N'Premium';
+                EXEC('UPDATE [Subscriptions]
+                    SET [Price] = 999,
+                        [LimitsJson] = N''{""InterviewSessions"":-1,""RoadmapGenerations"":-1,""JobRecommendations"":-1,""RoadmapRescan"":true}''
+                    WHERE [Name] = N''Premium''');
             ");
         }
 

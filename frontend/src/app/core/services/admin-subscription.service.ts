@@ -3,10 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GeneralResponse, SubscriberDetailDto, AuditLogDto, ExtendSubscriptionRequest } from '../models/payment.model';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({ providedIn: 'root' })
 export class AdminSubscriptionService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7222/api/admin/subscriptions';
+  private apiUrl = `${API_BASE_URL}/api/admin/subscriptions`;
   private paymentUrl = 'https://localhost:7222/api/admin/payments';
 
   getDetail(id: number): Observable<GeneralResponse<SubscriberDetailDto>> {

@@ -208,12 +208,12 @@ namespace AICareerCoach.BLL.Services
 
         public async Task ForgotPassword(ForgotPassword forgotPassword)
         {
-           
             var user = await _userManager.FindByEmailAsync(forgotPassword.Email);
             if (user != null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordresetlink = $"?Email={user.Email}&token={Uri.EscapeDataString(token)}";
+                var frontendBaseUrl = _config["AppSettings:FrontendBaseUrl"] ?? "http://localhost:4200";
+                var passwordresetlink = $"{frontendBaseUrl.TrimEnd('/')}/reset-password?Email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
                 var body = $"<p>Hi {user.FullName},</p><p>To reset your password please <a href='{passwordresetlink}'>click here</a>.</p>";
                 await SendEmail(user.Email, "Reset Password", body);
             }
@@ -315,6 +315,74 @@ namespace AICareerCoach.BLL.Services
             response.Data = "role changed successfuly";
             return response;
         }
+        public async Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto)
+        {
+            var clientId = _config["Google:ClientId"];
+            if (string.IsNullOrEmpty(clientId))
+                throw new Exception("Google authentication is not configured.");
+
+            var settings = new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { clientId }
+            };
+
+            Google.Apis.Auth.GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid Google token.");
+            }
+
+            var email = payload.Email;
+            var fullName = payload.Name ?? payload.GivenName ?? email;
+            var googleSubject = payload.Subject;
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = fullName,
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join(" | ", createResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to create user from Google login: {errors}");
+                }
+
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+
+            var roles = (await _userManager.GetRolesAsync(user)).ToList();
+            var refreshToken = GenerateRefreshToken();
+
+            var newRefreshToken = new RefreshToken
+            {
+                Userid = user.Id,
+                Token = refreshToken,
+                IsRevoked = false,
+                Expirydate = DateTime.UtcNow.AddDays(7)
+            };
+            _context.RefreshTokens.Add(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDto
+            {
+                Token = await GenerateJwtTokenAsync(user),
+                FullName = user.FullName,
+                Email = user.Email,
+                Roles = roles,
+                refreshToken = refreshToken
+            };
+        }
+
         private async Task<string> GenerateJwtTokenAsync(User user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -332,11 +400,15 @@ namespace AICareerCoach.BLL.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var durationInMinutes = _config.GetValue<int>("Jwt:DurationInMinutes");
+            if (durationInMinutes <= 0)
+                durationInMinutes = 7 * 24 * 60; // default 7 days
+
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.UtcNow.AddMinutes(durationInMinutes),
                 signingCredentials: creds
             );
 

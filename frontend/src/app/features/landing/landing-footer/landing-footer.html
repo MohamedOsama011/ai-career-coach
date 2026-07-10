@@ -1,0 +1,50 @@
+<!-- ==========================================
+     LANDING FOOTER — Section 09
+     4-column link grid + brand block + socials.
+     Launch UI restraint: black bg + white type + muted links.
+     ========================================== -->
+<footer class="footer-section">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <!-- Brand block -->
+      <div class="footer-brand">
+        <span class="footer-wordmark">AICareerCoach</span>
+        <p class="footer-tagline">AI-powered career coaching for the modern professional.</p>
+        <div class="footer-socials">
+          <a href="https://github.com" target="_blank" rel="noopener" aria-label="GitHub" class="footer-social-link">
+            <span class="material-symbols-rounded">code</span>
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn" class="footer-social-link">
+            <span class="material-symbols-rounded">group</span>
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter" class="footer-social-link">
+            <span class="material-symbols-rounded">tag</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Link columns -->
+      @for (col of columns; track col.title) {
+        <div class="footer-column">
+          <h4 class="footer-column-title">{{ col.title }}</h4>
+          <ul class="footer-links">
+            @for (link of col.links; track link.label) {
+              <li>
+                @if (link.external) {
+                  <a [href]="link.href" target="_blank" rel="noopener" class="footer-link">{{ link.label }}</a>
+                } @else {
+                  <a [routerLink]="link.href" class="footer-link">{{ link.label }}</a>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <span class="footer-copy">&copy; 2026 AICareerCoach. All rights reserved.</span>
+    </div>
+  </div>
+</footer>

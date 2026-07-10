@@ -1,17 +1,244 @@
-.auth-layout {
+/* ==========================================
+   AUTH LAYOUT — Split-Panel
+   Left: dark branded visual | Right: white form
+   ========================================== */
+
+/* ── Split container ── */
+.auth-split {
+  display: flex;
+  min-height: 100dvh;
+  background: #fff;
+}
+
+/* ── Left Panel ── */
+.auth-left {
+  position: relative;
+  width: 45%;
+  background: linear-gradient(135deg, #050508 0%, #0D0D14 50%, #111118 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
-  background-color: var(--brand-bg);
-  padding: 24px;
+  overflow: hidden;
+  padding: 48px;
 }
 
-.auth-card {
+/* ── Background shapes ── */
+.auth-left-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.auth-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+}
+
+.auth-shape--1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #3B82F6, #60A5FA);
+  top: 10%;
+  left: -5%;
+}
+
+.auth-shape--2 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #60A5FA, #A78BFA);
+  bottom: 15%;
+  right: -3%;
+  border-radius: 40%;
+}
+
+.auth-shape--3 {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  top: 55%;
+  left: 30%;
+  border-radius: 35%;
+}
+
+.auth-shape--4 {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #A78BFA, #C4B5FD);
+  top: 20%;
+  right: 15%;
+  border-radius: 45%;
+}
+
+/* ── Left content ── */
+.auth-left-content {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+}
+
+.auth-brand-line {
+  margin-bottom: 0;
+}
+
+.auth-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  margin-bottom: 20px;
+}
+
+.auth-brand-name {
+  display: block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.auth-brand-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+  margin: 0 0 40px;
+}
+
+/* ── Feature list ── */
+.auth-brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.auth-feature-icon {
+  font-size: 20px;
+  color: var(--brand-primary, #3B82F6);
+  flex-shrink: 0;
+}
+
+/* ── Right Panel ── */
+.auth-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: #fff;
+}
+
+.auth-form-wrapper {
   width: 100%;
-  max-width: 420px;
-  background: var(--brand-card);
-  border: 1px solid var(--brand-border);
-  border-radius: 16px;
-  padding: 32px;
+  max-width: 400px;
+}
+
+.auth-left-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 10;
+  transition: opacity 0.2s ease;
+}
+
+.auth-left-logo:hover {
+  opacity: 0.7;
+}
+
+.auth-footer {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  color: var(--brand-text-secondary, #9CA3AF);
+  margin-top: 40px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .auth-left {
+    width: 40%;
+    padding: 32px;
+  }
+
+  .auth-brand-name {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-split {
+    flex-direction: column;
+  }
+
+  .auth-left {
+    width: 100%;
+    padding: 24px;
+    min-height: auto;
+  }
+
+  .auth-left-bg {
+    display: none;
+  }
+
+  .auth-left-content {
+    max-width: none;
+    text-align: center;
+  }
+
+  .auth-brand-icon {
+    margin: 0 auto 16px;
+  }
+
+  .auth-brand-name {
+    font-size: 1.375rem;
+  }
+
+  .auth-brand-tagline {
+    margin-bottom: 0;
+  }
+
+  .auth-brand-features {
+    display: none;
+  }
+
+  .auth-right {
+    padding: 32px 24px;
+  }
+
+  .auth-form-wrapper {
+    max-width: none;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .auth-shape {
+    animation: none !important;
+  }
 }

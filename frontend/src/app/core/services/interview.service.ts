@@ -16,11 +16,14 @@ import {
 import { UserRoadmapDto } from '../models/roadmap.model';
 import { AuthService } from './auth.service';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({
   providedIn: 'root'
 })
 export class InterviewService {
-  private apiUrl = 'https://localhost:7222/api/interview';
+  private apiUrl = `${API_BASE_URL}/api/interview`;
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}

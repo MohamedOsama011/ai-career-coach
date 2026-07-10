@@ -2,17 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
-import {
-  ChatSession,
-  ChatSessionSummary,
-  SendChatMessageRequest
-} from '../models/chat.model';
+
+import { API_BASE_URL } from '../api-config';
+import { ChatSession, ChatSessionSummary, SendChatMessageRequest } from '../models/chat.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'https://localhost:7222/api/chat';
+  private apiUrl = `${API_BASE_URL}/api/chat`;
   private http = inject(HttpClient);
 
   createSession(): Observable<ChatSession> {

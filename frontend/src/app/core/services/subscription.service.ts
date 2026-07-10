@@ -3,10 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GeneralResponse, SubscriptionPlan } from '../models/payment.model';
 
+
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({ providedIn: 'root' })
 export class SubscriptionService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7222/api/subscription';
+  private apiUrl = `${API_BASE_URL}/api/subscription`;
 
   getAll(): Observable<GeneralResponse<SubscriptionPlan[]>> {
     return this.http.get<GeneralResponse<SubscriptionPlan[]>>(this.apiUrl);

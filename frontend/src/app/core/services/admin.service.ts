@@ -4,10 +4,12 @@ import { Observable } from 'rxjs';
 import { DashboardStatistics, AdminUser, CVAdmin, UserManagement, ChangeRoleRequest, PaginatedSessionsResult, SyncLogDto, UserDetailDto, PaginatedAuditLogs, HealthCheckDto, ReportsDto, PaginatedChatSessionsDto, ChatMessageAdminDto } from '../models/admin.model';
 import { BroadcastRequest } from '../models/notification.model';
 
+import { API_BASE_URL } from '../api-config';
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7222/api/admin';
+  private apiUrl = `${API_BASE_URL}/api/admin`;
 
   getStatistics(): Observable<DashboardStatistics> {
     return this.http.get<DashboardStatistics>(`${this.apiUrl}/statistics`);

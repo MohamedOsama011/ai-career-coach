@@ -427,7 +427,7 @@
 .missing-skills-box {
   margin-top: 12px;
   padding: 12px 14px;
-  background: var(--brand-warning-bg);
+  background: #f3f3ef;
   border: 1px solid var(--brand-warning-bg);
   border-radius: 10px;
 }
