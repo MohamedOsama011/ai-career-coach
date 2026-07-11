@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { SubscriptionService } from '../../../core/services/subscription.service';
@@ -15,7 +15,7 @@ import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-m
   templateUrl: './billing.html',
   styleUrl: './billing.css',
 })
-export class Billing implements OnInit {
+export class Billing implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private subscriptionService = inject(SubscriptionService);
@@ -69,8 +69,8 @@ export class Billing implements OnInit {
 
     const payment = this.route.snapshot.queryParamMap.get('payment');
     if (payment === 'success') {
-      this.successBanner.set('Payment successful! Your subscription is now active.');
-      setTimeout(() => this.successBanner.set(null), 5000);
+      this.successBanner.set('Payment successful! Activating your subscription...');
+      this.pollForActivation();
     } else if (payment === 'failed') {
       this.errorBanner.set('Payment failed. Please try again.');
     } else if (payment === 'pending') {
@@ -78,6 +78,46 @@ export class Billing implements OnInit {
     }
 
     this.loadData();
+  }
+
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  private pollForActivation(): void {
+    let attempts = 0;
+    const maxAttempts = 15;
+    this.pollTimer = setInterval(() => {
+      attempts++;
+      this.userSubscriptionService.getMy().subscribe({
+        next: (res) => {
+          const subs = Array.isArray(res.data) ? res.data : [];
+          this.subscriptions.set(subs);
+          this.store.refreshActiveSubscription();
+          const hasActive = subs.some(s => s.isActive && s.status === 'Active');
+          if (hasActive) {
+            this.successBanner.set('Payment successful! Your subscription is now active.');
+            setTimeout(() => this.successBanner.set(null), 5000);
+            this.clearPollTimer();
+          } else if (attempts >= maxAttempts) {
+            this.clearPollTimer();
+            this.pendingBanner.set('Payment is being processed. Refresh the page to check your subscription status.');
+          }
+        },
+        error: () => {
+          if (attempts >= maxAttempts) this.clearPollTimer();
+        },
+      });
+    }, 2000);
+  }
+
+  private clearPollTimer(): void {
+    if (this.pollTimer !== null) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearPollTimer();
   }
 
   private loadData(): void {
