@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
+import { API_BASE_URL } from '../api-config';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { jwtDecode } from 'jwt-decode';
 export class CvService {
   private http = inject(HttpClient);
 
-private apiUrl = 'https://localhost:7222/api/cv';
+private apiUrl = `${API_BASE_URL}/api/cv`;
 
 uploadCV(file: File, userId: string) {
 

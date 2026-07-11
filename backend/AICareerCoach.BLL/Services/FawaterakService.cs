@@ -194,8 +194,8 @@ namespace AICareerCoach.BLL.Services
                 RedirectionUrls = new RedirectionUrlsDto
                 {
                     SuccessUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=success",
-                    FailUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/subscriptions?payment=failed",
-                    PendingUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/subscriptions?payment=pending",
+                    FailUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=failed",
+                    PendingUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=pending",
                     WebhookUrl = $"{_configuration["AppSettings:BaseUrl"]}/api/Fawaterak/success-webhook",
                 },
             };

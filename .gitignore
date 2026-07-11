@@ -491,4 +491,7 @@ nul
 AGENTS.md
 docs/
 
+# Production config with secrets
+appsettings.Production.json
+
 /docs/mock-interview-implementation-plan.md
