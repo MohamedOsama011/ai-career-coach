@@ -159,8 +159,8 @@ namespace AICareerCoach.BLL.Services
             {
                 Customer = new CustomerDto
                 {
-                    FirstName = data.User!.UserName ?? "",
-                    LastName = data.User.FullName,
+                    FirstName = SplitFirstName(data.User!.FullName, data.User.UserName ?? ""),
+                    LastName = SplitLastName(data.User.FullName, data.User.UserName ?? ""),
                     Email = data.User.Email,
                     Phone = data.User.PhoneNumber,
                 },
@@ -193,10 +193,10 @@ namespace AICareerCoach.BLL.Services
                 AuthAndCapture = 0,
                 RedirectionUrls = new RedirectionUrlsDto
                 {
-                    SuccessUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=success",
-                    FailUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=failed",
-                    PendingUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/billing?payment=pending",
-                    WebhookUrl = $"{_configuration["AppSettings:BaseUrl"]}/api/Fawaterak/success-webhook",
+                    SuccessUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/my-subscriptions?payment=success",
+                    FailUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/my-subscriptions?payment=failed",
+                    PendingUrl = $"{_configuration["AppSettings:FrontendBaseUrl"]}/my-subscriptions?payment=pending",
+                    WebhookUrl = $"{_configuration["AppSettings:BaseUrl"]}/api/Fawaterak/success-webhook_json",
                 },
             };
 
@@ -312,9 +312,36 @@ namespace AICareerCoach.BLL.Services
 
         public async Task<GeneralResponse<WebhookSuccessDto>> HandleSuccessWebhookAsync(WebhookSuccessDto dto)
         {
-            if (!VerifyWebhookHash(dto))
+            var matchedBy = "";
+
+            if (dto.HasInvoiceFormat)
             {
-                _logger.LogWarning("Invalid webhook hash for TransactionId={TransactionId}", dto.TransactionId);
+                if (!VerifyInvoiceWebhookHash(dto))
+                {
+                    _logger.LogWarning("Invalid webhook hash for InvoiceId={InvoiceId}", dto.InvoiceId);
+                    return new GeneralResponse<WebhookSuccessDto> { Success = false };
+                }
+                matchedBy = "invoice";
+            }
+            else if (dto.HasCancelFormat)
+            {
+                if (!VerifyCancelWebhookHash(dto))
+                {
+                    _logger.LogWarning("Invalid webhook hash for TransactionId={TransactionId}", dto.TransactionId);
+                    return new GeneralResponse<WebhookSuccessDto> { Success = false };
+                }
+                matchedBy = "cancel";
+            }
+            else
+            {
+                _logger.LogWarning("Webhook: unrecognized payload format — no invoice or transaction fields");
+                return new GeneralResponse<WebhookSuccessDto> { Success = false };
+            }
+
+            if (!dto.IsPaid)
+            {
+                _logger.LogWarning("Webhook: non-paid status ({Status}/{InvoiceStatus}) — ignoring",
+                    dto.Status, dto.InvoiceStatus);
                 return new GeneralResponse<WebhookSuccessDto> { Success = false };
             }
 
@@ -323,13 +350,31 @@ namespace AICareerCoach.BLL.Services
             {
                 using var transaction = await _context.Database.BeginTransactionAsync();
 
-                var payment = await _context.Payments
-                    .Include(x => x.UserSubscription)
-                    .FirstOrDefaultAsync(x => x.IntentKey == dto.TransactionKey);
+                Payment? payment = null;
+
+                if (dto.PayLoad is JsonElement jsonElement
+                    && jsonElement.TryGetProperty("order_id", out var orderIdProp))
+                {
+                    var orderId = orderIdProp.GetString();
+                    if (!string.IsNullOrEmpty(orderId) && int.TryParse(orderId, out var subId))
+                    {
+                        payment = await _context.Payments
+                            .Include(x => x.UserSubscription)
+                            .FirstOrDefaultAsync(x => x.UserSubscriptionId == subId);
+                        if (payment != null)
+                            _logger.LogInformation("Webhook: matched payment {PaymentId} via pay_load.order_id={OrderId}", payment.Id, orderId);
+                    }
+                }
+
+                if (payment == null && matchedBy == "invoice" && !string.IsNullOrEmpty(dto.InvoiceKey))
+                {
+                    _logger.LogWarning("Webhook: pay_load.order_id lookup failed, using IntentKey match for InvoiceKey={InvoiceKey}", dto.InvoiceKey);
+                    return new GeneralResponse<WebhookSuccessDto> { Success = false, Data = dto };
+                }
 
                 if (payment == null)
                 {
-                    _logger.LogWarning("Webhook: Payment not found for IntentKey={IntentKey}", dto.TransactionKey);
+                    _logger.LogWarning("Webhook: Payment not found for any matching strategy");
                     return new GeneralResponse<WebhookSuccessDto> { Success = false };
                 }
 
@@ -341,7 +386,9 @@ namespace AICareerCoach.BLL.Services
 
                 payment.Status = PaymentStatus.Paid;
                 payment.PaymentMethod = dto.PaymentMethod;
-                payment.TransactionId = dto.TransactionId.ToString();
+                payment.TransactionId = dto.HasInvoiceFormat
+                    ? dto.InvoiceId.ToString()
+                    : dto.TransactionId.ToString();
 
                 if (payment.UserSubscription != null)
                 {
@@ -358,15 +405,30 @@ namespace AICareerCoach.BLL.Services
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Payment {PaymentId} processed successfully via webhook (duration={DurationMonths}mo)",
+                _logger.LogInformation("Payment {PaymentId} processed successfully via webhook (duration={DurationMonths}mo, matchedBy={MatchedBy})",
                     payment.Id,
-                    payment.UserSubscription?.Subscription?.DurationMonths ?? 1);
+                    payment.UserSubscription?.Subscription?.DurationMonths ?? 1,
+                    matchedBy);
 
                 return new GeneralResponse<WebhookSuccessDto> { Success = true, Data = dto };
             });
         }
 
-        private bool VerifyWebhookHash(WebhookSuccessDto dto)
+        private bool VerifyInvoiceWebhookHash(WebhookSuccessDto dto)
+        {
+            var secretKey = _configuration["Fawaterak:HashApiKey"]
+                ?? throw new InvalidOperationException("Fawaterak:HashApiKey is not configured.");
+
+            var query = $"InvoiceId={dto.InvoiceId}&InvoiceKey={dto.InvoiceKey}&PaymentMethod={dto.PaymentMethod}";
+
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(query));
+            var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+
+            return generatedHash.Equals(dto.HashKey, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool VerifyCancelWebhookHash(WebhookSuccessDto dto)
         {
             var secretKey = _configuration["Fawaterak:HashApiKey"]
                 ?? throw new InvalidOperationException("Fawaterak:HashApiKey is not configured.");
@@ -378,6 +440,24 @@ namespace AICareerCoach.BLL.Services
             var generatedHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
 
             return generatedHash.Equals(dto.HashKey, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string SplitFirstName(string? fullName, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                return fallback;
+            var trimmed = fullName.Trim();
+            var spaceIndex = trimmed.IndexOf(' ');
+            return spaceIndex > 0 ? trimmed[..spaceIndex] : trimmed;
+        }
+
+        private static string SplitLastName(string? fullName, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                return fallback;
+            var trimmed = fullName.Trim();
+            var spaceIndex = trimmed.IndexOf(' ');
+            return spaceIndex > 0 ? trimmed[(spaceIndex + 1)..] : trimmed;
         }
     }
 }
