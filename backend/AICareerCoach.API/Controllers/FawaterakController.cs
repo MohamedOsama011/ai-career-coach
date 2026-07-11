@@ -55,6 +55,7 @@ namespace AICareerCoach.API.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("success-webhook_json")]
         [HttpPost("success-webhook")]
         public async Task<IActionResult> SuccessWebhook([FromBody] WebhookSuccessDto dto)
         {
