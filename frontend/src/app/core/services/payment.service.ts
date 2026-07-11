@@ -20,4 +20,8 @@ export class PaymentService {
       params: { methodId, userSubscriptionId },
     });
   }
+
+  confirmPayment(): Observable<GeneralResponse<string>> {
+    return this.http.post<GeneralResponse<string>>(`${this.apiUrl}/confirm-payment`, null);
+  }
 }

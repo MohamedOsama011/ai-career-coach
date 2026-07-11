@@ -310,6 +310,64 @@ namespace AICareerCoach.BLL.Services
                 result, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         }
 
+        public async Task<GeneralResponse<string>> ConfirmPaymentAsync(string userId)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                var payment = await _context.Payments
+                    .Include(p => p.UserSubscription)
+                    .ThenInclude(us => us!.Subscription)
+                    .Where(p => p.UserSubscription!.UserId == userId
+                             && p.Status == PaymentStatus.Pending
+                             && !string.IsNullOrEmpty(p.IntentKey))
+                    .OrderByDescending(p => p.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (payment == null)
+                {
+                    _logger.LogWarning("ConfirmPayment: No pending payment found for user {UserId}", userId);
+                    return new GeneralResponse<string> { Success = false, Data = "No pending payment found." };
+                }
+
+                var transaction = await GetTransactionDataAsync(new GetTransactionRequestDto
+                {
+                    IntentKey = payment.IntentKey!
+                });
+
+                if (transaction.Data?.Paid != 1)
+                {
+                    _logger.LogInformation("ConfirmPayment: Transaction {IntentKey} not yet paid (Paid={Paid})",
+                        payment.IntentKey, transaction.Data?.Paid);
+                    return new GeneralResponse<string> { Success = false, Data = "Transaction not confirmed yet." };
+                }
+
+                using var tx = await _context.Database.BeginTransactionAsync();
+
+                payment.Status = PaymentStatus.Paid;
+                payment.PaymentMethod = transaction.Data.PaymentMethod;
+                payment.TransactionId = transaction.Data.TransactionId.ToString();
+
+                if (payment.UserSubscription != null)
+                {
+                    payment.UserSubscription.IsActive = true;
+                    payment.UserSubscription.Status = SubscriptionStatus.Active;
+                    payment.UserSubscription.StartDate = DateTime.UtcNow;
+
+                    var durationMonths = payment.UserSubscription.Subscription?.DurationMonths ?? 1;
+                    payment.UserSubscription.EndDate = DateTime.UtcNow.AddMonths(durationMonths);
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                _logger.LogInformation("ConfirmPayment: Payment {PaymentId} activated for user {UserId} (IntentKey={IntentKey})",
+                    payment.Id, userId, payment.IntentKey);
+
+                return new GeneralResponse<string> { Success = true, Data = "Payment confirmed and subscription activated." };
+            });
+        }
+
         public async Task<GeneralResponse<WebhookSuccessDto>> HandleSuccessWebhookAsync(WebhookSuccessDto dto)
         {
             var matchedBy = "";

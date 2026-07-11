@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import { UserSubscriptionService } from '../../../core/services/user-subscription.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CareerProfileStore } from '../../../core/store/career-profile-store';
 import { GateFeature } from '../../../core/services/subscription-gate.service';
@@ -15,11 +16,12 @@ import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-m
   templateUrl: './billing.html',
   styleUrl: './billing.css',
 })
-export class Billing implements OnInit {
+export class Billing implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private subscriptionService = inject(SubscriptionService);
   private userSubscriptionService = inject(UserSubscriptionService);
+  private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
   protected store = inject(CareerProfileStore);
 
@@ -61,6 +63,8 @@ export class Billing implements OnInit {
 
   loading = computed(() => this.loadingPlans() || this.loadingSubscriptions());
 
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+
   ngOnInit(): void {
     this.authService.syncRolesFromToken();
     this.store.refreshActiveSubscription();
@@ -69,8 +73,8 @@ export class Billing implements OnInit {
 
     const payment = this.route.snapshot.queryParamMap.get('payment');
     if (payment === 'success') {
-      this.successBanner.set('Payment successful! Your subscription is now active.');
-      setTimeout(() => this.successBanner.set(null), 5000);
+      this.successBanner.set('Payment successful! Activating your subscription...');
+      this.confirmPaymentOnRedirect();
     } else if (payment === 'failed') {
       this.errorBanner.set('Payment failed. Please try again.');
     } else if (payment === 'pending') {
@@ -78,6 +82,82 @@ export class Billing implements OnInit {
     }
 
     this.loadData();
+  }
+
+  private confirmPaymentOnRedirect(): void {
+    let attempts = 0;
+    const maxAttempts = 5;
+    const tryConfirm = (): void => {
+      attempts++;
+      this.paymentService.confirmPayment().subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.successBanner.set('Payment successful! Your subscription is now active.');
+            setTimeout(() => this.successBanner.set(null), 5000);
+            this.refreshSubscriptions();
+          } else if (attempts < maxAttempts) {
+            setTimeout(tryConfirm, 2000);
+          } else {
+            this.startPolling();
+          }
+        },
+        error: () => {
+          if (attempts < maxAttempts) {
+            setTimeout(tryConfirm, 2000);
+          } else {
+            this.startPolling();
+          }
+        },
+      });
+    };
+    tryConfirm();
+  }
+
+  private startPolling(): void {
+    let attempts = 0;
+    const maxAttempts = 15;
+    this.pollTimer = setInterval(() => {
+      attempts++;
+      this.userSubscriptionService.getMy().subscribe({
+        next: (res) => {
+          const subs = Array.isArray(res.data) ? res.data : [];
+          this.subscriptions.set(subs);
+          this.store.refreshActiveSubscription();
+          const hasActive = subs.some(s => s.isActive && s.status === 'Active');
+          if (hasActive) {
+            this.successBanner.set('Payment successful! Your subscription is now active.');
+            setTimeout(() => this.successBanner.set(null), 5000);
+            this.clearPollTimer();
+          } else if (attempts >= maxAttempts) {
+            this.clearPollTimer();
+            this.pendingBanner.set('Payment is being processed. Refresh the page to check your subscription status.');
+          }
+        },
+        error: () => {
+          if (attempts >= maxAttempts) this.clearPollTimer();
+        },
+      });
+    }, 2000);
+  }
+
+  private clearPollTimer(): void {
+    if (this.pollTimer !== null) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+  }
+
+  private refreshSubscriptions(): void {
+    this.userSubscriptionService.getMy().subscribe({
+      next: (res) => {
+        this.subscriptions.set(Array.isArray(res.data) ? res.data : []);
+        this.store.refreshActiveSubscription();
+      },
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.clearPollTimer();
   }
 
   private loadData(): void {

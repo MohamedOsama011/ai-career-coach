@@ -11,5 +11,6 @@ namespace AICareerCoach.BLL.Interfaces
         Task<ExecutePaymentResponseDto> ExecutePaymentAsync(FawaterakPaymentRequestDto request);
         Task<GetTransactionResponseDto> GetTransactionDataAsync(GetTransactionRequestDto dto);
         Task<GeneralResponse<WebhookSuccessDto>> HandleSuccessWebhookAsync(WebhookSuccessDto dto);
+        Task<GeneralResponse<string>> ConfirmPaymentAsync(string userId);
     }
 }

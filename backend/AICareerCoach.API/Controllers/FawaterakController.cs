@@ -54,6 +54,17 @@ namespace AICareerCoach.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("confirm-payment")]
+        public async Task<IActionResult> ConfirmPayment()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _fawaterakService.ConfirmPaymentAsync(userId);
+            return Ok(result);
+        }
+
         [AllowAnonymous]
         [HttpPost("success-webhook_json")]
         [HttpPost("success-webhook")]
