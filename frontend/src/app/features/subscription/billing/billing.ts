@@ -95,6 +95,7 @@ export class Billing implements OnInit, OnDestroy {
             this.successBanner.set('Payment successful! Your subscription is now active.');
             setTimeout(() => this.successBanner.set(null), 5000);
             this.refreshSubscriptions();
+            this.store.refreshGateStatus();
           } else if (attempts < maxAttempts) {
             setTimeout(tryConfirm, 2000);
           } else {
@@ -128,6 +129,7 @@ export class Billing implements OnInit, OnDestroy {
             this.successBanner.set('Payment successful! Your subscription is now active.');
             setTimeout(() => this.successBanner.set(null), 5000);
             this.clearPollTimer();
+            this.store.refreshGateStatus();
           } else if (attempts >= maxAttempts) {
             this.clearPollTimer();
             this.pendingBanner.set('Payment is being processed. Refresh the page to check your subscription status.');
