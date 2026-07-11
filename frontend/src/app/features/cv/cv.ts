@@ -193,9 +193,8 @@ export class Cv implements OnInit, OnDestroy {
   }
 
   loadCVs(): void {
-    if (!this.userId) return;
     this.loadingCVs.set(true);
-    this.cvService.getUserCVs(this.userId).subscribe({
+    this.cvService.getMyCVs().subscribe({
       next: (response) => {
         this.cvs.set(response);
         this.showCVs.set(true);
@@ -473,14 +472,14 @@ export class Cv implements OnInit, OnDestroy {
   }
 
   private getUserIdFromToken(): string {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     if (!token) return '';
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload[
         'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
-      ] || payload['nameid'] || '';
+      ] || payload['sub'] || payload['nameid'] || '';
     } catch {
       return '';
     }

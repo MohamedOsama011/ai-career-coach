@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AICareerCoach.API.Controllers
 {
@@ -124,10 +125,40 @@ namespace AICareerCoach.API.Controllers
             return Ok(new { extractedData = cv.ExtractedData ?? string.Empty });
         }
 
+        [HttpGet("my")]
+        public IActionResult GetMyCVs()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User authentication required." });
+
+            var cvs = _cvService.GetUserCVs(userId);
+            var baseUrl = _config["AppSettings:BaseUrl"];
+
+            var result = cvs.Select(cv => new CVResponseDto
+            {
+                CVId = cv.CVId,
+                UploadedAt = cv.UploadedAt,
+                UserId = cv.UserId,
+                FileName = Path.GetFileName(cv.FilePath),
+                DownloadUrl = $"{baseUrl}/cvs/{Path.GetFileName(cv.FilePath)}",
+                IsNew = false
+            });
+
+            return Ok(result);
+        }
+
         [HttpGet("user/{userId}")]
         public IActionResult GetUserCVs(string userId)
         {
-            var cvs = _cvService.GetUserCVs(userId);
+            var effectiveUserId = userId;
+            if (string.IsNullOrEmpty(effectiveUserId))
+                effectiveUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(effectiveUserId))
+                return Unauthorized(new { message = "User ID is required." });
+
+            var cvs = _cvService.GetUserCVs(effectiveUserId);
             var baseUrl = _config["AppSettings:BaseUrl"];
 
             var result = cvs.Select(cv => new CVResponseDto

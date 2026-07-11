@@ -24,11 +24,15 @@ uploadCV(file: File, userId: string) {
       formData
     );}
 
+  getMyCVs() {
+    return this.http.get<any[]>(`${this.apiUrl}/my`);
+  }
+
   getUserCVs(userId: string) {
-  return this.http.get<any[]>(
-    `${this.apiUrl}/user/${userId}`
-  );
-}
+    return this.http.get<any[]>(
+      `${this.apiUrl}/user/${userId}`
+    );
+  }
 
   getCvText(cvId: number): Observable<{ extractedData: string }> {
     return this.http.get<{ extractedData: string }>(
