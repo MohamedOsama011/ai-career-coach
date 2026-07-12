@@ -20,8 +20,8 @@ import {
 } from '../../../core/models/chat.model';
 
 const TOOL_ICONS: Record<string, string> = {
-  search_jobs: 'travel_explore',
-  get_career_roadmap: 'route',
+      get_recommended_jobs: 'travel_explore',
+      get_personal_roadmap: 'route',
   analyze_cv: 'fact_check',
   get_user_profile: 'account_circle'
 };

@@ -24,8 +24,8 @@ export interface ChatSessionSummary {
 }
 
 export const TOOL_LABELS: Record<string, string> = {
-  search_jobs: 'Searched jobs',
-  get_career_roadmap: 'Fetched roadmap',
+    get_recommended_jobs: 'Recommended jobs',
+    get_personal_roadmap: 'Personal roadmap',
   analyze_cv: 'Analyzed CV',
   get_user_profile: 'Checked profile'
 };
