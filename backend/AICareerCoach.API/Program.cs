@@ -8,6 +8,7 @@ using AICareerCoach.BLL.Services.Interfaces;
 using AICareerCoach.BLL.Services.Pdf;
 using QuestPDF.Infrastructure;
 using AICareerCoach.DAL.Data;
+using AICareerCoach.DAL.Entities;
 using AICareerCoach.DAL.Models;
 using AICareerCoach.DAL.repository;
 using AICareerCoach.DAL.Seed;
@@ -172,6 +173,32 @@ builder.Services.AddScoped<IAdminRoadmapService, AdminRoadmapService>();
                 //await JobSeeder.SeedAsync(context);
                 await RoadmapSeeder.SeedAsync(context);
                 await SubscriptionSeeder.SeedAsync(context);
+
+                // Generate embeddings for roadmap templates if missing (one-time)
+                var templateCount = await context.Roadmaps.CountAsync();
+                var embeddingCount = await context.RoadmapTemplateEmbeddings.CountAsync();
+                if (templateCount > 0 && embeddingCount == 0)
+                {
+                    logger.LogInformation("Generating embeddings for {Count} roadmap templates...", templateCount);
+                    var embeddingService = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
+                    var templates = await context.Roadmaps.Include(r => r.Steps).ToListAsync();
+                    foreach (var template in templates)
+                    {
+                        var stepsText = string.Join("\n    ", template.Steps.OrderBy(s => s.OrderIndex).Select(s =>
+                            $"- {s.Title}: {s.Description} [Level: {s.Level}]"
+                        ));
+                        var combinedText = $"Track: {template.Track}\nTitle: {template.Title}\nDescription: {template.Description}\n\nSteps:\n    {stepsText}";
+                        var embeddingVector = await embeddingService.GenerateEmbeddingAsync(combinedText);
+                        context.RoadmapTemplateEmbeddings.Add(new RoadmapTemplateEmbedding
+                        {
+                            RoadmapId = template.Id,
+                            Embedding = embeddingVector,
+                            ComputedAt = DateTime.UtcNow
+                        });
+                    }
+                    await context.SaveChangesAsync();
+                    logger.LogInformation("Roadmap template embeddings generated successfully.");
+                }
             }
 
             app.MapControllers();
