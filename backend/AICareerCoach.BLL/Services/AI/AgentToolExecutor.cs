@@ -14,8 +14,8 @@ namespace AICareerCoach.BLL.Services.AI
 {
     public class AgentToolExecutor : IAgentToolExecutor
     {
-        private readonly IJobService _jobService;
-        private readonly IRoadmapService _roadmapService;
+        private readonly IJobRecommendationService _jobRecommendationService;
+        private readonly IUserRoadmapService _userRoadmapService;
         private readonly ICvFeedbackService _cvFeedbackService;
         private readonly IUserService _userService;
         private readonly ILogger<AgentToolExecutor> _logger;
@@ -26,14 +26,14 @@ namespace AICareerCoach.BLL.Services.AI
         };
 
         public AgentToolExecutor(
-            IJobService jobService,
-            IRoadmapService roadmapService,
+            IJobRecommendationService jobRecommendationService,
+            IUserRoadmapService userRoadmapService,
             ICvFeedbackService cvFeedbackService,
             IUserService userService,
             ILogger<AgentToolExecutor> logger)
         {
-            _jobService = jobService;
-            _roadmapService = roadmapService;
+            _jobRecommendationService = jobRecommendationService;
+            _userRoadmapService = userRoadmapService;
             _cvFeedbackService = cvFeedbackService;
             _userService = userService;
             _logger = logger;
@@ -45,8 +45,8 @@ namespace AICareerCoach.BLL.Services.AI
             {
                 return toolName switch
                 {
-                    "search_jobs" => await ExecuteSearchJobsAsync(argumentsJson),
-                    "get_career_roadmap" => await ExecuteGetCareerRoadmapAsync(argumentsJson),
+                    "get_recommended_jobs" => await ExecuteGetRecommendedJobsAsync(userId),
+                    "get_personal_roadmap" => await ExecuteGetPersonalRoadmapAsync(userId),
                     "analyze_cv" => await ExecuteAnalyzeCvAsync(userId),
                     "get_user_profile" => await ExecuteGetUserProfileAsync(userId),
                     _ => throw new InvalidOperationException($"Unknown tool '{toolName}'.")
@@ -67,75 +67,73 @@ namespace AICareerCoach.BLL.Services.AI
             }
         }
 
-        private async Task<string> ExecuteSearchJobsAsync(string argumentsJson)
+        private async Task<string> ExecuteGetRecommendedJobsAsync(string userId)
         {
-            using var doc = JsonDocument.Parse(argumentsJson);
-            var root = doc.RootElement;
-            var query = root.GetProperty("query").GetString()
-                ?? throw new ArgumentException("query is required.");
-            string? location = root.TryGetProperty("location", out var loc) && loc.ValueKind == JsonValueKind.String
-                ? loc.GetString()
-                : null;
+            var result = await _jobRecommendationService.GetRecommendationsAsync(userId);
 
-            var filter = new JobFilterDto
+            var jobs = result.Recommendations.Select(j => new
             {
-                Search = query,
-                Location = location,
-                Page = 1,
-                PageSize = 3
-            };
-
-            var page = await _jobService.GetJobsAsync(filter);
-            var jobs = page.Items.Select(j => new
-            {
-                id = j.Id,
                 title = j.Title,
                 company = j.Company,
-                location = j.Location,
                 salary = j.Salary,
-                requiredSkills = j.RequiredSkills,
-                isRemote = j.IsRemote,
+                location = j.Location,
+                matchScore = j.MatchScore,
+                matchExplanation = j.MatchExplanation,
+                missingSkills = j.MissingSkills,
+                isRemote = string.IsNullOrEmpty(j.Location) ? null : (bool?)null,
                 externalUrl = j.ExternalUrl
-            });
-
-            return JsonSerializer.Serialize(
-                new { totalFound = page.TotalCount, jobs }, JsonOpts);
-        }
-
-        private async Task<string> ExecuteGetCareerRoadmapAsync(string argumentsJson)
-        {
-            using var doc = JsonDocument.Parse(argumentsJson);
-            var root = doc.RootElement;
-            var track = root.GetProperty("track").GetString()
-                ?? throw new ArgumentException("track is required.");
-
-            var matches = await _roadmapService.GetAllAsync(track);
-            if (matches.Count == 0)
-            {
-                var all = await _roadmapService.GetAllAsync(null);
-                var availableTracks = all.Select(r => r.Track).Distinct().ToList();
-                return JsonSerializer.Serialize(new
-                {
-                    error = $"No roadmap found for track '{track}'.",
-                    availableTracks
-                }, JsonOpts);
-            }
-
-            var roadmap = matches[0];
-            var steps = roadmap.Steps.OrderBy(s => s.OrderIndex).Select(s => new
-            {
-                title = s.Title,
-                description = s.Description,
-                level = s.Level,
-                resources = s.Resources
             });
 
             return JsonSerializer.Serialize(new
             {
-                track = roadmap.Track,
-                title = roadmap.Title,
-                description = roadmap.Description,
-                steps
+                jobs,
+                totalFound = result.TotalCount,
+                returnedCount = result.ReturnedCount,
+                isLimited = result.IsLimited
+            }, JsonOpts);
+        }
+
+        private async Task<string> ExecuteGetPersonalRoadmapAsync(string userId)
+        {
+            var roadmap = await _userRoadmapService.GetMyRoadmapAsync(userId);
+            if (roadmap is null)
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    error = "No personalized roadmap yet. Go to the Roadmap page and generate one with your target role first."
+                }, JsonOpts);
+            }
+
+            var steps = roadmap.Steps.Select(s => new
+            {
+                title = s.Title,
+                description = s.Description,
+                level = s.Level,
+                duration = s.Duration
+            });
+
+            var gapAnalysis = roadmap.GapAnalysis.Select(c => new
+            {
+                category = c.Category,
+                skills = c.Skills.Select(s => new
+                {
+                    skillName = s.SkillName,
+                    currentLevel = s.CurrentLevel,
+                    requiredLevel = s.RequiredLevel,
+                    gap = s.Gap,
+                    priority = s.Priority
+                })
+            });
+
+            return JsonSerializer.Serialize(new
+            {
+                targetRole = roadmap.TargetRole,
+                currentSeniority = roadmap.CurrentSeniority,
+                targetSeniority = roadmap.TargetSeniority,
+                seniorityGap = roadmap.SeniorityGap,
+                matchScore = roadmap.MatchScore,
+                steps,
+                gapAnalysis
             }, JsonOpts);
         }
 

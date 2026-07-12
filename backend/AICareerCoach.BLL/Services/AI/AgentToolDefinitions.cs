@@ -6,40 +6,25 @@ namespace AICareerCoach.BLL.Services.AI
 {
     public static class AgentToolDefinitions
     {
-        public static readonly ChatTool SearchJobs = ChatTool.CreateFunctionTool(
-            functionName: "search_jobs",
-            functionDescription: "Search the live job board. Returns the top 3 matches plus `totalFound` (e.g., { totalFound: 27, jobs: [3 items] }). Use `query` for the search term and `location` only if the user specified one. Omit `location` for location-agnostic search.",
+        public static readonly ChatTool GetRecommendedJobs = ChatTool.CreateFunctionTool(
+            functionName: "get_recommended_jobs",
+            functionDescription: "Get personalized job recommendations based on your CV analysis. Uses AI-powered matching (cosine similarity on CV embeddings) to find jobs that fit your profile. Returns top matches with match scores, explanations, and missing skills you need to develop.",
             functionParameters: BinaryData.FromString("""
                 {
                   "type": "object",
-                  "properties": {
-                    "query": {
-                      "type": "string",
-                      "description": "Search query (job title, skill, or keyword). Example: '.NET developer', 'Angular'."
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Optional location filter. Example: 'Cairo', 'Remote'. Omit if user did not mention a location."
-                    }
-                  },
-                  "required": ["query"]
+                  "properties": {},
+                  "required": []
                 }
                 """));
 
-        public static readonly ChatTool GetCareerRoadmap = ChatTool.CreateFunctionTool(
-            functionName: "get_career_roadmap",
-            functionDescription: "Get the curated learning roadmap for one of the 6 valid tracks. Track MUST be one of: Backend, Frontend, Full Stack, ML, DevOps, Data Analyst (case-sensitive). Returns the full ordered step list with levels + resources.",
+        public static readonly ChatTool GetPersonalRoadmap = ChatTool.CreateFunctionTool(
+            functionName: "get_personal_roadmap",
+            functionDescription: "Get your personalized learning roadmap. Returns a gap-driven roadmap with priority-ordered steps based on your CV analysis, current/target seniority levels, and skills gap analysis. Generate one from the Roadmap page first if none exists.",
             functionParameters: BinaryData.FromString("""
                 {
                   "type": "object",
-                  "properties": {
-                    "track": {
-                      "type": "string",
-                      "enum": ["Backend", "Frontend", "Full Stack", "ML", "DevOps", "Data Analyst"],
-                      "description": "One of the 6 valid track names (case-sensitive)."
-                    }
-                  },
-                  "required": ["track"]
+                  "properties": {},
+                  "required": []
                 }
                 """));
 
@@ -67,8 +52,8 @@ namespace AICareerCoach.BLL.Services.AI
 
         public static IReadOnlyList<ChatTool> AllTools { get; } = new[]
         {
-            SearchJobs,
-            GetCareerRoadmap,
+            GetRecommendedJobs,
+            GetPersonalRoadmap,
             AnalyzeCv,
             GetUserProfile
         };
