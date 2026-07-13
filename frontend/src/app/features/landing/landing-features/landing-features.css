@@ -27,7 +27,7 @@
   width: 60%;
   max-width: 720px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, var(--hairline-color), transparent);
   pointer-events: none;
 }
 
@@ -80,7 +80,7 @@
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 16px;
 }
 
@@ -160,7 +160,7 @@
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 12px;
 }
 
@@ -177,8 +177,8 @@
 .interview-visual-card {
   width: 100%;
   max-width: 380px;
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -196,7 +196,7 @@
   align-items: center;
   gap: 8px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--mock-card-border);
   margin-bottom: 14px;
 }
 
@@ -213,14 +213,14 @@
 
 .chat-avatar .material-symbols-rounded {
   font-size: 16px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .chat-name {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .chat-badge {
@@ -255,8 +255,8 @@
 }
 
 .chat-msg--bot {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   color: var(--text-secondary);
   align-self: flex-start;
 }
@@ -264,7 +264,7 @@
 .chat-msg--user {
   background: rgba(99, 102, 241, 0.08);
   border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #fff;
+  color: var(--text-primary);
   align-self: flex-end;
 }
 
@@ -288,8 +288,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 10px;
   margin-top: 12px;
 }
@@ -315,7 +315,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -348,7 +348,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .score-max {
@@ -391,7 +391,7 @@
   gap: 16px;
   justify-content: center;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--mock-card-border);
 }
 
 .scorecard-stats .stat {
@@ -403,7 +403,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .stat-label {
@@ -433,8 +433,8 @@
 }
 
 .job-card {
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 14px;
   padding: 16px 18px;
   transition: border-color 0.3s var(--ease-out);
@@ -462,8 +462,8 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -478,7 +478,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .job-role {
@@ -508,7 +508,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .job-card-location {
@@ -537,8 +537,8 @@
   font-weight: 500;
   padding: 3px 8px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   color: var(--text-secondary);
 }
 
@@ -566,7 +566,7 @@
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 14px;
 }
 
@@ -606,8 +606,8 @@
 /* ── Slider widget ── */
 .slider-widget {
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 12px;
 }
 
@@ -631,7 +631,7 @@
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--mock-card-border);
   border-radius: 9999px;
   outline: none;
   cursor: pointer;
@@ -691,8 +691,8 @@
 
 /* Roadmap mock card (right visual) */
 .roadmap-mock {
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 16px;
   padding: 24px;
   min-width: 0;
@@ -720,7 +720,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   margin-bottom: 12px;
   flex-wrap: nowrap;
   min-width: 0;
@@ -745,8 +745,8 @@
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   color: var(--text-secondary);
 }
 
@@ -769,7 +769,7 @@
   top: 8px;
   bottom: 8px;
   width: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--mock-card-border);
 }
 
 .roadmap-step {
@@ -805,7 +805,7 @@
 .roadmap-step-circle.high {
   background: var(--color-brand);
   border-color: var(--color-brand);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
@@ -824,7 +824,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .priority-badge {

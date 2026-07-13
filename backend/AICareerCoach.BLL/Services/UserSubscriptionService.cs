@@ -314,15 +314,25 @@ namespace AICareerCoach.BLL.Services
                     Currency = "EGP",
                 },
                 RecentPayments = payments,
-                AuditLogEntries = await _context.SubscriptionAuditLogs
-                    .Where(al => al.UserSubscriptionId == id)
+                AuditLogEntries = await GetAuditLogsForSubAsync(id),
+            };
+
+            return new GeneralResponse<SubscriberDetailDto> { Success = true, Data = detail };
+        }
+
+        private async Task<List<AuditLogDto>> GetAuditLogsForSubAsync(int subscriptionId)
+        {
+            try
+            {
+                return await _context.SubscriptionAuditLogs
+                    .Where(al => al.UserSubscriptionId == subscriptionId)
                     .Include(al => al.AdminUser)
                     .OrderByDescending(al => al.CreatedAt)
                     .Select(al => new AuditLogDto
                     {
                         Id = al.Id,
                         AdminUserId = al.AdminUserId ?? "",
-                        AdminUserName = al.AdminUser!.FullName ?? al.AdminUser.UserName ?? "",
+                        AdminUserName = al.AdminUser != null ? (al.AdminUser.FullName ?? al.AdminUser.UserName ?? "") : "System",
                         Action = al.Action,
                         UserSubscriptionId = al.UserSubscriptionId,
                         TargetUserId = al.TargetUserId,
@@ -331,10 +341,13 @@ namespace AICareerCoach.BLL.Services
                         Notes = al.Notes,
                         CreatedAt = al.CreatedAt,
                     })
-                    .ToListAsync(),
-            };
-
-            return new GeneralResponse<SubscriberDetailDto> { Success = true, Data = detail };
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load audit logs for subscription {SubId}, returning empty list", subscriptionId);
+                return new List<AuditLogDto>();
+            }
         }
 
         public async Task<RevenueAnalyticsDto> GetAnalyticsAsync(DateTime? fromDate, DateTime? toDate)

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap';
 import { LandingDemo } from './landing-demo/landing-demo';
@@ -78,6 +78,26 @@ export class Landing implements AfterViewInit, OnDestroy {
 
   private mm!: gsap.MatchMedia;
 
+  /** Current theme: 'dark' (default) or 'light'. */
+  readonly theme = signal<'dark' | 'light'>(
+    (localStorage.getItem('landing-theme') as 'dark' | 'light') ?? 'dark'
+  );
+
+  /** Toggle between dark and light mode, persist choice. */
+  toggleTheme(): void {
+    const next = this.theme() === 'dark' ? 'light' : 'dark';
+    this.theme.set(next);
+    localStorage.setItem('landing-theme', next);
+    this.applyTheme(next);
+  }
+
+  private applyTheme(mode: 'dark' | 'light'): void {
+    const wrapper = document.querySelector('.landing-wrapper');
+    if (wrapper) {
+      wrapper.setAttribute('data-theme', mode);
+    }
+  }
+
   // ── Star particles ────────────────────────────────────────────────
   private stars: Star[] = [];
   private animFrameId = 0;
@@ -94,6 +114,7 @@ export class Landing implements AfterViewInit, OnDestroy {
   private particleCtx!: CanvasRenderingContext2D | null;
 
   ngAfterViewInit(): void {
+    this.applyTheme(this.theme());
     this.initParticles();
 
     // ── 1. Hero entrance + ambient loops ──────────────────────────────
@@ -282,7 +303,10 @@ export class Landing implements AfterViewInit, OnDestroy {
     for (const s of this.stars) {
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, s.opacity)})`;
+      const isDark = this.theme() === 'dark';
+      ctx.fillStyle = isDark
+        ? `rgba(255, 255, 255, ${Math.max(0, s.opacity)})`
+        : `rgba(100, 116, 139, ${Math.max(0, s.opacity * 0.5)})`;
       ctx.fill();
     }
   }

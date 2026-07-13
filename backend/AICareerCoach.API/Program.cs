@@ -168,6 +168,32 @@ builder.Services.AddScoped<IAdminRoadmapService, AdminRoadmapService>();
                         ALTER TABLE Subscriptions ADD LimitsJson nvarchar(max) NULL;
                     END");
 
+                // Ensure AdminAuditLogs table exists (hand-written migration AddAdminAuditLog)
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'AdminAuditLogs') AND type = N'U')
+                    BEGIN
+                        CREATE TABLE [AdminAuditLogs] (
+                            [Id] int NOT NULL IDENTITY(1,1),
+                            [AdminUserId] nvarchar(450) NULL,
+                            [Action] nvarchar(64) NOT NULL DEFAULT '',
+                            [TargetType] nvarchar(64) NOT NULL DEFAULT '',
+                            [TargetId] nvarchar(450) NULL,
+                            [Details] nvarchar(max) NULL,
+                            [Timestamp] datetime2 NOT NULL DEFAULT (SYSUTCDATETIME()),
+                            CONSTRAINT [PK_AdminAuditLogs] PRIMARY KEY ([Id]),
+                            CONSTRAINT [FK_AdminAuditLogs_AspNetUsers_AdminUserId]
+                                FOREIGN KEY ([AdminUserId])
+                                REFERENCES [AspNetUsers]([Id])
+                                ON DELETE NO ACTION
+                        );
+                        CREATE INDEX [IX_AdminAuditLogs_AdminUserId]
+                            ON [AdminAuditLogs] ([AdminUserId]);
+                        CREATE INDEX [IX_AdminAuditLogs_TargetType]
+                            ON [AdminAuditLogs] ([TargetType]);
+                        CREATE INDEX [IX_AdminAuditLogs_Timestamp]
+                            ON [AdminAuditLogs] ([Timestamp] DESC);
+                    END");
+
                 await RoleSeeder.SeedAsync(roleManager);
                 await AdminSeeder.SeedAsync(userManager, logger);
                 //await JobSeeder.SeedAsync(context);

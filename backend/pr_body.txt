@@ -1,0 +1,15 @@
+﻿## Summary
+Fixes all 8 failing unit tests in the fix/unit-testing branch.
+
+## Failures Fixed
+
+1. TransactionIgnoredWarning (6 tests) — AdminSubscriptionServiceTests (5) + FawaterakServiceTests (1). Fixed by adding ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)) to CreateInMemoryContext.
+
+2. Webhook hash test — HandleSuccessWebhookAsync_ProcessesPayment_Succeeds: missing Status=paid + PayLoad order_id.
+
+3. DTO equality — CreatePaymentAsync_Success_ReturnsPaymentMethods: Assert.Equal compared by reference. Fixed with property-level checks.
+
+4. CV cache hash — GetFeedbackAsync_UsesCache_WhenAvailable: wrong cache hash. Fixed to correct MD5 hex.
+
+## Verification
+Passed! - Failed: 0, Passed: 67, Skipped: 0, Total: 67

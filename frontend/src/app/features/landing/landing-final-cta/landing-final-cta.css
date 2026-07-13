@@ -25,7 +25,7 @@
   width: 60%;
   max-width: 720px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, var(--hairline-color), transparent);
   pointer-events: none;
 }
 
@@ -78,7 +78,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 2.75rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 16px;
   line-height: 1.15;
 }
@@ -87,7 +87,7 @@
 .final-cta-subtitle {
   font-family: 'Inter', sans-serif;
   font-size: 1.0625rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   margin: 0 0 36px;
   max-width: 480px;
   margin-left: auto;
@@ -120,7 +120,7 @@
 .final-cta-note {
   font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-secondary);
   margin: 20px 0 0;
 }
 
