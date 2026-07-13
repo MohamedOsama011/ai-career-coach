@@ -5,6 +5,7 @@
    DESIGN SYSTEM VARIABLES (LAUNCH UI STYLE)
    ========================================== */
 .landing-wrapper {
+  /* ── Dark mode (default) ── */
   --bg-app: #050508;
   --bg-surface: #09090D;
   --bg-surface-elevated: #111116;
@@ -14,13 +15,41 @@
   --text-primary: #FFFFFF;
   --text-secondary: #8E939E;
 
-  /* Marketing-surface tokens — derived from the global DESIGN_SYSTEM
-   * primitives (styles.css). Kept here as locals for the
-   * dark-landing-only context (white-on-dark contrast tuning). */
   --color-brand: #3B82F6;
   --color-brand-glow: rgba(99, 102, 241, 0.15);
   --color-purple-glow: rgba(59, 130, 246, 0.4);
   --color-success: #10B981;
+
+  /* Grid overlay color */
+  --grid-color: rgba(255, 255, 255, 0.015);
+
+  /* Nav glass */
+  --nav-bg: rgba(5, 5, 8, 0.8);
+  --nav-border: rgba(255, 255, 255, 0.05);
+
+  /* Mock dashboard tokens */
+  --mock-bg: #09090D;
+  --mock-border: rgba(255, 255, 255, 0.05);
+  --mock-card-bg: rgba(255, 255, 255, 0.01);
+  --mock-card-border: rgba(255, 255, 255, 0.04);
+  --mock-header-bg: rgba(15, 15, 22, 0.3);
+  --mock-header-border: rgba(255, 255, 255, 0.06);
+  --mock-search-bg: rgba(0, 0, 0, 0.3);
+  --mock-dropdown-bg: rgba(255, 255, 255, 0.03);
+  --mock-shadow: 0 40px 120px rgba(0, 0, 0, 0.9);
+
+  /* Button tokens */
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #050508;
+  --btn-primary-border: #ffffff;
+  --btn-primary-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  --btn-primary-hover: #f3f4f6;
+
+  /* Section hairline */
+  --hairline-color: rgba(255, 255, 255, 0.12);
+
+  /* Glow opacity for sections */
+  --section-glow-opacity: 0.5;
 
   --font-body: 'Inter', sans-serif;
 
@@ -41,6 +70,51 @@
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ==========================================
+   LIGHT MODE
+   ========================================== */
+.landing-wrapper[data-theme="light"] {
+  --bg-app: #FFFFFF;
+  --bg-surface: #F8FAFC;
+  --bg-surface-elevated: #F1F5F9;
+  --border-neutral: rgba(0, 0, 0, 0.08);
+  --border-interactive: rgba(0, 0, 0, 0.15);
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+
+  --color-brand: #2563EB;
+  --color-brand-glow: rgba(37, 99, 235, 0.1);
+  --color-purple-glow: rgba(37, 99, 235, 0.08);
+  --color-success: #059669;
+
+  --grid-color: rgba(0, 0, 0, 0.03);
+
+  --nav-bg: rgba(255, 255, 255, 0.85);
+  --nav-border: rgba(0, 0, 0, 0.06);
+
+  --mock-bg: #0F172A;
+  --mock-border: rgba(37, 99, 235, 0.12);
+  --mock-card-bg: rgba(255, 255, 255, 0.04);
+  --mock-card-border: rgba(255, 255, 255, 0.06);
+  --mock-header-bg: rgba(15, 23, 42, 0.5);
+  --mock-header-border: rgba(255, 255, 255, 0.08);
+  --mock-search-bg: rgba(0, 0, 0, 0.25);
+  --mock-dropdown-bg: rgba(255, 255, 255, 0.05);
+  --mock-shadow: 0 40px 120px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+
+  --btn-primary-bg: #2563EB;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-border: #2563EB;
+  --btn-primary-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  --btn-primary-hover: #1D4ED8;
+
+  --hairline-color: rgba(0, 0, 0, 0.06);
+
+  --section-glow-opacity: 0.15;
 }
 
 /* Background grid overlay similar to Launch UI */
@@ -51,9 +125,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: 40px 40px;
   background-position: center top;
   pointer-events: none;
@@ -96,11 +170,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 var(--space-xl);
-  background: rgba(5, 5, 8, 0.8);
+  background: var(--nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--nav-border);
   z-index: 100;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .nav-brand {
@@ -111,7 +186,7 @@
 }
 
 .brand-icon-svg {
-  color: #fff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
 }
@@ -119,8 +194,9 @@
 .brand-name {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
+  transition: color 0.3s ease;
 }
 
 .nav-menu {
@@ -145,13 +221,42 @@
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
+}
+
+/* ==========================================
+   THEME TOGGLE
+   ========================================== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-neutral);
+  background: var(--mock-card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-size: 0;
+}
+
+.theme-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--border-interactive);
+  background: var(--mock-dropdown-bg);
+}
+
+.theme-toggle .material-icons {
+  font-size: 18px;
 }
 
 /* ==========================================
    BUTTONS & CTAs
    ========================================== */
-/* Premium Pill White Button */
+/* Premium Pill Primary Button (adapts to theme) */
 .btn-white-pill {
   font-family: var(--font-body);
   display: inline-flex;
@@ -162,17 +267,17 @@
   font-size: 0.875rem;
   font-weight: 600;
   border-radius: 9999px;
-  border: 1px solid #ffffff;
-  background: #ffffff;
-  color: #050508;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--btn-primary-border);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: var(--btn-primary-shadow);
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .btn-white-pill:hover {
-  background: #f3f4f6;
-  border-color: #f3f4f6;
+  background: var(--btn-primary-hover);
+  border-color: var(--btn-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
 }
@@ -189,14 +294,14 @@
   font-weight: 600;
   border-radius: 9999px;
   border: 1px solid var(--border-neutral);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--mock-dropdown-bg);
   color: var(--text-primary);
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .btn-dark-outline:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--border-interactive);
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-1px);
 }
@@ -227,15 +332,7 @@
   z-index: 0;
 }
 
-/* Phase 1 Revision — single static horizontal blue glow at the
-   bottom of the hero. Matches the Launch UI reference (pure black
-   bg + white type + one blue accent). Enlarged + animated per user
-   request. `z-index: -1` paints it behind all static + z-index:0
-   siblings within the .hero-section stacking context (z-index 10).
-   GSAP reveals it after the dashboard entrance and unpauses the
-   breathing animation. */
-/* Blue aura glow behind the dashboard.
-   GSAP fades it in after the dashboard entrance. */
+/* Blue aura glow behind the dashboard. */
 .dashboard-glow-back {
   position: absolute;
   top: -220px;
@@ -256,14 +353,14 @@
   opacity: 0;
 }
 
-/* Rounded Dark Eyebrow Tag */
+/* Eyebrow Tag */
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
   padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--mock-dropdown-bg);
+  border: 1px solid var(--border-neutral);
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -301,7 +398,7 @@
 
 .hero-eyebrow:hover {
   opacity: 1;
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-interactive);
 }
 
 .eyebrow-arrow {
@@ -322,7 +419,7 @@
 
 .hero-title span {
   display: block;
-  background: linear-gradient(120deg, #ffffff 20%, #a0a0a0 100%);
+  background: linear-gradient(120deg, var(--text-primary) 20%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -372,15 +469,14 @@
 /* Dashboard Mockup - Flat & Pixel Perfect */
 .mock-dashboard {
   width: 100%;
-  background: #09090D;
+  background: var(--mock-bg);
   border-radius: 12px;
   position: relative;
-  box-shadow: 
-    0 40px 120px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  box-shadow: var(--mock-shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 .mock-dashboard::before {
@@ -414,12 +510,12 @@
 /* Mock Header */
 .mock-header {
   height: 52px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--mock-header-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-lg);
-  background: rgba(15, 15, 22, 0.3);
+  background: var(--mock-header-bg);
 }
 
 .mock-header-left {
@@ -434,12 +530,12 @@
   align-items: center;
   gap: var(--space-xs);
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-dropdown-bg);
+  border: 1px solid var(--mock-header-border);
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
@@ -465,7 +561,7 @@
 }
 
 .mock-tab.active {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .mock-header-right {
@@ -478,8 +574,8 @@
 .mock-search {
   width: 180px;
   height: 30px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--mock-search-bg);
+  border: 1px solid var(--mock-header-border);
   border-radius: 6px;
   padding: 0 var(--space-sm);
   font-size: 0.75rem;
@@ -514,7 +610,7 @@
 .mock-body-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -529,8 +625,8 @@
   align-items: center;
   gap: var(--space-xs);
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--mock-dropdown-bg);
+  border: 1px solid var(--mock-header-border);
   border-radius: 6px;
   font-size: 0.75rem;
   color: var(--text-secondary);
@@ -538,12 +634,12 @@
 
 .mock-download-btn {
   padding: 8px 14px;
-  background: #ffffff;
-  border: 1px solid #ffffff;
+  background: var(--btn-primary-bg);
+  border: 1px solid var(--btn-primary-border);
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #000;
+  color: var(--btn-primary-text);
   cursor: pointer;
 }
 
@@ -555,8 +651,8 @@
 }
 
 .metric-card {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 8px;
   padding: var(--space-lg);
   display: flex;
@@ -575,7 +671,7 @@
 .metric-val {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -584,8 +680,7 @@
   color: var(--color-success);
 }
 
-/* Trend modifier — "down" (e.g. closing skill gaps) is good news but
- * semantically inverted; we keep the green-500 treatment. */
+/* Trend modifier */
 .metric-card[data-trend="down"] .metric-desc {
   color: var(--color-success);
 }
@@ -601,8 +696,8 @@
 }
 
 .workspace-block {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 8px;
   padding: var(--space-lg);
   display: flex;
@@ -613,7 +708,7 @@
 .block-title {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .skills-list {
@@ -636,7 +731,7 @@
 }
 
 .skill-name {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .skill-percent {
@@ -645,7 +740,7 @@
 
 .skill-bar-outer {
   height: 5px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--mock-card-border);
   border-radius: 9999px;
   overflow: hidden;
   position: relative;
@@ -654,7 +749,7 @@
 .skill-bar-inner {
   height: 100%;
   border-radius: 9999px;
-  background: #ffffff;
+  background: var(--text-primary);
   width: 0; /* animated */
 }
 
@@ -678,8 +773,8 @@
 
 /* Audio Wav Preview Widget */
 .interview-preview-card {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--mock-card-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 8px;
   padding: var(--space-lg);
   display: flex;
@@ -688,8 +783,8 @@
 }
 
 .chat-bubble {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--mock-dropdown-bg);
+  border: 1px solid var(--mock-card-border);
   border-radius: 8px;
   padding: 12px;
   font-size: 0.75rem;
@@ -714,7 +809,7 @@
 
 .waveform-bar {
   flex: 1;
-  background: #ffffff;
+  background: var(--text-primary);
   border-radius: 9999px;
   height: 100%;
   transform-origin: bottom;

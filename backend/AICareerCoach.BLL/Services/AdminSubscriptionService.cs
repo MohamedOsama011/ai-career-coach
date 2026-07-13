@@ -59,24 +59,33 @@ namespace AICareerCoach.BLL.Services
                 })
                 .ToListAsync();
 
-            var auditLogs = await _context.SubscriptionAuditLogs
-                .Where(al => al.UserSubscriptionId == id)
-                .Include(al => al.AdminUser)
-                .OrderByDescending(al => al.CreatedAt)
-                .Select(al => new AuditLogDto
-                {
-                    Id = al.Id,
-                    AdminUserId = al.AdminUserId ?? "",
-                    AdminUserName = al.AdminUser!.FullName ?? al.AdminUser.UserName ?? "",
-                    Action = al.Action,
-                    UserSubscriptionId = al.UserSubscriptionId,
-                    TargetUserId = al.TargetUserId,
-                    OldValues = al.PreviousValues,
-                    NewValues = al.NewValues,
-                    Notes = al.Notes,
-                    CreatedAt = al.CreatedAt,
-                })
-                .ToListAsync();
+            List<AuditLogDto> auditLogs;
+            try
+            {
+                auditLogs = await _context.SubscriptionAuditLogs
+                    .Where(al => al.UserSubscriptionId == id)
+                    .Include(al => al.AdminUser)
+                    .OrderByDescending(al => al.CreatedAt)
+                    .Select(al => new AuditLogDto
+                    {
+                        Id = al.Id,
+                        AdminUserId = al.AdminUserId ?? "",
+                        AdminUserName = al.AdminUser != null ? (al.AdminUser.FullName ?? al.AdminUser.UserName ?? "") : "System",
+                        Action = al.Action,
+                        UserSubscriptionId = al.UserSubscriptionId,
+                        TargetUserId = al.TargetUserId,
+                        OldValues = al.PreviousValues,
+                        NewValues = al.NewValues,
+                        Notes = al.Notes,
+                        CreatedAt = al.CreatedAt,
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load audit logs for subscriber {SubId}, returning empty list", id);
+                auditLogs = new List<AuditLogDto>();
+            }
 
             var sessions = await _context.InterviewSessions
                 .Where(s => s.UserId == sub.UserId)
@@ -402,24 +411,33 @@ namespace AICareerCoach.BLL.Services
             if (!exists)
                 return new GeneralResponse<List<AuditLogDto>> { Success = false, Data = null! };
 
-            var logs = await _context.SubscriptionAuditLogs
-                .Where(al => al.UserSubscriptionId == subscriptionId)
-                .Include(al => al.AdminUser)
-                .OrderByDescending(al => al.CreatedAt)
-                .Select(al => new AuditLogDto
-                {
-                    Id = al.Id,
-                    AdminUserId = al.AdminUserId ?? "",
-                    AdminUserName = al.AdminUser!.FullName ?? al.AdminUser.UserName ?? "",
-                    Action = al.Action,
-                    UserSubscriptionId = al.UserSubscriptionId,
-                    TargetUserId = al.TargetUserId,
-                    OldValues = al.PreviousValues,
-                    NewValues = al.NewValues,
-                    Notes = al.Notes,
-                    CreatedAt = al.CreatedAt,
-                })
-                .ToListAsync();
+            List<AuditLogDto> logs;
+            try
+            {
+                logs = await _context.SubscriptionAuditLogs
+                    .Where(al => al.UserSubscriptionId == subscriptionId)
+                    .Include(al => al.AdminUser)
+                    .OrderByDescending(al => al.CreatedAt)
+                    .Select(al => new AuditLogDto
+                    {
+                        Id = al.Id,
+                        AdminUserId = al.AdminUserId ?? "",
+                        AdminUserName = al.AdminUser != null ? (al.AdminUser.FullName ?? al.AdminUser.UserName ?? "") : "System",
+                        Action = al.Action,
+                        UserSubscriptionId = al.UserSubscriptionId,
+                        TargetUserId = al.TargetUserId,
+                        OldValues = al.PreviousValues,
+                        NewValues = al.NewValues,
+                        Notes = al.Notes,
+                        CreatedAt = al.CreatedAt,
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load audit log for subscription {SubId}, returning empty list", subscriptionId);
+                logs = new List<AuditLogDto>();
+            }
 
             return new GeneralResponse<List<AuditLogDto>> { Success = true, Data = logs };
         }
@@ -428,7 +446,7 @@ namespace AICareerCoach.BLL.Services
         {
             _context.SubscriptionAuditLogs.Add(new SubscriptionAuditLog
             {
-                AdminUserId = adminUserId,
+                AdminUserId = string.IsNullOrWhiteSpace(adminUserId) ? null : adminUserId,
                 Action = action,
                 UserSubscriptionId = userSubscriptionId,
                 TargetUserId = targetUserId,

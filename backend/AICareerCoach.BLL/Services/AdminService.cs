@@ -376,57 +376,78 @@ namespace AICareerCoach.BLL.Services
 
         public async Task LogAuditAsync(string adminUserId, string action, string targetType, string? targetId, string? details)
         {
-            var log = new AdminAuditLog
+            try
             {
-                AdminUserId = adminUserId,
-                Action = action,
-                TargetType = targetType,
-                TargetId = targetId,
-                Details = details,
-                Timestamp = DateTime.UtcNow
-            };
+                var log = new AdminAuditLog
+                {
+                    AdminUserId = string.IsNullOrWhiteSpace(adminUserId) ? null : adminUserId,
+                    Action = action,
+                    TargetType = targetType,
+                    TargetId = targetId,
+                    Details = details,
+                    Timestamp = DateTime.UtcNow
+                };
 
-            _context.AdminAuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+                _context.AdminAuditLogs.Add(log);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to write audit log (admin={AdminId}, action={Action})", adminUserId, action);
+            }
         }
 
         public async Task<PaginatedAuditLogsDto> GetAuditLogsAsync(int page, int pageSize, string? action, string? adminId)
         {
-            var query = _context.AdminAuditLogs
-                .Include(l => l.AdminUser)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(action))
-                query = query.Where(l => l.Action == action);
-            if (!string.IsNullOrWhiteSpace(adminId))
-                query = query.Where(l => l.AdminUserId == adminId);
-
-            var totalCount = await query.CountAsync();
-
-            var items = await query
-                .OrderByDescending(l => l.Timestamp)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(l => new AdminAuditLogDto
-                {
-                    Id = l.Id,
-                    AdminUserId = l.AdminUserId,
-                    AdminUserName = l.AdminUser != null ? l.AdminUser.FullName : "Unknown",
-                    Action = l.Action,
-                    TargetType = l.TargetType,
-                    TargetId = l.TargetId,
-                    Details = l.Details,
-                    Timestamp = l.Timestamp
-                })
-                .ToListAsync();
-
-            return new PaginatedAuditLogsDto
+            try
             {
-                Items = items,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize
-            };
+                var query = _context.AdminAuditLogs
+                    .Include(l => l.AdminUser)
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(action))
+                    query = query.Where(l => l.Action == action);
+                if (!string.IsNullOrWhiteSpace(adminId))
+                    query = query.Where(l => l.AdminUserId == adminId);
+
+                var totalCount = await query.CountAsync();
+
+                var items = await query
+                    .OrderByDescending(l => l.Timestamp)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(l => new AdminAuditLogDto
+                    {
+                        Id = l.Id,
+                        AdminUserId = l.AdminUserId,
+                        AdminUserName = l.AdminUser != null ? l.AdminUser.FullName : "Unknown",
+                        Action = l.Action,
+                        TargetType = l.TargetType,
+                        TargetId = l.TargetId,
+                        Details = l.Details,
+                        Timestamp = l.Timestamp
+                    })
+                    .ToListAsync();
+
+                return new PaginatedAuditLogsDto
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load audit logs, returning empty result");
+                return new PaginatedAuditLogsDto
+                {
+                    Items = new List<AdminAuditLogDto>(),
+                    TotalCount = 0,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
         }
 
         public async Task<HealthCheckDto> GetHealthAsync()
@@ -811,7 +832,7 @@ namespace AICareerCoach.BLL.Services
                 .HttpContext?
                 .User
                 .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?
-                .Value ?? "unknown";
+                .Value ?? string.Empty;
         }
     }
 }
